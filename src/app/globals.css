@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --void-purple: #8A2BE2;
+  --void-dark: #0F0F0F;
+  --void-light: #F5F5F5;
+}
+
+body {
+  background-color: var(--void-dark);
+  color: var(--void-light);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer components {
+  .void-container {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .void-button {
+    @apply bg-[#8A2BE2] hover:bg-[#7B1FA2] text-white font-bold py-2 px-4 rounded-lg transition-all duration-300;
+  }
+  
+  .void-card {
+    @apply bg-[#1A1A1A] rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+}
+
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-[#8A2BE2] to-[#9F2BF3];
+}
