@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "Void Esports",
   description: "Professional Esports Organization",
   icons: {
-    icon: '/favicon.ico',
+    icon: '/void.ico',
     apple: [
       { url: '/logos/apple-icon.png', sizes: '180x180' },
     ],
