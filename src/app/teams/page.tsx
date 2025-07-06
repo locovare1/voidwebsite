@@ -19,7 +19,7 @@ const teams = [
     name: 'Ownership/Management',
     image: '/logo.png',
     description: 'Void Esports Management and Ownership Team',
-    roster: ['Gruun', 'Frankenstein', 'Bxezy', 'JECI', 'Dixuez', 'Dr Puffin', 'Solace'],
+    roster: ['Gruun', 'Frankenstein', 'Bxezy', 'Dixuez'],
     achievements: ['The Very Upper Executives of Void Esports'],
   },
 ];
