@@ -10,11 +10,7 @@ export const metadata: Metadata = {
   title: "Void Esports",
   description: "Professional Esports Organization",
   icons: {
-    icon: [
-      { url: '/logos/logo.png', type: 'image/png', sizes: '32x32' },
-      { url: '/logos/icon-192.png', type: 'image/png', sizes: '192x192' },
-      { url: '/logos/icon-512.png', type: 'image/png', sizes: '512x512' },
-    ],
+    icon: '/logos/logo.png',
     apple: [
       { url: '/logos/apple-icon.png', sizes: '180x180' },
     ],
