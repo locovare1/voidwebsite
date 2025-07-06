@@ -11,7 +11,6 @@ export const metadata: Metadata = {
   description: "Professional Esports Organization",
   icons: {
     icon: [
-      { url: '/favicon.ico' },
       { url: '/logos/logo.png', type: 'image/png', sizes: '32x32' },
       { url: '/logos/icon-192.png', type: 'image/png', sizes: '192x192' },
       { url: '/logos/icon-512.png', type: 'image/png', sizes: '512x512' },
