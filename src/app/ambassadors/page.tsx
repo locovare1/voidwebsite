@@ -141,6 +141,7 @@ export default function AmbassadorsPage() {
                 </div>
               </div>
             </div>
+          </div>
         </section>
 
         {/* CTA Section */}
