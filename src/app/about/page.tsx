@@ -82,7 +82,7 @@ export default function AboutPage() {
           <ul className="grid gap-4">
             {achievements.map((achievement) => (
               <li key={achievement} className="flex items-center gap-3 text-gray-300">
-                <span className="h-2 w-2 rounded-full bg-[#8A2BE2]" />
+                <span className="h-2 w-2 rounded-full bg-[#a2a2a2]" />
                 {achievement}
               </li>
             ))}
@@ -96,7 +96,7 @@ export default function AboutPage() {
             <Link href="/teams" className="void-button">
               View Our Teams
             </Link>
-            <Link href="/contact" className="void-button bg-transparent border-2 border-[#8A2BE2] hover:bg-[#8A2BE2]">
+            <Link href="/contact" className="void-button bg-transparent border-2 text-[#FFFFFF] border-[#FFFFFF] hover:bg-[#FFFFFF] hover:text-[#000000]">
               Contact Us
             </Link>
           </div>

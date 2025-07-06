@@ -5,16 +5,21 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 
 const featuredTeams = [
-  {
-    name: 'Valorant',
-    image: '/teams/valorant.png',
-    description: 'Rising stars in the competitive Valorant scene.',
-  },
-  {
-    name: 'Fortnite',
-    image: '/news/wavedashh.png',
-    description: 'Rising stars in the competitive Fortnite scene.',
-  },
+    {
+      name: '',
+      image: '/transparent.png',
+      description: ' ',
+    },
+    {
+      name: 'Fortnite',
+      image: '/news/wavedashh.png',
+      description: 'Rising stars in the competitive Fortnite scene.',
+    },
+    {
+      name: '  ',
+      image: '/transparent.png',
+      description: '   ',
+    },
 ];
 
 const latestNews = [
@@ -70,14 +75,14 @@ export default function Home() {
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 gradient-text">
             WELCOME TO VOID
           </h1>
-          <p className="text-xl md:text-2xl text-gray-200 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl #000000 mb-8 max-w-3xl mx-auto">
             A professional esports organization dedicated to excellence in competitive gaming
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/teams" className="void-button">
               Our Teams
             </Link>
-            <Link href="/about" className="void-button bg-transparent border-2 border-[#8A2BE2] hover:bg-[#8A2BE2]">
+            <Link href="/about" className="void-button bg-transparent border-2 text-white border-[#FFFFFF] hover:bg-[#FFFFF] hover:text-black">
               Learn More
             </Link>
           </div>
@@ -123,7 +128,7 @@ export default function Home() {
                   />
                 </div>
                 <div className="text-sm text-gray-400 mb-2">{news.date}</div>
-                <h3 className="text-xl font-bold mb-2 group-hover:text-[#8A2BE2] transition-colors">
+                <h3 className="text-xl font-bold mb-2 group-hover:text-[#a6a6a6] transition-colors">
                   {news.title}
                 </h3>
                 <p className="text-gray-400">{news.description}</p>

@@ -51,7 +51,7 @@ export default function Navbar() {
             <Link
               key={item.name}
               href={item.href}
-              className="text-sm font-semibold leading-6 text-white hover:text-[#8A2BE2] transition-colors"
+              className="text-sm font-semibold leading-6 text-white hover:text-[#a6a6a6] transition-colors"
             >
               {item.name}
             </Link>
@@ -82,7 +82,7 @@ export default function Navbar() {
             </Link>
             <button
               type="button"
-              className="rounded-md p-2.5 text-white hover:text-[#8A2BE2]"
+              className="rounded-md p-2.5 text-white hover:text-[#a6a6a6]"
               onClick={() => setMobileMenuOpen(false)}
             >
               <XMarkIcon className="h-6 w-6" />
@@ -94,7 +94,7 @@ export default function Navbar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="block py-3 text-base font-semibold text-white hover:text-[#8A2BE2] border-b border-gray-800"
+                className="block py-3 text-base font-semibold text-white hover:text-[#a6a6a6] border-b border-gray-800"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.name}
@@ -102,7 +102,7 @@ export default function Navbar() {
             ))}
             <Link
               href="/contact"
-              className="mt-4 block py-3 text-base font-semibold text-white hover:text-[#8A2BE2]"
+              className="mt-4 block py-3 text-base font-semibold text-white hover:text-[#a6a6a6]"
               onClick={() => setMobileMenuOpen(false)}
             >
               Contact Us

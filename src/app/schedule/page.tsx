@@ -1,10 +1,10 @@
 const upcomingMatches = [
   {
-    game: 'Valorant',
-    event: 'Spring Invitational Semifinals',
-    opponent: 'Team Nebula',
-    date: '2025-07-15',
-    time: '6:00 PM EST',
+    game: 'TBD',
+    event: 'TBD',
+    opponent: 'TBD',
+    date: 'TBD',
+    time: 'TBD',
     streamLink: 'https://www.twitch.tv/voidfrankenstein',
   },
 ];
@@ -35,7 +35,7 @@ export default function SchedulePage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="px-2 py-1 bg-[#8A2BE2]/20 rounded-full text-[#8A2BE2] text-sm">
+                      <span className="px-2 py-1 bg-[#FFFFFF]/20 rounded-full text-[#FFFFFF] text-sm">
                         {match.game}
                       </span>
                       <span className="text-gray-400">{match.event}</span>
@@ -50,14 +50,14 @@ export default function SchedulePage() {
                       <div>{match.date}</div>
                       <div>{match.time}</div>
                     </div>
-                    <a
-                      href={match.streamLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="void-button"
-                    >
-                      Watch Stream
-                    </a>
+                      <a
+                        href={match.streamLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="void-button"
+                      >
+                        Watch Stream
+                      </a>
                   </div>
                 </div>
               </div>
@@ -74,7 +74,7 @@ export default function SchedulePage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="px-2 py-1 bg-[#8A2BE2]/20 rounded-full text-[#8A2BE2] text-sm">
+                      <span className="px-2 py-1 bg-[#FFFFFF]/20 rounded-full text-[#FFFFFF] text-sm">
                         {event.game}
                       </span>
                       <span className="text-gray-400">{event.type}</span>
@@ -83,7 +83,7 @@ export default function SchedulePage() {
                       {event.name}
                     </div>
                     {event.prizePool && (
-                      <div className="text-[#8A2BE2]">Prize Pool: {event.prizePool}</div>
+                      <div className="text-[#a2a2a2]">Prize Pool: {event.prizePool}</div>
                     )}
                   </div>
                   

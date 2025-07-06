@@ -170,12 +170,16 @@ export default function ShopPage() {
               <div className="space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="text-xl font-bold text-white group-hover:text-[#8A2BE2] transition-colors">
+                    <span className="px-2 py-1 bg-[#FFFFFF]/20 rounded-full text-[#FFFFFF]">
+                      {product.category}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white group-hover:text-[#a2a2a2] transition-colors">
                       {product.name}
                     </h3>
-                    <p className="text-sm text-gray-400">{product.category}</p>
                   </div>
-                  <div className="text-xl font-bold text-[#8A2BE2]">
+                  <div className="text-xl font-bold text-[#FFFFF]">
                     ${product.price}
                   </div>
                 </div>

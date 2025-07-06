@@ -64,7 +64,7 @@ export default function Placements() {
                   <h3 className="text-white font-semibold text-xl">
                     {placement.game}
                   </h3>
-                  <p className="text-[#8A2BE2]">{placement.team}</p>
+                  <p className="text-[#bdbdbd]">{placement.team}</p>
                 </div>
               </div>
 
@@ -88,7 +88,7 @@ export default function Placements() {
                 {placement.prize && (
                   <div>
                     <p className="text-gray-400">Prize</p>
-                    <p className="text-[#8A2BE2] font-semibold">
+                    <p className="text-[#a2a2a2] font-semibold">
                       {placement.prize}
                     </p>
                   </div>

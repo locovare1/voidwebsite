@@ -66,7 +66,7 @@ export default function ContactPage() {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 bg-[#2A2A2A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A2BE2] text-white"
+                className="w-full px-4 py-2 bg-[#2A2A2A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] text-white"
                 placeholder="Your name"
               />
             </div>
@@ -82,7 +82,7 @@ export default function ContactPage() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 bg-[#2A2A2A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A2BE2] text-white"
+                className="w-full px-4 py-2 bg-[#2A2A2A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] text-white"
                 placeholder="your.email@example.com"
               />
             </div>
@@ -98,7 +98,7 @@ export default function ContactPage() {
                 value={formData.subject}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 bg-[#2A2A2A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A2BE2] text-white"
+                className="w-full px-4 py-2 bg-[#2A2A2A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] text-white"
                 placeholder="What is this regarding?"
               />
             </div>
@@ -114,7 +114,7 @@ export default function ContactPage() {
                 onChange={handleChange}
                 required
                 rows={5}
-                className="w-full px-4 py-2 bg-[#2A2A2A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A2BE2] text-white resize-none"
+                className="w-full px-4 py-2 bg-[#2A2A2A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] text-white resize-none"
                 placeholder="Your message here..."
               />
             </div>

@@ -45,12 +45,12 @@ export default function NewsPage() {
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-sm text-gray-400">
                   <span>{article.date}</span>
-                  <span className="px-2 py-1 bg-[#8A2BE2]/20 rounded-full text-[#8A2BE2]">
+                  <span className="px-2 py-1 bg-[#FFFFFF]/20 rounded-full text-[#FFFFFF]">
                     {article.category}
                   </span>
                 </div>
                 
-                <h2 className="text-xl font-bold group-hover:text-[#8A2BE2] transition-colors">
+                <h2 className="text-xl font-bold group-hover:text-[#a2a2a2] transition-colors">
                   {article.title}
                 </h2>
                 

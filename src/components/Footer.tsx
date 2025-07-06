@@ -38,7 +38,7 @@ export default function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-gray-400 hover:text-[#8A2BE2] transition-colors"
+                    className="text-gray-400 hover:text-[#FFFFFF] transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -55,7 +55,7 @@ export default function Footer() {
                 <Link
                   key={social.name}
                   href={social.href}
-                  className="text-gray-400 hover:text-[#8A2BE2] transition-colors"
+                  className="text-gray-400 hover:text-[#FFFFFF] transition-colors"
                 >
                   <span className="sr-only">{social.name}</span>
                   <social.icon className="h-6 w-6" />
