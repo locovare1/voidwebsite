@@ -134,7 +134,7 @@ export default function AmbassadorsPage() {
 
               {/* Overwatch 2 */}
               <div className="bg-[#18181b] p-6 rounded-lg shadow-sm">
-                <h3 className="text-xl font-semibold mb-4 text-white">Split Gate 2</h3>
+                <h3 className="text-xl font-semibold mb-4 text-white">Overwatch 2</h3>
                 <div className="space-y-2">
                   <p className="text-gray-400 text-sm">Current Ambassadors:</p>
                   <p className="text-gray-300">- Void Fuzzy</p>
