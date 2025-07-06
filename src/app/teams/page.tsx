@@ -16,8 +16,8 @@ const teams = [
     achievements: ['The Owners of Void Esports'],
   },
   {
-    name: 'Valorant',
-    image: '/teams/valorant.png',
+    name: 'Management',
+    image: '/logo.png',
     description: 'Void Esports Ownership Team',
     roster: ['DrPuffin', 'Wrench', 'Cyber', 'Artic'],
     achievements: ['The Very Upper Executives of Void Esports'],
