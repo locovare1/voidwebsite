@@ -11,13 +11,13 @@ export const metadata: Metadata = {
   description: "Professional Esports Organization",
   icons: {
     icon: [
-      { url: '/logos/favicon.ico' },
-      { url: '/logos/icon.png', type: 'image/png', sizes: '32x32' },
+      { url: '/favicon.ico' },
+      { url: '/logos/logo.png', type: 'image/png', sizes: '32x32' },
       { url: '/logos/icon-192.png', type: 'image/png', sizes: '192x192' },
       { url: '/logos/icon-512.png', type: 'image/png', sizes: '512x512' },
     ],
     apple: [
-      { url: '/apple-icon.png', sizes: '180x180' },
+      { url: '/logos/apple-icon.png', sizes: '180x180' },
     ],
   },
 };
@@ -29,12 +29,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="icon" href="/favicon.ico" />
-        <title>
-          Void Esports
-        </title>
-      </head>
       <body className={inter.className}>
         <Navbar />
         <main className="min-h-screen">{children}</main>
