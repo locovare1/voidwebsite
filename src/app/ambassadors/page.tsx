@@ -122,8 +122,25 @@ export default function AmbassadorsPage() {
                   <p className="text-gray-300">- Void Bxezy</p>
                 </div>
               </div>
+
+              {/* Split Gate 2 */}
+              <div className="bg-[#18181b] p-6 rounded-lg shadow-sm">
+                <h3 className="text-xl font-semibold mb-4 text-white">Split Gate 2</h3>
+                <div className="space-y-2">
+                  <p className="text-gray-400 text-sm">Current Ambassadors:</p>
+                  <p className="text-gray-300">- Void Ego</p>
+                </div>
+              </div>
+
+              {/* Overwatch 2 */}
+              <div className="bg-[#18181b] p-6 rounded-lg shadow-sm">
+                <h3 className="text-xl font-semibold mb-4 text-white">Split Gate 2</h3>
+                <div className="space-y-2">
+                  <p className="text-gray-400 text-sm">Current Ambassadors:</p>
+                  <p className="text-gray-300">- Void Fuzzy</p>
+                </div>
+              </div>
             </div>
-          </div>
         </section>
 
         {/* CTA Section */}
