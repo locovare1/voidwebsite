@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 export default function AmbassadorsPage() {
   return (
-    <>
+    <>,
       {/* SEO / Meta Tags */}
       <title>Void Outreach Program | Void Esports</title>
       <meta charSet="UTF-8" />
