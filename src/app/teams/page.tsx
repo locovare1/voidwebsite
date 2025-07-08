@@ -19,7 +19,7 @@ const teams = [
     name: 'Management',
     image: '/logo.png',
     description: 'Void Esports Ownership Team',
-    roster: ['DrPuffin', 'Wrench', 'Cyber', 'Artic'],
+    roster: ['DrPuffin', 'Wrench', 'Artic', '???'],
     achievements: ['The Very Upper Executives of Void Esports'],
   },
 ];
