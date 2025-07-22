@@ -15,14 +15,6 @@ const teams = [
     roster: ['Gruun', 'Frankenstein', 'Bxezy', 'Dixuez'],
     achievements: ['The Owners of Void Esports'],
   },
-  {
-    name: 'Management',
-    image: '/logo.png',
-    description: 'Void Esports Ownership Team',
-    roster: ['DrPuffin', 'Wrench', 'Artic', '???'],
-    achievements: ['The Very Upper Executives of Void Esports'],
-  },
-];
 
 export default function TeamsPage() {
   return (
