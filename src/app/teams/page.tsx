@@ -15,7 +15,7 @@ const teams = [
     roster: ['Gruun', 'Frankenstein', 'Bxezy', 'Dixuez'],
     achievements: ['The Owners of Void Esports'],
   },
-
+]
 export default function TeamsPage() {
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F]">
