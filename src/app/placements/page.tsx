@@ -13,6 +13,26 @@ interface Placement {
 const recentPlacements: Placement[] = [
   {
     game: "Fortnite",
+    tournament: "FNCS Group 3",
+    team: "Void Fortnite",
+    position: "7th Place",
+    players: ["Void Blu, EXE Zanda, PowerFN"],
+    prize: "$0",
+    logo: "/logos/fortnite.jpg"
+  },
+
+  {
+    game: "Fortnite",
+    tournament: "FNCS Group 3",
+    team: "Void Fortnite",
+    position: "10th Place",
+    players: ["Void Drvzy, Maddenv_, Liam"],
+    prize: "$0",
+    logo: "/logos/fortnite.jpg"
+  },
+  
+  {
+    game: "Fortnite",
     tournament: "Platinum & Diamond Ranked Cup (Solos)",
     team: "Void Fortnite",
     position: "11th Place",
