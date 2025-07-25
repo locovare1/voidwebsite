@@ -2,6 +2,20 @@ import Image from 'next/image';
 
 const newsArticles = [
   {
+    title: 'Void Blu and Void Drvzy Qualify to FNCS Grand Finals',
+    date: '2025-07-20',
+    image: '/teams/valorant.png',
+    description: 'We are excited to announce that Both of our signings, Blue and Drvzy, qualified to FNCS Major 3 Grand Finals! We really wish them the best of luck in winning and qualifying to the FNCS Global Championships in France!',
+    category: 'Valorant',
+  },
+  {
+    title: 'Void Announces Two New Signing',
+    date: '2025-07-19',
+    image: '/teams/valorant.png',
+    description: 'We are thrilled to announce our new signings for our Fortnite team, Blu and Drvzy!',
+    category: 'Valorant',
+  },
+  {
     title: 'Void Announces Upcoming Valorant Team',
     date: '2025-06-01',
     image: '/teams/valorant.png',
