@@ -22,7 +22,7 @@ const recentPlacements: Placement[] = [
   },
   {
     game: "Fortnite",
-    tournament: "Ranked Cup",
+    tournament: "FNCS Grand Finals",
     team: "Void Fortnite",
     position: "33rd Place",
     players: ["Void Drvzy, EXE Liam, Maddenv_"],
