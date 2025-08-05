@@ -5,7 +5,7 @@ const newsArticles = [
     title: 'Void Earns in FNCS Grand Finals',
     date: '2025-07-20',
     image: '/news/FNCS.png',
-    description: 'We are proud to say that Void Blu went crazy in FNCS Grands and earned 850 dollars split across his trio. We want to wish Blu good luck in the next FNCS and we are very proud of him.',
+    description: 'We are proud to say that Void Blu went crazy in FNCS Grands and earned over 2000 dollars split across his trio. We want to wish Blu good luck in the next FNCS and we are very proud of him.',
     category: 'Fortnite',
   },
   {
