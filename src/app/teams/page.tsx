@@ -12,7 +12,7 @@ const teams = [
     name: 'Ownership',
     image: '/logo.png',
     description: 'Void Esports Ownership Team',
-    roster: ['Gruun', 'Frankenstein', 'Bxezy', 'Dixuez'],
+    roster: ['Gruun', 'Frankenstein', 'Dixuez', 'DrPuffin'],
     achievements: ['The Owners of Void Esports'],
   },
 ]
