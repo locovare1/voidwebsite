@@ -5,7 +5,7 @@ const teams = [
     name: 'Fortnite',
     image: '/teams/fortnite.png',
     description: 'Our elite Fortnite squad competing at the highest level.',
-    roster: ['Void Blu', 'Void Drvzy', 'Void Crzy'],
+    roster: ['Void Blu', 'Void Drvzy', 'Void Crzy', 'Void Jayse1x'],
     achievements: ['The Best Fortnite Group in the World.'],
   },
   {
