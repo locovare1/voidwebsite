@@ -28,7 +28,7 @@ export default function RootLayout({
       <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3190492570821815"
       crossOrigin="anonymous"></script>
       <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3190492570821815"
-      crossorigin="anonymous"></script>
+      crossOrigin="anonymous"></script>
       <body className={inter.className}>
         <Navbar />
         <main className="min-h-screen">{children}</main>
