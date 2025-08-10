@@ -65,6 +65,7 @@ export default function Home() {
   }, []);
 
   return (
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="h-screen flex items-center justify-center bg-[#0F0F0F] relative overflow-hidden">
