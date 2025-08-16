@@ -54,26 +54,26 @@ const newsArticles = [
 
 export default function NewsPage() {
   return (
-    <div className="pt-20 min-h-screen bg-[#0F0F0F] page-transition">
+    <div className="pt-20 min-h-screen bg-[#0F0F0F] page-wrapper gpu-accelerated">
       <div className="void-container py-12">
-        <h1 className="text-4xl font-bold mb-12 gradient-text text-center animate-slide-in-up">Latest News</h1>
+        <h1 className="text-4xl font-bold mb-12 gradient-text text-center animate-bounce-in gpu-accelerated">Latest News</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {newsArticles.map((article, index) => (
-            <div key={article.title} className={`void-card group cursor-pointer animate-scale-in stagger-${(index % 4) + 1}`}>
+            <div key={article.title} className={`void-card group cursor-pointer hover-lift scroll-reveal gpu-accelerated`} style={{animationDelay: `${index * 0.1}s`}}>
               <div className="relative h-48 mb-4 overflow-hidden rounded-lg">
                 <Image
                   src={article.image}
                   alt={article.title}
                   fill
-                  className="object-cover transform group-hover:scale-110 transition-transform duration-500"
+                  className="object-cover transform group-hover:scale-110 transition-transform duration-500 gpu-accelerated"
                 />
               </div>
               
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-sm text-gray-400">
                   <span>{article.date}</span>
-                  <span className="px-2 py-1 bg-[#FFFFFF]/20 rounded-full text-[#FFFFFF] transition-all duration-300 hover:bg-[#FFFFFF]/30">
+                  <span className="px-2 py-1 bg-[#FFFFFF]/20 rounded-full text-[#FFFFFF] transition-all duration-300 hover:bg-[#FFFFFF]/30 hover:scale-105 gpu-accelerated">
                     {article.category}
                   </span>
                 </div>

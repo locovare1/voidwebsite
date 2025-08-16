@@ -46,16 +46,16 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="pt-20 min-h-screen bg-[#0F0F0F] page-transition">
+    <div className="pt-20 min-h-screen bg-[#0F0F0F] page-wrapper gpu-accelerated">
       <div className="void-container py-12">
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-4xl font-bold mb-6 gradient-text text-center animate-slide-in-up">Contact Us</h1>
-          <p className="text-gray-300 text-center mb-8 animate-slide-in-up stagger-1">
+          <h1 className="text-4xl font-bold mb-6 gradient-text text-center animate-bounce-in gpu-accelerated">Contact Us</h1>
+          <p className="text-gray-300 text-center mb-8 animate-slide-in-up stagger-1 gpu-accelerated">
             Have questions or want to get in touch? Fill out the form below and we&apos;ll get back to you as soon as possible.
           </p>
 
-          <form onSubmit={handleSubmit} className="void-card space-y-6 animate-scale-in stagger-2">
-            <div className="animate-slide-in-up stagger-1">
+          <form onSubmit={handleSubmit} className="void-card space-y-6 scroll-reveal hover-lift gpu-accelerated">
+            <div className="stagger-child">
               <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
                 Name
               </label>
@@ -66,12 +66,12 @@ export default function ContactPage() {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 bg-[#2A2A2A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] text-white transition-all duration-300 focus:scale-105"
+                className="w-full px-4 py-2 bg-[#2A2A2A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] text-white transition-all duration-300 focus:scale-105 hover:border-[#FFFFFF]/50 gpu-accelerated"
                 placeholder="Your name"
               />
             </div>
 
-            <div className="animate-slide-in-up stagger-2">
+            <div className="stagger-child">
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
                 Email
               </label>
@@ -82,12 +82,12 @@ export default function ContactPage() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 bg-[#2A2A2A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] text-white transition-all duration-300 focus:scale-105"
+                className="w-full px-4 py-2 bg-[#2A2A2A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] text-white transition-all duration-300 focus:scale-105 hover:border-[#FFFFFF]/50 gpu-accelerated"
                 placeholder="your.email@example.com"
               />
             </div>
 
-            <div className="animate-slide-in-up stagger-3">
+            <div className="stagger-child">
               <label htmlFor="subject" className="block text-sm font-medium text-gray-300 mb-2">
                 Subject
               </label>
@@ -98,12 +98,12 @@ export default function ContactPage() {
                 value={formData.subject}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 bg-[#2A2A2A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] text-white transition-all duration-300 focus:scale-105"
+                className="w-full px-4 py-2 bg-[#2A2A2A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] text-white transition-all duration-300 focus:scale-105 hover:border-[#FFFFFF]/50 gpu-accelerated"
                 placeholder="What is this regarding?"
               />
             </div>
 
-            <div className="animate-slide-in-up stagger-4">
+            <div className="stagger-child">
               <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">
                 Message
               </label>
@@ -114,7 +114,7 @@ export default function ContactPage() {
                 onChange={handleChange}
                 required
                 rows={5}
-                className="w-full px-4 py-2 bg-[#2A2A2A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] text-white resize-none transition-all duration-300 focus:scale-105"
+                className="w-full px-4 py-2 bg-[#2A2A2A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] text-white resize-none transition-all duration-300 focus:scale-105 hover:border-[#FFFFFF]/50 gpu-accelerated"
                 placeholder="Your message here..."
               />
             </div>
@@ -122,19 +122,24 @@ export default function ContactPage() {
             <button
               type="submit"
               disabled={status === 'sending'}
-              className="void-button w-full animate-fade-in stagger-4"
+              className="void-button w-full hover-lift stagger-child gpu-accelerated"
             >
-              {status === 'sending' ? 'Sending...' : 'Send Message'}
+              {status === 'sending' ? (
+                <span className="flex items-center justify-center">
+                  <div className="loading-spin w-4 h-4 border-2 border-black/20 border-t-black rounded-full mr-2"></div>
+                  Sending...
+                </span>
+              ) : 'Send Message'}
             </button>
 
             {status === 'success' && (
-              <p className="text-green-500 text-center animate-fade-in">
+              <p className="text-green-500 text-center animate-bounce-in">
                 Thank you for your message! We&apos;ll get back to you soon.
               </p>
             )}
             
             {status === 'error' && (
-              <p className="text-red-500 text-center animate-fade-in">
+              <p className="text-red-500 text-center animate-bounce-in">
                 There was an error sending your message. Please try again later.
               </p>
             )}
