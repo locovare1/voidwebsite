@@ -30,25 +30,25 @@ const achievements = [
 
 export default function AboutPage() {
   return (
-    <div className="pt-20 min-h-screen bg-[#0F0F0F]">
+    <div className="pt-20 min-h-screen bg-[#0F0F0F] page-transition">
       <div className="void-container py-12">
         {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">About Void</h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+        <div className="text-center mb-16 animate-fade-in">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 gradient-text animate-slide-in-up">About Void</h1>
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto animate-slide-in-up stagger-1">
             A professional esports organization dedicated to excellence, innovation, and community building in competitive gaming.
           </p>
         </div>
 
         {/* Mission Statement */}
-        <div className="void-card mb-16">
+        <div className="void-card mb-16 animate-scale-in stagger-2">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div className="relative h-64 md:h-full min-h-[300px] rounded-lg overflow-hidden">
               <Image
                 src="/logo.png"
                 alt="Void Esports Mission"
                 fill
-                className="object-cover"
+                className="object-cover transition-transform duration-500 hover:scale-110"
               />
             </div>
             <div className="space-y-4">
@@ -64,11 +64,11 @@ export default function AboutPage() {
         </div>
 
         {/* Core Values */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold mb-8 text-center gradient-text">Our Values</h2>
+        <div className="mb-16 animate-fade-in stagger-3">
+          <h2 className="text-3xl font-bold mb-8 text-center gradient-text animate-slide-in-up">Our Values</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {values.map((value) => (
-              <div key={value.title} className="void-card">
+            {values.map((value, index) => (
+              <div key={value.title} className={`void-card animate-slide-in-up stagger-${index + 1}`}>
                 <h3 className="text-xl font-bold mb-3 text-white">{value.title}</h3>
                 <p className="text-gray-400">{value.description}</p>
               </div>
@@ -77,11 +77,11 @@ export default function AboutPage() {
         </div>
 
         {/* Achievements */}
-        <div className="void-card">
-          <h2 className="text-3xl font-bold mb-8 gradient-text">Our Goals</h2>
+        <div className="void-card animate-scale-in stagger-4">
+          <h2 className="text-3xl font-bold mb-8 gradient-text animate-slide-in-up">Our Goals</h2>
           <ul className="grid gap-4">
-            {achievements.map((achievement) => (
-              <li key={achievement} className="flex items-center gap-3 text-gray-300">
+            {achievements.map((achievement, index) => (
+              <li key={achievement} className={`flex items-center gap-3 text-gray-300 animate-slide-in-left stagger-${index + 1}`}>
                 <span className="h-2 w-2 rounded-full bg-[#a2a2a2]" />
                 {achievement}
               </li>
@@ -90,7 +90,7 @@ export default function AboutPage() {
         </div>
 
         {/* CTA Section */}
-        <div className="mt-16 text-center">
+        <div className="mt-16 text-center animate-fade-in stagger-4">
           <h2 className="text-2xl font-bold mb-6 text-white">Join the Void Community</h2>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/teams" className="void-button">

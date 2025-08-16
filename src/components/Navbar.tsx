@@ -20,7 +20,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="fixed w-full bg-[#0F0F0F]/95 backdrop-blur-sm z-[100]">
+    <header className="fixed w-full bg-[#0F0F0F]/95 backdrop-blur-sm z-[100] animate-slide-in-up">
       <nav className="void-container flex items-center justify-between py-4">
         <div className="flex lg:flex-1">
           <Link href="/" className="-m-1.5 p-1.5">
@@ -30,7 +30,7 @@ export default function Navbar() {
               alt="Void Logo"
               width={48}
               height={48}
-              className="h-12 w-auto"
+              className="h-12 w-auto transition-transform duration-300 hover:scale-110"
             />
           </Link>
         </div>
@@ -38,7 +38,7 @@ export default function Navbar() {
         <div className="flex lg:hidden">
           <button
             type="button"
-            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-white"
+            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-white transition-transform duration-200 hover:scale-110 active:scale-95"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             <span className="sr-only">Open main menu</span>
@@ -51,9 +51,10 @@ export default function Navbar() {
             <Link
               key={item.name}
               href={item.href}
-              className="text-sm font-semibold leading-6 text-white hover:text-[#a6a6a6] transition-colors"
+              className="text-sm font-semibold leading-6 text-white hover:text-[#a6a6a6] transition-all duration-300 relative group"
             >
-              {item.name}
+              <span className="relative z-10">{item.name}</span>
+              <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#a6a6a6] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
             </Link>
           ))}
         </div>
@@ -66,10 +67,10 @@ export default function Navbar() {
       </nav>
 
       <div 
-        className={`fixed inset-0 ${mobileMenuOpen ? 'block' : 'hidden'} lg:hidden z-[999]`}
+        className={`fixed inset-0 ${mobileMenuOpen ? 'block animate-fade-in' : 'hidden'} lg:hidden z-[999] transition-all duration-300`}
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
       >
-        <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-[#0F0F0F] shadow-xl">
+        <div className={`fixed inset-y-0 right-0 w-full max-w-sm bg-[#0F0F0F] shadow-xl transform transition-transform duration-300 ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="flex items-center justify-between p-6 border-b border-gray-800">
             <Link href="/" onClick={() => setMobileMenuOpen(false)}>
               <Image
@@ -82,7 +83,7 @@ export default function Navbar() {
             </Link>
             <button
               type="button"
-              className="rounded-md p-2.5 text-white hover:text-[#a6a6a6]"
+              className="rounded-md p-2.5 text-white hover:text-[#a6a6a6] transition-all duration-200 hover:scale-110 active:scale-95"
               onClick={() => setMobileMenuOpen(false)}
             >
               <XMarkIcon className="h-6 w-6" />
@@ -90,11 +91,11 @@ export default function Navbar() {
           </div>
           
           <div className="mt-6 px-6 flex flex-col bg-[#0F0F0F]">
-            {navigation.map((item) => (
+            {navigation.map((item, index) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className="block py-3 text-base font-semibold text-white hover:text-[#a6a6a6] border-b border-gray-800"
+                className={`block py-3 text-base font-semibold text-white hover:text-[#a6a6a6] border-b border-gray-800 transition-all duration-300 hover:translate-x-2 animate-slide-in-left stagger-${Math.min(index + 1, 4)}`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.name}
@@ -102,7 +103,7 @@ export default function Navbar() {
             ))}
             <Link
               href="/contact"
-              className="mt-4 block py-3 text-base font-semibold text-white hover:text-[#a6a6a6]"
+              className="mt-4 block py-3 text-base font-semibold text-white hover:text-[#a6a6a6] transition-all duration-300 hover:translate-x-2"
               onClick={() => setMobileMenuOpen(false)}
             >
               Contact Us

@@ -19,11 +19,11 @@ const footerLinks = [
 
 export default function Footer() {
   return (
-    <footer className="bg-[#0F0F0F] border-t border-gray-800">
+    <footer className="bg-[#0F0F0F] border-t border-gray-800 animate-fade-in">
       <div className="void-container py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
-          <div className="space-y-4">
+          <div className="space-y-4 animate-slide-in-up stagger-1">
             <h3 className="text-xl font-bold gradient-text">VOID</h3>
             <p className="text-gray-400">
               Professional esports organization pushing the boundaries of competitive gaming.
@@ -31,14 +31,14 @@ export default function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div>
+          <div className="animate-slide-in-up stagger-2">
             <h4 className="text-lg font-semibold mb-4 text-white">Quick Links</h4>
             <ul className="space-y-2">
               {footerLinks.slice(0, 3).map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-gray-400 hover:text-[#FFFFFF] transition-colors"
+                    className="text-gray-400 hover:text-[#FFFFFF] transition-all duration-300 hover:translate-x-1"
                   >
                     {link.name}
                   </Link>
@@ -48,14 +48,14 @@ export default function Footer() {
           </div>
 
           {/* Social Links */}
-          <div>
+          <div className="animate-slide-in-up stagger-3">
             <h4 className="text-lg font-semibold mb-4 text-white">Connect With Us</h4>
             <div className="flex space-x-4">
               {socialLinks.map((social) => (
                 <Link
                   key={social.name}
                   href={social.href}
-                  className="text-gray-400 hover:text-[#FFFFFF] transition-colors"
+                  className="text-gray-400 hover:text-[#FFFFFF] transition-all duration-300 transform hover:scale-125 hover:-translate-y-1"
                 >
                   <span className="sr-only">{social.name}</span>
                   <social.icon className="h-6 w-6" />
@@ -65,7 +65,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-gray-800">
+        <div className="mt-8 pt-8 border-t border-gray-800 animate-fade-in stagger-4">
           <p className="text-center text-gray-400">
             © {new Date().getFullYear()} Void Esports. All rights reserved.
           </p>
