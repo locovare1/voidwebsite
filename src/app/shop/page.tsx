@@ -1,6 +1,10 @@
-'use client';
+import ProductGrid from '@/components/ProductGrid';
+import type { Metadata } from 'next';
 
-import Image from 'next/image';
+export const metadata: Metadata = {
+  title: 'Shop',
+  description: 'Official Void Esports merchandise and gaming gear.',
+};
 
 const products = [
   {
@@ -154,47 +158,8 @@ export default function ShopPage() {
     <div className="pt-20 min-h-screen bg-[#0F0F0F]">
       <div className="void-container py-12">
         <h1 className="text-4xl font-bold mb-12 gradient-text text-center">Shop</h1>
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {products.map((product) => (
-            <div key={product.id} className="void-card group">
-              <div className="relative h-64 mb-4 overflow-hidden rounded-lg">
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  fill
-                  className="object-cover transform group-hover:scale-110 transition-transform duration-300"
-                />
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="px-2 py-1 bg-[#FFFFFF]/20 rounded-full text-[#FFFFFF]">
-                      {product.category}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-white group-hover:text-[#a2a2a2] transition-colors">
-                      {product.name}
-                    </h3>
-                  </div>
-                  <div className="text-xl font-bold text-[#FFFFF]">
-                    ${product.price}
-                  </div>
-                </div>
-                
-                <p className="text-gray-400 text-sm">
-                  {product.description}
-                </p>
-                <button className="w-full void-button" onClick={() => window.open(product.link, "_blank")}>
-                Buy Now
-              </button>
-
-              </div>
-            </div>
-          ))}
-        </div>
+        
+        <ProductGrid products={products} itemsPerPage={9} />
       </div>
     </div>
   );

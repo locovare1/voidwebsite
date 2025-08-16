@@ -1,4 +1,10 @@
-import Image from 'next/image';
+import PlacementGrid from '@/components/PlacementGrid';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Recent Placements',
+  description: 'View our teams\' latest achievements and tournament placements across various esports titles.',
+};
 
 interface Placement {
   game: string;
@@ -92,58 +98,7 @@ export default function Placements() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {recentPlacements.map((placement, index) => (
-            <div
-              key={index}
-              className="bg-[#1A1A1A] rounded-xl p-6 transform hover:scale-105 transition-transform duration-300 border border-[#2A2A2A]"
-            >
-              <div className="flex items-center mb-4">
-                <div className="relative w-12 h-12 mr-4">
-                  <Image
-                    src={placement.logo}
-                    alt={placement.game}
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold text-xl">
-                    {placement.game}
-                  </h3>
-                  <p className="text-[#bdbdbd]">{placement.team}</p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div>
-                  <p className="text-gray-400">Tournament</p>
-                  <p className="text-white font-medium">{placement.tournament}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Position</p>
-                  <p className="text-white font-medium">{placement.position}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Players</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {placement.players.map((player, idx) => (
-                      <p key={idx} className="text-white font-medium">{player}</p>
-                    ))}
-                  </div>
-                </div>
-                {placement.prize && (
-                  <div>
-                    <p className="text-gray-400">Prize</p>
-                    <p className="text-[#a2a2a2] font-semibold">
-                      {placement.prize}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+        <PlacementGrid placements={recentPlacements} itemsPerPage={6} />
       </div>
     </div>
   );

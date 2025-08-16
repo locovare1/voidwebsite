@@ -1,4 +1,10 @@
-import Image from 'next/image';
+import NewsGrid from '@/components/NewsGrid';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Latest News',
+  description: 'Stay updated with the latest news from Void Esports teams and tournaments.',
+};
 
 const newsArticles = [
   {
@@ -58,37 +64,7 @@ export default function NewsPage() {
       <div className="void-container py-12">
         <h1 className="text-4xl font-bold mb-12 gradient-text text-center animate-bounce-in gpu-accelerated">Latest News</h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {newsArticles.map((article, index) => (
-            <div key={article.title} className={`void-card group cursor-pointer hover-lift scroll-reveal gpu-accelerated`} style={{animationDelay: `${index * 0.1}s`}}>
-              <div className="relative h-48 mb-4 overflow-hidden rounded-lg">
-                <Image
-                  src={article.image}
-                  alt={article.title}
-                  fill
-                  className="object-cover transform group-hover:scale-110 transition-transform duration-500 gpu-accelerated"
-                />
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between items-center text-sm text-gray-400">
-                  <span>{article.date}</span>
-                  <span className="px-2 py-1 bg-[#FFFFFF]/20 rounded-full text-[#FFFFFF] transition-all duration-300 hover:bg-[#FFFFFF]/30 hover:scale-105 gpu-accelerated">
-                    {article.category}
-                  </span>
-                </div>
-                
-                <h2 className="text-xl font-bold group-hover:text-[#a2a2a2] transition-colors duration-300">
-                  {article.title}
-                </h2>
-                
-                <p className="text-gray-400 line-clamp-3">
-                  {article.description}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <NewsGrid articles={newsArticles} itemsPerPage={6} />
       </div>
     </div>
   );
