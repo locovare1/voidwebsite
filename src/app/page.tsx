@@ -6,19 +6,19 @@ import { useEffect, useState } from 'react';
 
 const featuredTeams = [
     {
-      name: '',
-      image: '/transparent.png',
-      description: ' ',
-    },
-    {
       name: 'Fortnite',
-      image: '/news/wavedashh.png',
+      image: '/teams/fortnite.png',
       description: 'Rising stars in the competitive Fortnite scene.',
     },
     {
-      name: '  ',
-      image: '/transparent.png',
-      description: '   ',
+      name: 'Valorant',
+      image: '/teams/valorant.png',
+      description: 'Building a competitive Valorant roster to compete regionally.',
+    },
+    {
+      name: 'Void Community',
+      image: '/logos/logo.png',
+      description: 'Join our growing community spanning multiple game titles.',
     },
 ];
 
@@ -140,48 +140,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 bg-[#1A1A1A] scroll-reveal">
-        <div className="void-container">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div className="stagger-child stagger-1">
-              <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">
-                15+
-              </div>
-              <p className="text-gray-400">Active Players</p>
-            </div>
-            
-            <div className="stagger-child stagger-2">
-              <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">
-                5+
-              </div>
-              <p className="text-gray-400">Gaming Titles</p>
-            </div>
-            
-            <div className="stagger-child stagger-3">
-              <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">
-                $2500
-              </div>
-              <p className="text-gray-400">Prize Money Won</p>
-            </div>
-            
-            <div className="stagger-child stagger-4">
-              <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">
-                2025
-              </div>
-              <p className="text-gray-400">Established</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Featured Teams Section */}
       <section className="py-20 bg-[#0F0F0F] scroll-reveal">
         <div className="void-container">
           <h2 className="text-3xl font-bold mb-12 text-center gradient-text stagger-child">Our Teams</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredTeams.map((team, index) => (
-              <div key={team.name} className={`void-card group hover-lift gpu-accelerated stagger-child stagger-${index + 1}`}>
+              <div key={`${team.name}-${index}`} className={`void-card group hover-lift gpu-accelerated stagger-child stagger-${index + 1}`}>
                 <div className="relative h-48 mb-4 overflow-hidden rounded-lg">
                   <Image
                     src={team.image}

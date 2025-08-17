@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+
 import Image from 'next/image';
 import Pagination from './Pagination';
 
@@ -23,6 +24,7 @@ export default function ProductGrid({ products, itemsPerPage = 9 }: ProductGridP
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('name');
+  const rootRef = useRef<HTMLDivElement>(null);
 
   // Filter and sort products
   const processedProducts = useMemo(() => {
@@ -68,8 +70,33 @@ export default function ProductGrid({ products, itemsPerPage = 9 }: ProductGridP
     setCurrentPage(1);
   };
 
+  // Local scroll reveal for elements within this component
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px',
+    } as const;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    const elements = rootRef.current
+      ? rootRef.current.querySelectorAll('.scroll-reveal')
+      : document.querySelectorAll('.scroll-reveal');
+
+    elements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [currentPage, selectedCategory, sortBy]);
+
   return (
-    <div className="space-y-8">
+    <div ref={rootRef} className="space-y-8">
       {/* Filters and Sort */}
       <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center scroll-reveal">
         {/* Category Filter */}
