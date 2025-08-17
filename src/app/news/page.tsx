@@ -1,11 +1,7 @@
-import NewsGrid from '@/components/NewsGrid';
-import type { Metadata } from 'next';
-import { useEffect, useState } from 'react';
+"use client";
 
-export const metadata: Metadata = {
-  title: 'Latest News',
-  description: 'Stay updated with the latest news from Void Esports teams and tournaments.',
-};
+import NewsGrid from '@/components/NewsGrid';
+import { useEffect, useState } from 'react';
 
 const newsArticles = [
   {

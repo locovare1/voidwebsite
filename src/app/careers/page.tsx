@@ -4,30 +4,19 @@ import React from "react";
 
 export default function CareersPage() {
   return (
-    <>
-      {/* SEO / Meta Tags */}
-      <meta charSet="UTF-8" />
-      <title>Careers | Void Esports</title>
-      <meta name="description" content="Join Void Esports! We're looking for passionate individuals to help shape the future of our company." />
-      <meta property="og:title" content="Careers | Void Esports" />
-      <meta property="og:description" content="Join Void Esports! We're looking for passionate individuals to help shape the future of our company." />
-      <meta property="og:type" content="website" />
-      <meta property="og:url" content="https://www.voidesports.org/careers " />
-      <meta property="og:image" content="https://www.voidesports.org/logo.png " />
-
-      <main className="min-h-screen bg-black text-gray-100">
-        {/* Hero Section */}
-        <section className="py-16 md:py-24 bg-black flex flex-col items-center justify-center min-h-[500px]">
-          <div className="max-w-4xl mx-auto px-6 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight text-white">
-              Build the Future With Us
-            </h1>
-            <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
-              We&apos;re crafting something amazing — and we want you on board.
-              Check back soon for current openings across engineering, design, marketing, and more.
-            </p>
-          </div>
-        </section>
+    <main className="min-h-screen bg-black text-gray-100">
+      {/* Hero Section */}
+      <section className="py-16 md:py-24 bg-black flex flex-col items-center justify-center min-h-[500px]">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight text-white">
+            Build the Future With Us
+          </h1>
+          <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
+            We&apos;re crafting something amazing — and we want you on board.
+            Check back soon for current openings across engineering, design, marketing, and more.
+          </p>
+        </div>
+      </section>
 
         {/* Coming Soon Section */}
         <section className="py-16 px-6 bg-[#0F0F0F]">
@@ -98,6 +87,5 @@ export default function CareersPage() {
           <p>© {new Date().getFullYear()} Void Esports, Inc. All rights reserved.</p>
         </footer>
       </main>
-    </>
   );
 }

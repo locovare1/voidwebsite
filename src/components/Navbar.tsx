@@ -92,6 +92,7 @@ export default function Navbar() {
               type="button"
               className="rounded-md p-2.5 text-white hover:text-[#a6a6a6] transition-all duration-300 hover:scale-110 hover:rotate-90 active:scale-95 gpu-accelerated"
               onClick={() => setMobileMenuOpen(false)}
+              aria-label="Close mobile menu"
             >
               <XMarkIcon className="h-6 w-6 animate-rotate-in" />
             </button>

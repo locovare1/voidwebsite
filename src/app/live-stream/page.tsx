@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { AnimatedElement, useEnhancedAnimations } from '@/components/EnhancedAnimations';
+import { useScrollReveal } from '@/components/EnhancedAnimations';
 
 // Twitch API types
 interface TwitchStream {
@@ -47,8 +47,8 @@ const VOID_STREAMERS = [
 ];
 
 export default function LiveStreamPage() {
-  // Initialize enhanced animations
-  useEnhancedAnimations();
+  // Initialize scroll reveal animations
+  useScrollReveal();
 
   const [streams, setStreams] = useState<TwitchStream[]>([]);
   const [users, setUsers] = useState<TwitchUser[]>([]);
@@ -126,11 +126,11 @@ export default function LiveStreamPage() {
     return (
       <div className="pt-20 min-h-screen bg-[#0F0F0F] page-wrapper">
         <div className="void-container py-12">
-          <AnimatedElement animation="bounceIn" delay={200}>
+          <div className="animate-bounce-in">
             <h1 className="text-4xl md:text-5xl font-bold mb-12 gradient-text text-center">
             Live Streams
             </h1>
-          </AnimatedElement>
+          </div>
           <div className="flex items-center justify-center py-20">
             <div className="loading-spin w-12 h-12 border-4 border-[#FFFFFF]/20 border-t-[#FFFFFF] rounded-full"></div>
           </div>
@@ -143,12 +143,12 @@ export default function LiveStreamPage() {
     return (
       <div className="pt-20 min-h-screen bg-[#0F0F0F] page-wrapper">
         <div className="void-container py-12">
-          <AnimatedElement animation="bounceIn" delay={200}>
+          <div className="animate-bounce-in">
             <h1 className="text-4xl md:text-5xl font-bold mb-12 gradient-text text-center">
             Live Streams
             </h1>
-          </AnimatedElement>
-          <AnimatedElement animation="scaleIn" delay={400}>
+          </div>
+          <div className="animate-scale-in">
             <div className="void-card text-center">
             <div className="text-red-400 mb-4">
               <svg className="w-16 h-16 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
@@ -164,7 +164,7 @@ export default function LiveStreamPage() {
               Try Again
             </button>
             </div>
-          </AnimatedElement>
+          </div>
         </div>
       </div>
     );
@@ -175,32 +175,31 @@ export default function LiveStreamPage() {
       <div className="void-container py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <AnimatedElement animation="bounceIn" delay={200}>
+          <div className="animate-bounce-in">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 gradient-text">
             Live Streams
             </h1>
-          </AnimatedElement>
-          <AnimatedElement animation="slideInUp" delay={400}>
+          </div>
+          <div className="animate-slide-in-up">
             <p className="text-gray-300 text-lg">
             Watch our players compete live on Twitch
             </p>
-          </AnimatedElement>
+          </div>
         </div>
 
         {/* Live Streams Section */}
         {streams.length > 0 ? (
           <div className="mb-16">
-            <AnimatedElement animation="slideInUp" delay={600}>
+            <div className="animate-slide-in-up">
               <h2 className="text-3xl font-bold mb-8 text-center gradient-text">
               🔴 Currently Live
               </h2>
-            </AnimatedElement>
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-              {streams.map((stream, index) => (
-                <AnimatedElement 
+              {streams.map((stream) => (
+                <div 
                   key={stream.id} 
-                  animation="scaleIn" 
-                  delay={800 + index * 150}
+                  className="animate-scale-in"
                 >
                   <div 
                     className="void-card group cursor-pointer hover-lift gpu-accelerated"
@@ -232,13 +231,13 @@ export default function LiveStreamPage() {
                     <p className="text-gray-400">{stream.game_name}</p>
                   </div>
                   </div>
-                </AnimatedElement>
+                </div>
               ))}
             </div>
           </div>
         ) : (
           <div className="mb-16">
-            <AnimatedElement animation="scaleIn" delay={600}>
+            <div className="animate-scale-in">
               <div className="void-card text-center">
               <div className="text-gray-400 mb-4">
                 <svg className="w-16 h-16 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
@@ -250,27 +249,26 @@ export default function LiveStreamPage() {
                 None of our streamers are currently live. Check back later or follow them on Twitch!
               </p>
               </div>
-            </AnimatedElement>
+            </div>
           </div>
         )}
 
         {/* All Streamers Section */}
         <div>
-          <AnimatedElement animation="slideInUp" delay={800}>
+          <div className="animate-slide-in-up">
             <h2 className="text-3xl font-bold mb-8 text-center gradient-text">
             Our Streamers
             </h2>
-          </AnimatedElement>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {users.map((user, index) => {
+            {users.map((user) => {
               const streamerInfo = VOID_STREAMERS.find(s => s.username === user.login);
               const isLive = streams.some(s => s.user_login === user.login);
               
               return (
-                <AnimatedElement 
+                <div 
                   key={user.id} 
-                  animation="scaleIn" 
-                  delay={1000 + index * 150}
+                  className="animate-scale-in"
                 >
                   <div className={`void-card group hover-lift gpu-accelerated ${isLive ? 'ring-2 ring-red-500' : ''}`}>
                   <div className="flex items-center space-x-4 mb-4">
@@ -322,7 +320,7 @@ export default function LiveStreamPage() {
                     )}
                   </div>
                   </div>
-                </AnimatedElement>
+                </div>
               );
             })}
           </div>
@@ -339,12 +337,13 @@ export default function LiveStreamPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-2xl font-bold text-white">
-                  {users.find(u => u.login === selectedStream)?.display_name}'s Stream
-                </h3>
+                                  <h3 className="text-2xl font-bold text-white">
+                  {users.find(u => u.login === selectedStream)?.display_name}&apos;s Stream
+                  </h3>
                 <button
                   onClick={() => setSelectedStream(null)}
                   className="text-gray-400 hover:text-white transition-colors duration-300 hover:scale-110 gpu-accelerated"
+                  aria-label="Close stream modal"
                 >
                   <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />

@@ -1,10 +1,6 @@
-import ProductGrid from '@/components/ProductGrid';
-import type { Metadata } from 'next';
+"use client";
 
-export const metadata: Metadata = {
-  title: 'Shop',
-  description: 'Official Void Esports merchandise and gaming gear.',
-};
+import ProductGrid from '@/components/ProductGrid';
 
 const products = [
   {

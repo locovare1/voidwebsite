@@ -70,10 +70,21 @@ export default function Home() {
     return () => observer.disconnect();
   }, []);
 
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-[#0F0F0F] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#FFFFFF]/20 border-t-[#FFFFFF] rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`min-h-screen transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`min-h-screen bg-[#0F0F0F] text-white transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
       {/* Hero Section */}
-      <section className="h-screen flex items-center justify-center bg-[#0F0F0F] relative overflow-hidden">
+      <section className="pt-20 h-screen flex items-center justify-center bg-[#0F0F0F] relative overflow-hidden">
         {/* Centered logo background */}
         <div className="absolute inset-0 flex items-center justify-center">
           <Image

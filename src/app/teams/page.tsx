@@ -1,11 +1,7 @@
-import TeamGrid from '@/components/TeamGrid';
-import type { Metadata } from 'next';
-import { useEffect, useState } from 'react';
+"use client";
 
-export const metadata: Metadata = {
-  title: 'Our Teams',
-  description: 'Meet the elite teams representing Void Esports across multiple gaming titles.',
-};
+import TeamGrid from '@/components/TeamGrid';
+import { useEffect, useState } from 'react';
 
 const teams = [
   {

@@ -277,6 +277,7 @@ html {
   .void-card {
     @apply bg-[#1A1A1A] rounded-xl p-6 shadow-xl border border-[#2A2A2A] transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-2 hover:shadow-2xl hover:border-[#FFFFFF]/30;
     will-change: transform, box-shadow, border-color;
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     background: linear-gradient(135deg, #1A1A1A 0%, #252525 100%);
   }

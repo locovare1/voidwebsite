@@ -1,31 +1,43 @@
-import { useEffect, useState } from 'react';
-import type { Metadata } from 'next';
+"use client";
 
-export const metadata: Metadata = {
-  title: 'Schedule',
-  description: 'View upcoming matches and events for Void Esports teams.',
-};
+import { useEffect, useState } from 'react';
 
 const upcomingMatches = [
   {
-    game: 'TBD',
-    event: 'TBD',
+    game: 'Fortnite',
+    event: 'FNCS Qualifiers',
     opponent: 'TBD',
-    date: 'TBD',
-    time: 'TBD',
-    streamLink: 'https://www.twitch.tv/voidfrankenstein',
+    date: '2025-01-15',
+    time: '7:00 PM EST',
+    streamLink: 'https://www.twitch.tv/voidfrankenstein'
   },
+  {
+    game: 'Valorant',
+    event: 'Community Tournament',
+    opponent: 'TBD',
+    date: '2025-01-20',
+    time: '6:00 PM EST',
+    streamLink: 'https://www.twitch.tv/voidfrankenstein'
+  }
 ];
 
 const upcomingEvents = [
   {
-    name: 'Void Summer Showdown',
+    name: 'FNCS Major 4',
     game: 'Fortnite',
-    date: 'TBD',
-    type: 'Online Tournament',
-    prizePool: 'TBD (USD)',
-    registrationLink: 'https://discord.gg/voidesports2x',
+    type: 'Major Tournament',
+    date: '2025-02-01',
+    prizePool: '$100,000',
+    registrationLink: '#'
   },
+  {
+    name: 'Valorant Open',
+    game: 'Valorant',
+    type: 'Open Tournament',
+    date: '2025-02-15',
+    prizePool: '$5,000',
+    registrationLink: '#'
+  }
 ];
 
 export default function SchedulePage() {
@@ -78,19 +90,19 @@ export default function SchedulePage() {
                     </div>
                   </div>
                   
-                </div>
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                     <div className="text-gray-400">
                       <div>{match.date}</div>
                       <div>{match.time}</div>
                     </div>
-                      <a
-                        href={match.streamLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="void-button"
-                      >
-                        Watch Stream
-                      </a>
+                    <a
+                      href={match.streamLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="void-button"
+                    >
+                      Watch Stream
+                    </a>
                   </div>
                 </div>
               </div>
@@ -132,7 +144,7 @@ export default function SchedulePage() {
                     </a>
                   </div>
                 </div>
-                </div>
+              </div>
             ))}
           </div>
         </div>

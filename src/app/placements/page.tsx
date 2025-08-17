@@ -1,11 +1,7 @@
-import PlacementGrid from '@/components/PlacementGrid';
-import type { Metadata } from 'next';
-import { useEffect, useState } from 'react';
+"use client";
 
-export const metadata: Metadata = {
-  title: 'Recent Placements',
-  description: 'View our teams\' latest achievements and tournament placements across various esports titles.',
-};
+import PlacementGrid from '@/components/PlacementGrid';
+import { useEffect, useState } from 'react';
 
 interface Placement {
   game: string;

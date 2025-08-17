@@ -1,12 +1,8 @@
+"use client";
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'About Us',
-  description: 'Learn about Void Esports - our mission, values, and commitment to excellence in competitive gaming.',
-};
 
 const values = [
   {
@@ -99,8 +95,8 @@ export default function AboutPage() {
         <div className="mb-16 scroll-reveal">
           <h2 className="text-3xl font-bold mb-8 text-center gradient-text stagger-child">Our Values</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {values.map((value, index) => (
-              <div key={value.title} className={`void-card hover-lift gpu-accelerated stagger-child stagger-${index + 1}`}>
+            {values.map((value, valueIndex) => (
+              <div key={value.title} className={`void-card hover-lift gpu-accelerated stagger-child stagger-${valueIndex + 1}`}>
                 <h3 className="text-xl font-bold mb-3 text-white">{value.title}</h3>
                 <p className="text-gray-400">{value.description}</p>
                 </div>
@@ -112,7 +108,7 @@ export default function AboutPage() {
         <div className="void-card hover-lift gpu-accelerated scroll-reveal">
             <h2 className="text-3xl font-bold mb-8 gradient-text">Our Goals</h2>
           <ul className="grid gap-4">
-            {achievements.map((achievement, index) => (
+            {achievements.map((achievement) => (
               <li key={achievement} className="flex items-center gap-3 text-gray-300">
                 <span className="h-2 w-2 rounded-full bg-[#a2a2a2] animate-pulse" />
                 {achievement}

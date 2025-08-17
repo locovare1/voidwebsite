@@ -26,7 +26,7 @@ export default function ProductGrid({ products, itemsPerPage = 9 }: ProductGridP
 
   // Filter and sort products
   const processedProducts = useMemo(() => {
-    let filtered = selectedCategory === 'All' 
+    const filtered = selectedCategory === 'All' 
       ? products 
       : products.filter(product => product.category === selectedCategory);
 
@@ -98,6 +98,7 @@ export default function ProductGrid({ products, itemsPerPage = 9 }: ProductGridP
             value={sortBy}
             onChange={(e) => handleSortChange(e.target.value)}
             className="bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] transition-all duration-300 hover:border-[#FFFFFF]/50"
+            aria-label="Sort products by"
           >
             <option value="name">Name</option>
             <option value="price-low">Price: Low to High</option>

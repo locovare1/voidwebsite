@@ -17,7 +17,7 @@ export default function Breadcrumbs() {
     ...pathSegments.map((segment, index) => {
       const href = '/' + pathSegments.slice(0, index + 1).join('/');
       const name = segment.charAt(0).toUpperCase() + segment.slice(1).replace('-', ' ');
-      return { name, href };
+      return { name, href, icon: undefined };
     })
   ];
 
