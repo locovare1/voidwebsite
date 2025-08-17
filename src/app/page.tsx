@@ -165,6 +165,21 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Sponsored Banner (minimal) */}
+      <section className="py-8 bg-[#0F0F0F] scroll-reveal">
+        <div className="void-container">
+          <a href="/shop" className="block">
+            <div className="void-card flex items-center gap-4 justify-center hover-lift">
+              <div className="text-xs uppercase tracking-widest text-gray-400">Sponsored</div>
+              <div className="relative h-12 w-12 rounded-md overflow-hidden">
+                <Image src="/store/CobraHoodie.png" alt="Shop Void Merch" fill className="object-contain" />
+              </div>
+              <div className="text-sm text-white">Check out our latest merch →</div>
+            </div>
+          </a>
+        </div>
+      </section>
+
       {/* Latest News Section */}
       <section className="py-20 bg-[#1A1A1A] scroll-reveal">
         <div className="void-container">

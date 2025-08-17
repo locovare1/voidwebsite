@@ -86,6 +86,16 @@ export default function NewsPage() {
       <div className="void-container py-12">
         <h1 className="text-4xl md:text-5xl font-bold mb-12 text-white text-center stagger-child stagger-1">Latest News</h1>
         
+        {/* Sponsored Banner (minimal) */}
+        <div className="mb-8 scroll-reveal">
+          <a href="/shop" className="block">
+            <div className="void-card flex items-center gap-4 justify-center hover-lift">
+              <div className="text-xs uppercase tracking-widest text-gray-400">Sponsored</div>
+              <div className="text-sm text-white">Support Void — grab the latest merch →</div>
+            </div>
+          </a>
+        </div>
+
         <div className="scroll-reveal">
           <NewsGrid articles={newsArticles} itemsPerPage={6} />
         </div>
