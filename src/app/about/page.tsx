@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { AnimatedElement, useEnhancedAnimations } from '@/components/EnhancedAnimations';
+import { useEffect, useState } from 'react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -36,27 +36,44 @@ const achievements = [
 ];
 
 export default function AboutPage() {
-  // Initialize enhanced animations
-  useEnhancedAnimations();
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+    
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    const elements = document.querySelectorAll('.scroll-reveal');
+    elements.forEach(el => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <div className="pt-20 min-h-screen bg-[#0F0F0F] page-wrapper gpu-accelerated">
+    <div className={`pt-20 min-h-screen bg-[#0F0F0F] transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
       <div className="void-container py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <AnimatedElement animation="bounceIn" delay={200}>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">About Void</h1>
-          </AnimatedElement>
-          <AnimatedElement animation="slideInUp" delay={400}>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 gradient-text stagger-child stagger-1">About Void</h1>
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto stagger-child stagger-2">
             A professional esports organization dedicated to excellence, innovation, and community building in competitive gaming.
           </p>
-          </AnimatedElement>
         </div>
 
         {/* Mission Statement */}
-        <AnimatedElement animation="scaleIn" delay={600}>
-          <div className="void-card mb-16 hover-lift gpu-accelerated">
+        <div className="void-card mb-16 hover-lift gpu-accelerated scroll-reveal">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div className="relative h-64 md:h-full min-h-[300px] rounded-lg overflow-hidden">
               <Image
@@ -77,28 +94,22 @@ export default function AboutPage() {
             </div>
           </div>
           </div>
-        </AnimatedElement>
 
         {/* Core Values */}
-        <div className="mb-16">
-          <AnimatedElement animation="slideInUp" delay={800}>
-            <h2 className="text-3xl font-bold mb-8 text-center gradient-text">Our Values</h2>
-          </AnimatedElement>
+        <div className="mb-16 scroll-reveal">
+          <h2 className="text-3xl font-bold mb-8 text-center gradient-text stagger-child">Our Values</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {values.map((value, index) => (
-              <AnimatedElement key={value.title} animation="scaleIn" delay={1000 + index * 150}>
-                <div className="void-card hover-lift gpu-accelerated">
+              <div key={value.title} className={`void-card hover-lift gpu-accelerated stagger-child stagger-${index + 1}`}>
                 <h3 className="text-xl font-bold mb-3 text-white">{value.title}</h3>
                 <p className="text-gray-400">{value.description}</p>
                 </div>
-              </AnimatedElement>
             ))}
           </div>
         </div>
 
         {/* Achievements */}
-        <AnimatedElement animation="slideInUp" delay={1400}>
-          <div className="void-card hover-lift gpu-accelerated">
+        <div className="void-card hover-lift gpu-accelerated scroll-reveal">
             <h2 className="text-3xl font-bold mb-8 gradient-text">Our Goals</h2>
           <ul className="grid gap-4">
             {achievements.map((achievement, index) => (
@@ -109,11 +120,9 @@ export default function AboutPage() {
             ))}
           </ul>
           </div>
-        </AnimatedElement>
 
         {/* CTA Section */}
-        <AnimatedElement animation="scaleIn" delay={1600}>
-          <div className="mt-16 text-center">
+        <div className="mt-16 text-center scroll-reveal">
           <h2 className="text-2xl font-bold mb-6 text-white">Join the Void Community</h2>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/teams" className="void-button hover-lift">
@@ -124,7 +133,6 @@ export default function AboutPage() {
             </Link>
           </div>
           </div>
-        </AnimatedElement>
       </div>
     </div>
   );

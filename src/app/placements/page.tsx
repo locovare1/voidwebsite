@@ -1,6 +1,6 @@
 import PlacementGrid from '@/components/PlacementGrid';
 import type { Metadata } from 'next';
-import { AnimatedElement, useEnhancedAnimations } from '@/components/EnhancedAnimations';
+import { useEffect, useState } from 'react';
 
 export const metadata: Metadata = {
   title: 'Recent Placements',
@@ -87,28 +87,46 @@ const recentPlacements: Placement[] = [
 ];
 
 export default function Placements() {
-  // Initialize enhanced animations
-  useEnhancedAnimations();
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+    
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    const elements = document.querySelectorAll('.scroll-reveal');
+    elements.forEach(el => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#0F0F0F] pt-24 pb-16">
+    <div className={`min-h-screen bg-[#0F0F0F] pt-24 pb-16 transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
       <div className="void-container">
         <div className="text-center mb-12">
-          <AnimatedElement animation="bounceIn" delay={200}>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 stagger-child stagger-1">
             Recent Placements
             </h1>
-          </AnimatedElement>
-          <AnimatedElement animation="slideInUp" delay={400}>
-            <p className="text-gray-400 text-lg">
+          <p className="text-gray-400 text-lg stagger-child stagger-2">
             Our teams&apos; latest achievements across various esports titles
             </p>
-          </AnimatedElement>
         </div>
 
-        <AnimatedElement animation="slideInUp" delay={600}>
+        <div className="scroll-reveal">
           <PlacementGrid placements={recentPlacements} itemsPerPage={6} />
-        </AnimatedElement>
+        </div>
       </div>
     </div>
   );

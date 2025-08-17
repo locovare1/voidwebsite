@@ -1,11 +1,9 @@
 "use client";
 
 import * as React from 'react';
-import { AnimatedElement, useEnhancedAnimations } from '@/components/EnhancedAnimations';
 
 export default function ContactPage() {
-  // Initialize enhanced animations
-  useEnhancedAnimations();
+  const [isLoaded, setIsLoaded] = React.useState(false);
 
   const [formData, setFormData] = React.useState({
     name: '',
@@ -14,6 +12,29 @@ export default function ContactPage() {
     message: ''
   });
   const [status, setStatus] = React.useState('');
+
+  React.useEffect(() => {
+    setIsLoaded(true);
+    
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    const elements = document.querySelectorAll('.scroll-reveal');
+    elements.forEach(el => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,20 +71,15 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="pt-20 min-h-screen bg-[#0F0F0F] page-wrapper gpu-accelerated">
+    <div className={`pt-20 min-h-screen bg-[#0F0F0F] transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
       <div className="void-container py-12">
         <div className="max-w-2xl mx-auto">
-          <AnimatedElement animation="bounceIn" delay={200}>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 gradient-text text-center">Contact Us</h1>
-          </AnimatedElement>
-          <AnimatedElement animation="slideInUp" delay={400}>
-            <p className="text-gray-300 text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 gradient-text text-center stagger-child stagger-1">Contact Us</h1>
+          <p className="text-gray-300 text-center mb-8 stagger-child stagger-2">
             Have questions or want to get in touch? Fill out the form below and we&apos;ll get back to you as soon as possible.
             </p>
-          </AnimatedElement>
 
-          <AnimatedElement animation="scaleIn" delay={600}>
-            <form onSubmit={handleSubmit} className="void-card space-y-6 hover-lift gpu-accelerated">
+          <form onSubmit={handleSubmit} className="void-card space-y-6 hover-lift gpu-accelerated scroll-reveal">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
                 Name
@@ -153,7 +169,6 @@ export default function ContactPage() {
               </p>
             )}
             </form>
-          </AnimatedElement>
         </div>
       </div>
     </div>

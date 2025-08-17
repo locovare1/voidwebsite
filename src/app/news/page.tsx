@@ -1,6 +1,6 @@
 import NewsGrid from '@/components/NewsGrid';
 import type { Metadata } from 'next';
-import { AnimatedElement, useEnhancedAnimations } from '@/components/EnhancedAnimations';
+import { useEffect, useState } from 'react';
 
 export const metadata: Metadata = {
   title: 'Latest News',
@@ -60,19 +60,39 @@ const newsArticles = [
 ];
 
 export default function NewsPage() {
-  // Initialize enhanced animations
-  useEnhancedAnimations();
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+    
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    const elements = document.querySelectorAll('.scroll-reveal');
+    elements.forEach(el => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <div className="pt-20 min-h-screen bg-[#0F0F0F] page-wrapper gpu-accelerated">
+    <div className={`pt-20 min-h-screen bg-[#0F0F0F] transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
       <div className="void-container py-12">
-        <AnimatedElement animation="bounceIn" delay={200}>
-          <h1 className="text-4xl md:text-5xl font-bold mb-12 gradient-text text-center">Latest News</h1>
-        </AnimatedElement>
+        <h1 className="text-4xl md:text-5xl font-bold mb-12 gradient-text text-center stagger-child stagger-1">Latest News</h1>
         
-        <AnimatedElement animation="slideInUp" delay={400}>
+        <div className="scroll-reveal">
           <NewsGrid articles={newsArticles} itemsPerPage={6} />
-        </AnimatedElement>
+        </div>
       </div>
     </div>
   );

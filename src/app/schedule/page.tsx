@@ -1,4 +1,4 @@
-import { AnimatedElement, useEnhancedAnimations } from '@/components/EnhancedAnimations';
+import { useEffect, useState } from 'react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -29,25 +29,42 @@ const upcomingEvents = [
 ];
 
 export default function SchedulePage() {
-  // Initialize enhanced animations
-  useEnhancedAnimations();
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+    
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    const elements = document.querySelectorAll('.scroll-reveal');
+    elements.forEach(el => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <div className="pt-20 min-h-screen bg-[#0F0F0F]">
+    <div className={`pt-20 min-h-screen bg-[#0F0F0F] transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
       <div className="void-container py-12">
-        <AnimatedElement animation="bounceIn" delay={200}>
-          <h1 className="text-4xl md:text-5xl font-bold mb-12 gradient-text text-center">Schedule</h1>
-        </AnimatedElement>
+        <h1 className="text-4xl md:text-5xl font-bold mb-12 gradient-text text-center stagger-child stagger-1">Schedule</h1>
         
         {/* Upcoming Matches */}
-        <div className="mb-16">
-          <AnimatedElement animation="slideInUp" delay={400}>
-            <h2 className="text-2xl font-bold mb-6 text-white">Upcoming Matches</h2>
-          </AnimatedElement>
+        <div className="mb-16 scroll-reveal">
+          <h2 className="text-2xl font-bold mb-6 text-white stagger-child">Upcoming Matches</h2>
           <div className="grid gap-4">
             {upcomingMatches.map((match) => (
-              <AnimatedElement key={`${match.game}-${match.date}`} animation="scaleIn" delay={600}>
-                <div className="void-card hover-lift">
+              <div key={`${match.game}-${match.date}`} className="void-card hover-lift stagger-child">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -62,7 +79,6 @@ export default function SchedulePage() {
                   </div>
                   
                 </div>
-              </AnimatedElement>
                     <div className="text-gray-400">
                       <div>{match.date}</div>
                       <div>{match.time}</div>
@@ -83,14 +99,11 @@ export default function SchedulePage() {
         </div>
         
         {/* Upcoming Events */}
-        <div>
-          <AnimatedElement animation="slideInUp" delay={800}>
-            <h2 className="text-2xl font-bold mb-6 text-white">Upcoming Events</h2>
-          </AnimatedElement>
+        <div className="scroll-reveal">
+          <h2 className="text-2xl font-bold mb-6 text-white stagger-child">Upcoming Events</h2>
           <div className="grid gap-4">
             {upcomingEvents.map((event) => (
-              <AnimatedElement key={event.name} animation="scaleIn" delay={1000}>
-                <div className="void-card hover-lift">
+              <div key={event.name} className="void-card hover-lift stagger-child">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -120,7 +133,6 @@ export default function SchedulePage() {
                   </div>
                 </div>
                 </div>
-              </AnimatedElement>
             ))}
           </div>
         </div>
