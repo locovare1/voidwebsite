@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import PageTransition from "@/components/PageTransition";
-import ScrollToTop from "@/components/ScrollToTop";
-import Breadcrumbs from "@/components/Breadcrumbs";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export const metadata: Metadata = {
   title: {
@@ -64,25 +62,22 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/void.ico" />
         <link rel="apple-touch-icon" href="/logos/apple-icon.png" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <meta name="theme-color" content="#0F0F0F" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
       <body className="antialiased bg-[#0F0F0F] text-white">
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
-          <main className="flex-1">
-            <PageTransition>
-              <div className="relative">
-                <div className="void-container pt-4">
-                  <Breadcrumbs />
-                </div>
-                {children}
-              </div>
-            </PageTransition>
-          </main>
-          <Footer />
-          <ScrollToTop />
-        </div>
+        <ErrorBoundary>
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-1">
+              {children}
+            </main>
+            <Footer />
+          </div>
+        </ErrorBoundary>
       </body>
     </html>
   );

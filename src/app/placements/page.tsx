@@ -1,5 +1,6 @@
 import PlacementGrid from '@/components/PlacementGrid';
 import type { Metadata } from 'next';
+import { AnimatedElement, useEnhancedAnimations } from '@/components/EnhancedAnimations';
 
 export const metadata: Metadata = {
   title: 'Recent Placements',
@@ -86,19 +87,28 @@ const recentPlacements: Placement[] = [
 ];
 
 export default function Placements() {
+  // Initialize enhanced animations
+  useEnhancedAnimations();
+
   return (
     <div className="min-h-screen bg-[#0F0F0F] pt-24 pb-16">
       <div className="void-container">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <AnimatedElement animation="bounceIn" delay={200}>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Recent Placements
-          </h1>
-          <p className="text-gray-400 text-lg">
+            </h1>
+          </AnimatedElement>
+          <AnimatedElement animation="slideInUp" delay={400}>
+            <p className="text-gray-400 text-lg">
             Our teams&apos; latest achievements across various esports titles
-          </p>
+            </p>
+          </AnimatedElement>
         </div>
 
-        <PlacementGrid placements={recentPlacements} itemsPerPage={6} />
+        <AnimatedElement animation="slideInUp" delay={600}>
+          <PlacementGrid placements={recentPlacements} itemsPerPage={6} />
+        </AnimatedElement>
       </div>
     </div>
   );

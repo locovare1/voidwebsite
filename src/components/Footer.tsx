@@ -19,11 +19,11 @@ const footerLinks = [
 
 export default function Footer() {
   return (
-    <footer className="bg-[#0F0F0F] border-t border-gray-800 scroll-reveal gpu-accelerated">
+    <footer className="bg-[#0F0F0F] border-t border-gray-800 mt-auto gpu-accelerated">
       <div className="void-container py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
-          <div className="space-y-4 stagger-child">
+          <div className="space-y-4">
             <h3 className="text-xl font-bold gradient-text">VOID</h3>
             <p className="text-gray-400">
               Professional esports organization pushing the boundaries of competitive gaming.
@@ -31,7 +31,7 @@ export default function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div className="stagger-child">
+          <div>
             <h4 className="text-lg font-semibold mb-4 text-white">Quick Links</h4>
             <ul className="space-y-2">
               {footerLinks.slice(0, 3).map((link) => (
@@ -48,7 +48,7 @@ export default function Footer() {
           </div>
 
           {/* Social Links */}
-          <div className="stagger-child">
+          <div>
             <h4 className="text-lg font-semibold mb-4 text-white">Connect With Us</h4>
             <div className="flex space-x-4">
               {socialLinks.map((social) => (
@@ -65,7 +65,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-gray-800 stagger-child">
+        <div className="mt-8 pt-8 border-t border-gray-800">
           <p className="text-center text-gray-400">
             © {new Date().getFullYear()} Void Esports. All rights reserved.
           </p>

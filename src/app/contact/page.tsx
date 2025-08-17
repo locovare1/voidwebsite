@@ -1,8 +1,12 @@
 "use client";
 
 import * as React from 'react';
+import { AnimatedElement, useEnhancedAnimations } from '@/components/EnhancedAnimations';
 
 export default function ContactPage() {
+  // Initialize enhanced animations
+  useEnhancedAnimations();
+
   const [formData, setFormData] = React.useState({
     name: '',
     email: '',
@@ -49,13 +53,18 @@ export default function ContactPage() {
     <div className="pt-20 min-h-screen bg-[#0F0F0F] page-wrapper gpu-accelerated">
       <div className="void-container py-12">
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-4xl font-bold mb-6 gradient-text text-center animate-bounce-in gpu-accelerated">Contact Us</h1>
-          <p className="text-gray-300 text-center mb-8 animate-slide-in-up stagger-1 gpu-accelerated">
+          <AnimatedElement animation="bounceIn" delay={200}>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 gradient-text text-center">Contact Us</h1>
+          </AnimatedElement>
+          <AnimatedElement animation="slideInUp" delay={400}>
+            <p className="text-gray-300 text-center mb-8">
             Have questions or want to get in touch? Fill out the form below and we&apos;ll get back to you as soon as possible.
-          </p>
+            </p>
+          </AnimatedElement>
 
-          <form onSubmit={handleSubmit} className="void-card space-y-6 scroll-reveal hover-lift gpu-accelerated">
-            <div className="stagger-child">
+          <AnimatedElement animation="scaleIn" delay={600}>
+            <form onSubmit={handleSubmit} className="void-card space-y-6 hover-lift gpu-accelerated">
+            <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
                 Name
               </label>
@@ -71,7 +80,7 @@ export default function ContactPage() {
               />
             </div>
 
-            <div className="stagger-child">
+            <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
                 Email
               </label>
@@ -87,7 +96,7 @@ export default function ContactPage() {
               />
             </div>
 
-            <div className="stagger-child">
+            <div>
               <label htmlFor="subject" className="block text-sm font-medium text-gray-300 mb-2">
                 Subject
               </label>
@@ -103,7 +112,7 @@ export default function ContactPage() {
               />
             </div>
 
-            <div className="stagger-child">
+            <div>
               <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">
                 Message
               </label>
@@ -122,7 +131,7 @@ export default function ContactPage() {
             <button
               type="submit"
               disabled={status === 'sending'}
-              className="void-button w-full hover-lift stagger-child gpu-accelerated"
+              className="void-button w-full hover-lift gpu-accelerated"
             >
               {status === 'sending' ? (
                 <span className="flex items-center justify-center">
@@ -133,17 +142,18 @@ export default function ContactPage() {
             </button>
 
             {status === 'success' && (
-              <p className="text-green-500 text-center animate-bounce-in">
+              <p className="text-green-500 text-center">
                 Thank you for your message! We&apos;ll get back to you soon.
               </p>
             )}
             
             {status === 'error' && (
-              <p className="text-red-500 text-center animate-bounce-in">
+              <p className="text-red-500 text-center">
                 There was an error sending your message. Please try again later.
               </p>
             )}
-          </form>
+            </form>
+          </AnimatedElement>
         </div>
       </div>
     </div>

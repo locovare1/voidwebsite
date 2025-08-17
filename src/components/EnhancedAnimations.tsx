@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface AnimatedElementProps {
   children: React.ReactNode;
@@ -26,13 +26,14 @@ export function AnimatedElement({
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setTimeout(() => {
+          const timer = setTimeout(() => {
             element.classList.add('animate-in');
           }, delay);
           observer.unobserve(element);
+          return () => clearTimeout(timer);
         }
       },
-      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+      { threshold: 0.1, rootMargin: '0px 0px -100px 0px' }
     );
 
     observer.observe(element);
@@ -43,10 +44,9 @@ export function AnimatedElement({
   return (
     <div
       ref={elementRef}
-      className={`animate-element ${animation} ${className}`}
+      className={`animate-element ${animation} ${className} opacity-0`}
       style={{ 
-        '--animation-duration': `${duration}ms`,
-        '--animation-delay': `${delay}ms`
+        '--animation-duration': `${duration}ms`
       } as React.CSSProperties}
     >
       {children}
@@ -70,7 +70,7 @@ export function ParallaxElement({ children, speed = 0.5, className = '' }: Paral
     let ticking = false;
 
     const updateParallax = () => {
-      if (!ticking) {
+      if (!ticking && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         requestAnimationFrame(() => {
           const rect = element.getBoundingClientRect();
           const scrolled = window.pageYOffset;
@@ -161,24 +161,29 @@ export function CounterAnimation({
 // Hook for managing complex animations
 export function useEnhancedAnimations() {
   useEffect(() => {
+    // Check for reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    
+    if (prefersReducedMotion) {
+      // Apply immediate visibility for reduced motion
+      const elements = document.querySelectorAll('.animate-element');
+      elements.forEach(el => {
+        el.classList.add('animate-in');
+        (el as HTMLElement).style.opacity = '1';
+      });
+      return;
+    }
+
     // Enhanced scroll reveal with better performance
     const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
+      threshold: 0.15,
+      rootMargin: '0px 0px -100px 0px'
     };
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add('revealed');
-          
-          // Staggered children animation
-          const children = entry.target.querySelectorAll('.stagger-child');
-          children.forEach((child, index) => {
-            setTimeout(() => {
-              child.classList.add('animate-fade-in');
-            }, index * 100);
-          });
           
           observer.unobserve(entry.target);
         }
@@ -192,7 +197,7 @@ export function useEnhancedAnimations() {
     // Enhanced scroll effects
     let ticking = false;
     const handleScroll = () => {
-      if (!ticking) {
+      if (!ticking && !prefersReducedMotion) {
         requestAnimationFrame(() => {
           // Logo fade effect
           const logo = document.querySelector('.fade-on-scroll');
@@ -242,6 +247,11 @@ export function useAnimationState() {
   const [animationQueue, setAnimationQueue] = useState<string[]>([]);
 
   const triggerAnimation = (animationName: string, duration = 1000) => {
+    // Check for reduced motion
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
     setIsAnimating(true);
     setAnimationQueue(prev => [...prev, animationName]);
 

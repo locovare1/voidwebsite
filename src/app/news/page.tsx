@@ -1,5 +1,6 @@
 import NewsGrid from '@/components/NewsGrid';
 import type { Metadata } from 'next';
+import { AnimatedElement, useEnhancedAnimations } from '@/components/EnhancedAnimations';
 
 export const metadata: Metadata = {
   title: 'Latest News',
@@ -59,12 +60,19 @@ const newsArticles = [
 ];
 
 export default function NewsPage() {
+  // Initialize enhanced animations
+  useEnhancedAnimations();
+
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F] page-wrapper gpu-accelerated">
       <div className="void-container py-12">
-        <h1 className="text-4xl font-bold mb-12 gradient-text text-center animate-bounce-in gpu-accelerated">Latest News</h1>
+        <AnimatedElement animation="bounceIn" delay={200}>
+          <h1 className="text-4xl md:text-5xl font-bold mb-12 gradient-text text-center">Latest News</h1>
+        </AnimatedElement>
         
-        <NewsGrid articles={newsArticles} itemsPerPage={6} />
+        <AnimatedElement animation="slideInUp" delay={400}>
+          <NewsGrid articles={newsArticles} itemsPerPage={6} />
+        </AnimatedElement>
       </div>
     </div>
   );

@@ -1,3 +1,11 @@
+import { AnimatedElement, useEnhancedAnimations } from '@/components/EnhancedAnimations';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Schedule',
+  description: 'View upcoming matches and events for Void Esports teams.',
+};
+
 const upcomingMatches = [
   {
     game: 'TBD',
@@ -21,17 +29,25 @@ const upcomingEvents = [
 ];
 
 export default function SchedulePage() {
+  // Initialize enhanced animations
+  useEnhancedAnimations();
+
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F]">
       <div className="void-container py-12">
-        <h1 className="text-4xl font-bold mb-12 gradient-text text-center">Schedule</h1>
+        <AnimatedElement animation="bounceIn" delay={200}>
+          <h1 className="text-4xl md:text-5xl font-bold mb-12 gradient-text text-center">Schedule</h1>
+        </AnimatedElement>
         
         {/* Upcoming Matches */}
         <div className="mb-16">
-          <h2 className="text-2xl font-bold mb-6 text-white">Upcoming Matches</h2>
+          <AnimatedElement animation="slideInUp" delay={400}>
+            <h2 className="text-2xl font-bold mb-6 text-white">Upcoming Matches</h2>
+          </AnimatedElement>
           <div className="grid gap-4">
             {upcomingMatches.map((match) => (
-              <div key={`${match.game}-${match.date}`} className="void-card">
+              <AnimatedElement key={`${match.game}-${match.date}`} animation="scaleIn" delay={600}>
+                <div className="void-card hover-lift">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -45,7 +61,8 @@ export default function SchedulePage() {
                     </div>
                   </div>
                   
-                  <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                </div>
+              </AnimatedElement>
                     <div className="text-gray-400">
                       <div>{match.date}</div>
                       <div>{match.time}</div>
@@ -67,10 +84,13 @@ export default function SchedulePage() {
         
         {/* Upcoming Events */}
         <div>
-          <h2 className="text-2xl font-bold mb-6 text-white">Upcoming Events</h2>
+          <AnimatedElement animation="slideInUp" delay={800}>
+            <h2 className="text-2xl font-bold mb-6 text-white">Upcoming Events</h2>
+          </AnimatedElement>
           <div className="grid gap-4">
             {upcomingEvents.map((event) => (
-              <div key={event.name} className="void-card">
+              <AnimatedElement key={event.name} animation="scaleIn" delay={1000}>
+                <div className="void-card hover-lift">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -99,7 +119,8 @@ export default function SchedulePage() {
                     </a>
                   </div>
                 </div>
-              </div>
+                </div>
+              </AnimatedElement>
             ))}
           </div>
         </div>

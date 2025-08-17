@@ -1,5 +1,6 @@
 import TeamGrid from '@/components/TeamGrid';
 import type { Metadata } from 'next';
+import { AnimatedElement, useEnhancedAnimations } from '@/components/EnhancedAnimations';
 
 export const metadata: Metadata = {
   title: 'Our Teams',
@@ -24,12 +25,19 @@ const teams = [
 ];
 
 export default function TeamsPage() {
+  // Initialize enhanced animations
+  useEnhancedAnimations();
+
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F] page-wrapper gpu-accelerated">
       <div className="void-container py-12">
-        <h1 className="text-4xl font-bold mb-12 gradient-text text-center animate-bounce-in gpu-accelerated">Our Teams</h1>
+        <AnimatedElement animation="bounceIn" delay={200}>
+          <h1 className="text-4xl md:text-5xl font-bold mb-12 gradient-text text-center">Our Teams</h1>
+        </AnimatedElement>
         
-        <TeamGrid teams={teams} itemsPerPage={2} />
+        <AnimatedElement animation="slideInUp" delay={400}>
+          <TeamGrid teams={teams} itemsPerPage={2} />
+        </AnimatedElement>
       </div>
     </div>
   );
