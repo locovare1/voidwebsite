@@ -62,7 +62,7 @@ export default function AboutPage() {
       <div className="void-container py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 gradient-text stagger-child stagger-1">About Void</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white stagger-child stagger-1">About Void</h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto stagger-child stagger-2">
             A professional esports organization dedicated to excellence, innovation, and community building in competitive gaming.
           </p>

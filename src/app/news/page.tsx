@@ -84,7 +84,7 @@ export default function NewsPage() {
   return (
     <div className={`pt-20 min-h-screen bg-[#0F0F0F] transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
       <div className="void-container py-12">
-        <h1 className="text-4xl md:text-5xl font-bold mb-12 gradient-text text-center stagger-child stagger-1">Latest News</h1>
+        <h1 className="text-4xl md:text-5xl font-bold mb-12 text-white text-center stagger-child stagger-1">Latest News</h1>
         
         <div className="scroll-reveal">
           <NewsGrid articles={newsArticles} itemsPerPage={6} />

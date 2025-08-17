@@ -45,15 +45,16 @@ export default function AmbassadorsPage() {
     <main className="pt-20 min-h-screen bg-[#0F0F0F] text-white">
       {/* Hero Section */}
       <section className="py-16 md:py-24 bg-[#0F0F0F] flex flex-col items-center justify-center min-h-[500px] relative overflow-hidden">
-        {/* Logo background */}
-        <Image
-          src="/logos/logo.png"
-          alt="Void Logo Background"
-          width={400}
-          height={400}
-          className="absolute left-1/2 top-1/2 w-72 md:w-[400px] -translate-x-1/2 -translate-y-1/2 opacity-20 pointer-events-none select-none animate-float gpu-accelerated"
-          style={{ zIndex: 0 }}
-        />
+        {/* Logo background (centered) */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none" style={{ zIndex: 0 }}>
+          <Image
+            src="/logos/logo.png"
+            alt="Void Logo Background"
+            width={400}
+            height={400}
+            className="w-72 md:w-[400px] opacity-20 animate-float gpu-accelerated"
+          />
+        </div>
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
           <div className="stagger-child stagger-1">
             <h1 className="text-4xl md:text-5xl font-bold mb-10 leading-tight gradient-text animate-bounce-in gpu-accelerated">
