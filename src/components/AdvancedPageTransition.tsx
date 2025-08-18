@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import LoadingSpinner from './LoadingSpinner';
@@ -21,7 +22,7 @@ const pageVariants = {
     scale: 1,
     transition: {
       duration: 0.6,
-      ease: 'easeInOut'
+      
     }
   },
   out: {
@@ -30,10 +31,10 @@ const pageVariants = {
     scale: 0.98,
     transition: {
       duration: 0.4,
-      ease: 'easeInOut'
+      
     }
   }
-};
+} as const satisfies Variants;
 
 const overlayVariants = {
   initial: {
@@ -43,17 +44,17 @@ const overlayVariants = {
     y: 0,
     transition: {
       duration: 0.6,
-      ease: 'easeInOut'
+      
     }
   },
   exit: {
     y: '-100%',
     transition: {
       duration: 0.6,
-      ease: 'easeInOut'
+      
     }
   }
-};
+} as const satisfies Variants;
 
 const loadingVariants = {
   initial: {
@@ -65,7 +66,7 @@ const loadingVariants = {
     scale: 1,
     transition: {
       duration: 0.5,
-      ease: 'easeInOut'
+      
     }
   },
   exit: {
@@ -73,10 +74,10 @@ const loadingVariants = {
     scale: 0.8,
     transition: {
       duration: 0.3,
-      ease: 'easeInOut'
+      
     }
   }
-};
+} as const satisfies Variants;
 
 export default function AdvancedPageTransition({ children }: AdvancedPageTransitionProps) {
   const [isLoading, setIsLoading] = useState(true);
