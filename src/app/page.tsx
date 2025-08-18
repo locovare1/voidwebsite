@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import ParallaxElement from '@/components/ParallaxElement';
 import { useIntersectionObserver } from '@/components/useIntersectionObserver';
 import { 
