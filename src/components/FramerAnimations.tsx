@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 
 // Error boundary for motion components
@@ -511,11 +511,13 @@ export function GestureImage({
   className?: string;
 }) {
   if (!isMotionAvailable) {
+    // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt={alt} className={className} />;
   }
 
   return (
     <MotionErrorBoundary>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <motion.img
         src={src}
         alt={alt}

@@ -2,12 +2,6 @@
 
 import Image from 'next/image';
 import PlayerCard from '@/components/PlayerCard';
-import { 
-  AnimatedPlayerCard, 
-  ParallaxText, 
-  GestureImage,
-  AnimatedButton 
-} from '@/components/FramerAnimations';
 
 const teams = [
   {
@@ -129,7 +123,7 @@ export default function TeamsPage() {
         </div>
         
         <div className="space-y-20">
-          {teams.map((team, teamIndex) => (
+          {teams.map((team) => (
             <div key={team.name} className="void-card">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
                 <div className="relative h-64 lg:h-full min-h-[300px] rounded-lg overflow-hidden group">
@@ -168,7 +162,7 @@ export default function TeamsPage() {
                   ? "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6" 
                   : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
                 }>
-                  {team.players.map((player, playerIndex) => (
+                  {team.players.map((player) => (
                     <div key={player.name}>
                       <PlayerCard
                         name={player.name}

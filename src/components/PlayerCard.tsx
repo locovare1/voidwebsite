@@ -1,7 +1,6 @@
 "use client";
 
 import Image from 'next/image';
-import { useState } from 'react';
 
 interface PlayerCardProps {
   name: string;
@@ -24,13 +23,9 @@ export default function PlayerCard({
   achievements = [], 
   socialLinks = {} 
 }: PlayerCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
   return (
     <div 
       className="player-card group cursor-pointer"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       <div className="relative h-64 mb-4 overflow-hidden rounded-lg">
         <Image

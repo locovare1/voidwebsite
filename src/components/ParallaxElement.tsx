@@ -9,17 +9,20 @@ interface ParallaxElementProps {
 }
 
 // Throttle function to limit scroll event frequency
-function throttle(func: Function, limit: number) {
-  let inThrottle: boolean;
-  return function() {
-    const args = arguments;
-    const context = this;
+function throttle<Args extends unknown[]>(
+  func: (...args: Args) => void,
+  limit: number
+) {
+  let inThrottle = false;
+  return (...args: Args) => {
     if (!inThrottle) {
-      func.apply(context, args);
+      func(...args);
       inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
+      setTimeout(() => {
+        inThrottle = false;
+      }, limit);
     }
-  }
+  };
 }
 
 export default function ParallaxElement({ 
