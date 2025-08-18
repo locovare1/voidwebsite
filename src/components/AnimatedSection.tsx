@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from 'react';
+import { ReactNode, useRef } from 'react';
 import { useIntersectionObserver } from './useIntersectionObserver';
 
 interface AnimatedSectionProps {
@@ -10,6 +10,7 @@ interface AnimatedSectionProps {
   duration?: number;
   className?: string;
   threshold?: number;
+  ref?: React.RefObject<HTMLDivElement>;
 }
 
 export default function AnimatedSection({
