@@ -21,7 +21,7 @@ const pageVariants = {
     scale: 1,
     transition: {
       duration: 0.6,
-      ease: [0.25, 0.46, 0.45, 0.94]
+      ease: 'easeInOut'
     }
   },
   out: {
@@ -30,7 +30,7 @@ const pageVariants = {
     scale: 0.98,
     transition: {
       duration: 0.4,
-      ease: [0.25, 0.46, 0.45, 0.94]
+      ease: 'easeInOut'
     }
   }
 };
@@ -43,14 +43,14 @@ const overlayVariants = {
     y: 0,
     transition: {
       duration: 0.6,
-      ease: [0.25, 0.46, 0.45, 0.94]
+      ease: 'easeInOut'
     }
   },
   exit: {
     y: '-100%',
     transition: {
       duration: 0.6,
-      ease: [0.25, 0.46, 0.45, 0.94]
+      ease: 'easeInOut'
     }
   }
 };
@@ -65,7 +65,7 @@ const loadingVariants = {
     scale: 1,
     transition: {
       duration: 0.5,
-      ease: [0.25, 0.46, 0.45, 0.94]
+      ease: 'easeInOut'
     }
   },
   exit: {
@@ -73,7 +73,7 @@ const loadingVariants = {
     scale: 0.8,
     transition: {
       duration: 0.3,
-      ease: [0.25, 0.46, 0.45, 0.94]
+      ease: 'easeInOut'
     }
   }
 };
