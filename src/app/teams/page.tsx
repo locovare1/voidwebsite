@@ -2,11 +2,7 @@
 
 import Image from 'next/image';
 import PlayerCard from '@/components/PlayerCard';
-import { useIntersectionObserver } from '@/components/useIntersectionObserver';
 import { 
-  AnimatedCard, 
-  StaggeredList, 
-  StaggeredItem, 
   AnimatedPlayerCard, 
   ParallaxText, 
   GestureImage,

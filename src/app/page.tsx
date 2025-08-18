@@ -10,7 +10,6 @@ import {
   AnimatedCard, 
   StaggeredList, 
   StaggeredItem, 
-  AnimatedButton, 
   ParallaxText, 
   FloatingElement, 
   ScrollProgress,
@@ -57,9 +56,9 @@ const latestNews = [
 ];
 
 export default function Home() {
-  const { elementRef: heroRef, isVisible: heroVisible } = useIntersectionObserver();
-  const { elementRef: teamsRef, isVisible: teamsVisible } = useIntersectionObserver();
-  const { elementRef: newsRef, isVisible: newsVisible } = useIntersectionObserver();
+  const { elementRef: heroRef } = useIntersectionObserver();
+  const { elementRef: teamsRef } = useIntersectionObserver();
+  const { elementRef: newsRef } = useIntersectionObserver();
 
   // Fade logo on scroll
   useEffect(() => {
