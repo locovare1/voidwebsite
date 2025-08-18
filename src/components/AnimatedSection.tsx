@@ -20,7 +20,7 @@ export default function AnimatedSection({
   className = '',
   threshold = 0.1
 }: AnimatedSectionProps) {
-  const { elementRef, isVisible } = useIntersectionObserver({ threshold });
+  const { elementRef, isVisible } = useIntersectionObserver<HTMLDivElement>({ threshold });
 
   const getAnimationClasses = () => {
     const baseClasses = 'transition-all duration-800';
