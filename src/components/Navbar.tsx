@@ -30,7 +30,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <header className={`fixed w-full bg-[#0F0F0F]/95 backdrop-blur-sm z-[100] transition-all duration-800 ${isVisible ? 'navbar-animate' : ''}`}>
+    <header className={`fixed top-0 left-0 right-0 bg-[#0F0F0F]/95 backdrop-blur-sm z-[100] transition-all duration-800 ${isVisible ? 'navbar-animate' : ''}`}>
       <nav className="void-container flex items-center justify-between py-4">
         <div className="flex lg:flex-1">
           <Link href="/" className="-m-1.5 p-1.5 hover:scale-105 transition-transform duration-300">
@@ -81,7 +81,7 @@ export default function Navbar() {
         className={`fixed inset-0 transition-all duration-500 ${mobileMenuOpen ? 'block opacity-100' : 'hidden opacity-0'} lg:hidden z-[999]`}
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
       >
-        <div className={`fixed inset-y-0 right-0 w-full max-w-sm bg-[#0F0F0F] shadow-xl transition-transform duration-500 ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className={`fixed top-0 right-0 h-full w-full max-w-sm bg-[#0F0F0F] shadow-xl transition-transform duration-500 ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="flex items-center justify-between p-6 border-b border-gray-800">
             <Link href="/" onClick={() => setMobileMenuOpen(false)} className="hover:scale-105 transition-transform duration-300">
               <Image
