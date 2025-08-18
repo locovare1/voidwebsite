@@ -45,7 +45,7 @@ const teams = [
         role: 'Player',
         image: '/teams/players/fxing.png',
         game: 'Fortnite',
-        achievements: ['Rising Star', 'Tournament Player', 'Future Champion'],
+        achievements: ['30k+ PR', 'Major 3 Qualifier', 'Future Champion'],
         socialLinks: {
           twitter: 'https://x.com/Forest_veroo'
         }
