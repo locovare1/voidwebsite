@@ -3,7 +3,7 @@ import Image from 'next/image';
 const newsArticles = [
   {
     title: 'Void Announces New Giveaway',
-    date: '2025-08-5',
+    date: '2025-08-18',
     image: '/news/wavedashh.png',
     description: 'Along with our new map we are doing another giveaway! Spend at least 30 minutes in our 1v1 map, then post on twitter with proof of you doing so! Then use #void1v1challenge and tag us! For every 30 minutes you get another entry into the giveaway! You can get unlimited entries so get to playing today! Giveaway ends on Saturday, August 23rd.',
     category: 'Fortnite',
