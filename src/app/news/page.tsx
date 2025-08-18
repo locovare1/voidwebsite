@@ -23,10 +23,10 @@ const newsArticles = [
     category: 'Fortnite',
   },
   {
-    title: 'Void Blu and Void Drvzy Qualify to FNCS Grand Finals',
+    title: 'Void Blu, Void Drvzy, and Void Fx1ine Qualify to FNCS Grand Finals',
     date: '2025-07-20',
     image: '/news/FNCS.png',
-    description: 'We are excited to announce that Both of our signings, Blue and Drvzy, qualified to FNCS Major 3 Grand Finals! We really wish them the best of luck in winning and qualifying to the FNCS Global Championships in France!',
+    description: 'We are excited to announce that three of our signings, Blue, Drvzy, and Fx1ine, qualified to FNCS Major 3 Grand Finals! We really wish them the best of luck in winning and qualifying to the FNCS Global Championships in France!',
     category: 'Fortnite',
   },
   {
