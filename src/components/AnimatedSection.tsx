@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useRef } from 'react';
+import { ReactNode } from 'react';
 import { useIntersectionObserver } from './useIntersectionObserver';
 
 interface AnimatedSectionProps {

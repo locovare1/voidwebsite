@@ -1,7 +1,8 @@
 "use client";
 
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring, easeOut } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
+import Image from 'next/image';
 
 // Error boundary for motion components
 function MotionErrorBoundary({ children, fallback }: { children: React.ReactNode; fallback?: React.ReactNode }) {
@@ -37,7 +38,7 @@ export const motionVariants = {
       y: 0,
       transition: {
         duration: 1.2,
-        ease: [0.25, 0.46, 0.45, 0.94],
+        ease: easeOut,
         delay: 0.3
       }
     }
@@ -49,7 +50,7 @@ export const motionVariants = {
       y: 0,
       transition: {
         duration: 1,
-        ease: [0.25, 0.46, 0.45, 0.94],
+        ease: easeOut,
         delay: 0.6
       }
     }
@@ -61,7 +62,7 @@ export const motionVariants = {
       y: 0,
       transition: {
         duration: 0.8,
-        ease: [0.25, 0.46, 0.45, 0.94],
+        ease: easeOut,
         delay: 0.9
       }
     }
@@ -76,7 +77,7 @@ export const motionVariants = {
       scale: 1,
       transition: {
         duration: 0.6,
-        ease: [0.25, 0.46, 0.45, 0.94]
+        ease: easeOut
       }
     },
     hover: {
@@ -84,7 +85,7 @@ export const motionVariants = {
       scale: 1.02,
       transition: {
         duration: 0.3,
-        ease: [0.25, 0.46, 0.45, 0.94]
+        ease: easeOut
       }
     }
   },
@@ -98,7 +99,7 @@ export const motionVariants = {
       y: 0,
       transition: {
         duration: 0.8,
-        ease: [0.25, 0.46, 0.45, 0.94]
+        ease: easeOut
       }
     },
     hover: {
@@ -107,7 +108,7 @@ export const motionVariants = {
       scale: 1.05,
       transition: {
         duration: 0.4,
-        ease: [0.25, 0.46, 0.45, 0.94]
+        ease: easeOut
       }
     }
   },
@@ -119,7 +120,8 @@ export const motionVariants = {
       opacity: 1,
       transition: {
         staggerChildren: 0.15,
-        delayChildren: 0.1
+        delayChildren: 0.1,
+        ease: easeOut
       }
     }
   },
@@ -130,7 +132,7 @@ export const motionVariants = {
       y: 0,
       transition: {
         duration: 0.5,
-        ease: [0.25, 0.46, 0.45, 0.94]
+        ease: easeOut
       }
     }
   },
@@ -143,7 +145,7 @@ export const motionVariants = {
       x: 0,
       transition: {
         duration: 1,
-        ease: [0.25, 0.46, 0.45, 0.94]
+        ease: easeOut
       }
     }
   },
@@ -156,14 +158,14 @@ export const motionVariants = {
       scale: 1,
       transition: {
         duration: 0.5,
-        ease: [0.25, 0.46, 0.45, 0.94]
+        ease: easeOut
       }
     },
     hover: {
       scale: 1.05,
       transition: {
         duration: 0.2,
-        ease: [0.25, 0.46, 0.45, 0.94]
+        ease: easeOut
       }
     },
     tap: {
@@ -488,10 +490,11 @@ export function AnimatedCounter({
         className={className}
       >
         <motion.span
-          initial={{ number: 0 }}
-          whileInView={{ number: value }}
+          initial="hidden"
+          whileInView="visible"
           viewport={{ once: true }}
-          transition={{ duration, ease: "easeOut" }}
+          animate={{ opacity: 1 }}
+          transition={{ duration }}
         >
           {Math.round(value)}
         </motion.span>
@@ -511,7 +514,16 @@ export function GestureImage({
   className?: string;
 }) {
   if (!isMotionAvailable) {
-    return <img src={src} alt={alt} className={className} />;
+    // Use next/image for static images with proper optimization
+    return <Image 
+      src={src} 
+      alt={alt} 
+      className={className || ''} 
+      width={0}
+      height={0}
+      sizes="100vw"
+      style={{ width: '100%', height: 'auto' }}
+    />;
   }
 
   return (
