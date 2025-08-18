@@ -62,7 +62,6 @@ export const getStaggerDelay = (index: number, baseDelay: number = ANIMATION_DEL
 // Helper function to get animation classes with delays
 export const getAnimationClasses = (
   baseClass: string,
-  delay: number = 0,
   duration: number = ANIMATION_DURATIONS.MEDIUM
 ): string => {
   return `${baseClass} transition-all duration-${Math.round(duration * 1000)}`;

@@ -15,7 +15,7 @@ export function useAnimationPerformance(options: AnimationPerformanceOptions = {
 
   const [shouldReduceMotion, setShouldReduceMotion] = useState(false);
   const [performanceMode, setPerformanceMode] = useState<'high' | 'medium' | 'low'>('high');
-  const [lastFrameTime, setLastFrameTime] = useState(0);
+  // Track performance and motion preferences
 
   // Check for reduced motion preference
   useEffect(() => {
@@ -70,22 +70,27 @@ export function useAnimationPerformance(options: AnimationPerformanceOptions = {
   }, [performanceThreshold]);
 
   // Throttled function wrapper
-  const throttle = useCallback((func: Function, delay: number) => {
-    let timeoutId: NodeJS.Timeout;
+  const throttle = useCallback(<T extends (...args: unknown[]) => void>(
+    fn: T,
+    delayMs: number
+  ) => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     let lastExecTime = 0;
 
-    return (...args: any[]) => {
+    return (...args: Parameters<T>): void => {
       const currentTime = Date.now();
 
-      if (currentTime - lastExecTime > delay) {
-        func(...args);
+      if (currentTime - lastExecTime > delayMs) {
+        fn(...args);
         lastExecTime = currentTime;
       } else {
-        clearTimeout(timeoutId);
+        if (timeoutId !== undefined) {
+          clearTimeout(timeoutId);
+        }
         timeoutId = setTimeout(() => {
-          func(...args);
+          fn(...args);
           lastExecTime = Date.now();
-        }, delay - (currentTime - lastExecTime));
+        }, Math.max(0, delayMs - (currentTime - lastExecTime)));
       }
     };
   }, []);
@@ -124,9 +129,12 @@ export function useAnimationPerformance(options: AnimationPerformanceOptions = {
   }, [shouldReduceMotion, performanceMode]);
 
   // Optimized scroll handler
-  const createOptimizedScrollHandler = useCallback((handler: Function) => {
-    return throttle(handler, throttleMs);
-  }, [throttle, throttleMs]);
+  const createOptimizedScrollHandler = useCallback(
+    <T extends (...args: unknown[]) => void>(handler: T) => {
+      return throttle(handler, throttleMs);
+    },
+    [throttle, throttleMs]
+  );
 
   // Check if animations should be disabled
   const shouldDisableAnimations = shouldReduceMotion || performanceMode === 'low';

@@ -511,13 +511,11 @@ export function GestureImage({
   className?: string;
 }) {
   if (!isMotionAvailable) {
-    // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt={alt} className={className} />;
   }
 
   return (
     <MotionErrorBoundary>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <motion.img
         src={src}
         alt={alt}
