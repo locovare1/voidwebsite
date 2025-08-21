@@ -20,18 +20,24 @@ const upcomingEvents = [
   },
 ];
 
+import AnimatedSection from '@/components/AnimatedSection';
+
 export default function SchedulePage() {
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F]">
       <div className="void-container py-12">
-        <h1 className="text-4xl font-bold mb-12 gradient-text text-center">Schedule</h1>
+        <AnimatedSection animationType="fadeIn" delay={100}>
+          <h1 className="text-4xl font-bold mb-12 gradient-text text-center">Schedule</h1>
+        </AnimatedSection>
         
         {/* Upcoming Matches */}
+        <AnimatedSection animationType="slideUp" delay={150}>
         <div className="mb-16">
           <h2 className="text-2xl font-bold mb-6 text-white">Upcoming Matches</h2>
           <div className="grid gap-4">
-            {upcomingMatches.map((match) => (
-              <div key={`${match.game}-${match.date}`} className="void-card">
+            {upcomingMatches.map((match, idx) => (
+              <AnimatedSection key={`${match.game}-${match.date}`} animationType="fadeIn" delay={idx * 100}>
+              <div className="void-card">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -61,16 +67,20 @@ export default function SchedulePage() {
                   </div>
                 </div>
               </div>
+              </AnimatedSection>
             ))}
           </div>
         </div>
+        </AnimatedSection>
         
         {/* Upcoming Events */}
+        <AnimatedSection animationType="slideUp" delay={250}>
         <div>
           <h2 className="text-2xl font-bold mb-6 text-white">Upcoming Events</h2>
           <div className="grid gap-4">
-            {upcomingEvents.map((event) => (
-              <div key={event.name} className="void-card">
+            {upcomingEvents.map((event, idx) => (
+              <AnimatedSection key={event.name} animationType="fadeIn" delay={idx * 100}>
+              <div className="void-card">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -100,9 +110,11 @@ export default function SchedulePage() {
                   </div>
                 </div>
               </div>
+              </AnimatedSection>
             ))}
           </div>
         </div>
+        </AnimatedSection>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import AnimatedSection from '@/components/AnimatedSection';
 
 const newsArticles = [
   {
@@ -63,37 +64,41 @@ export default function NewsPage() {
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F]">
       <div className="void-container py-12">
-        <h1 className="text-4xl font-bold mb-12 gradient-text text-center">Latest News</h1>
+        <AnimatedSection animationType="fadeIn" delay={100}>
+          <h1 className="text-4xl font-bold mb-12 gradient-text text-center">Latest News</h1>
+        </AnimatedSection>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {newsArticles.map((article) => (
-            <div key={article.title} className="void-card group cursor-pointer">
-              <div className="relative h-48 mb-4 overflow-hidden rounded-lg">
-                <Image
-                  src={article.image}
-                  alt={article.title}
-                  fill
-                  className="object-cover transform group-hover:scale-110 transition-transform duration-300"
-                />
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between items-center text-sm text-gray-400">
-                  <span>{article.date}</span>
-                  <span className="px-2 py-1 bg-[#FFFFFF]/20 rounded-full text-[#FFFFFF]">
-                    {article.category}
-                  </span>
+          {newsArticles.map((article, index) => (
+            <AnimatedSection key={article.title} animationType="slideUp" delay={index * 100}>
+              <div className="void-card group cursor-pointer">
+                <div className="relative h-48 mb-4 overflow-hidden rounded-lg">
+                  <Image
+                    src={article.image}
+                    alt={article.title}
+                    fill
+                    className="object-cover transform group-hover:scale-110 transition-transform duration-300"
+                  />
                 </div>
                 
-                <h2 className="text-xl font-bold group-hover:text-[#a2a2a2] transition-colors">
-                  {article.title}
-                </h2>
-                
-                <p className="text-gray-400 line-clamp-3">
-                  {article.description}
-                </p>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-sm text-gray-400">
+                    <span>{article.date}</span>
+                    <span className="px-2 py-1 bg-[#FFFFFF]/20 rounded-full text-[#FFFFFF]">
+                      {article.category}
+                    </span>
+                  </div>
+                  
+                  <h2 className="text-xl font-bold group-hover:text-[#a2a2a2] transition-colors">
+                    {article.title}
+                  </h2>
+                  
+                  <p className="text-gray-400">
+                    {article.description}
+                  </p>
+                </div>
               </div>
-            </div>
+            </AnimatedSection>
           ))}
         </div>
       </div>

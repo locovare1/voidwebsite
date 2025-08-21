@@ -335,6 +335,10 @@ html {
   .void-card {
     @apply bg-[#1A1A1A] rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-300;
   }
+  
+  .shop-container {
+    @apply max-h-[calc(100vh-200px)] overflow-y-auto pr-2;
+  }
 }
 
 .gradient-text {
@@ -380,6 +384,26 @@ html {
   align-items: center;
   justify-content: center;
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0F0F0F;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #FFFFFF;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #dedede;
+}
+
+/* Firefox scrollbar rules removed to satisfy linter compatibility checks */
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {

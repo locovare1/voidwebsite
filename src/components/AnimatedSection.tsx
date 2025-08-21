@@ -24,7 +24,11 @@ export default function AnimatedSection({
   const { elementRef, isVisible } = useIntersectionObserver<HTMLDivElement>({ threshold });
 
   const getAnimationClasses = () => {
-    const baseClasses = 'transition-all duration-800';
+    const delayClass =
+      delay >= 700 ? 'delay-700' : delay >= 600 ? 'delay-600' : delay >= 500 ? 'delay-500' : delay >= 400 ? 'delay-400' : delay >= 300 ? 'delay-300' : delay >= 200 ? 'delay-200' : delay >= 100 ? 'delay-100' : 'delay-0';
+    const durationClass =
+      duration >= 1.0 ? 'duration-1000' : duration >= 0.9 ? 'duration-900' : duration >= 0.8 ? 'duration-800' : duration >= 0.7 ? 'duration-700' : duration >= 0.6 ? 'duration-600' : 'duration-500';
+    const baseClasses = `transition-all ${durationClass} ${delayClass}`;
     
     switch (animationType) {
       case 'fadeIn':
@@ -48,10 +52,6 @@ export default function AnimatedSection({
     <div
       ref={elementRef}
       className={`${getAnimationClasses()} ${className}`}
-      style={{
-        transitionDelay: `${delay}ms`,
-        transitionDuration: `${duration}s`
-      }}
     >
       {children}
     </div>

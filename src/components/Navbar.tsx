@@ -8,6 +8,7 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 const navigation = [
   { name: 'Home', href: '/' },
   { name: 'Teams', href: '/teams' },
+  { name: 'Live Stream', href: '/live-stream' },
   { name: 'News', href: '/news' },
   { name: 'Placements', href: '/placements' },
   { name: 'Schedule', href: '/schedule' },
@@ -61,8 +62,7 @@ export default function Navbar() {
             <Link
               key={item.name}
               href={item.href}
-              className="text-sm font-semibold leading-6 text-white hover:text-[#a6a6a6] transition-all duration-300 relative group"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className={`text-sm font-semibold leading-6 text-white hover:text-[#a6a6a6] transition-all duration-300 relative group ${index === 0 ? 'delay-0' : index === 1 ? 'delay-100' : index === 2 ? 'delay-200' : index === 3 ? 'delay-300' : index === 4 ? 'delay-400' : index === 5 ? 'delay-500' : index === 6 ? 'delay-600' : index === 7 ? 'delay-700' : 'delay-0'}`}
             >
               {item.name}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
@@ -78,8 +78,7 @@ export default function Navbar() {
       </nav>
 
       <div 
-        className={`fixed inset-0 transition-all duration-500 ${mobileMenuOpen ? 'block opacity-100' : 'hidden opacity-0'} lg:hidden z-[999]`}
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        className={`fixed inset-0 transition-all duration-500 ${mobileMenuOpen ? 'block opacity-100' : 'hidden opacity-0'} lg:hidden z-[999] bg-black/50`}
       >
         <div className={`fixed top-0 right-0 h-full w-full max-w-sm bg-[#0F0F0F] shadow-xl transition-transform duration-500 ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="flex items-center justify-between p-6 border-b border-gray-800">
@@ -94,6 +93,8 @@ export default function Navbar() {
             </Link>
             <button
               type="button"
+              title="Close menu"
+              aria-label="Close menu"
               className="rounded-md p-2.5 text-white hover:text-[#a6a6a6] hover:bg-white/10 transition-all duration-300"
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -106,9 +107,8 @@ export default function Navbar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="block py-3 text-base font-semibold text-white hover:text-[#a6a6a6] border-b border-gray-800 transition-all duration-300 hover:bg-white/5 hover:pl-2"
+                className={`block py-3 text-base font-semibold text-white hover:text-[#a6a6a6] border-b border-gray-800 transition-all duration-300 hover:bg-white/5 hover:pl-2 ${index === 0 ? 'delay-0' : index === 1 ? 'delay-100' : index === 2 ? 'delay-200' : index === 3 ? 'delay-300' : index === 4 ? 'delay-400' : index === 5 ? 'delay-500' : index === 6 ? 'delay-600' : index === 7 ? 'delay-700' : 'delay-0'}`}
                 onClick={() => setMobileMenuOpen(false)}
-                style={{ animationDelay: `${index * 0.1}s` }}
               >
                 {item.name}
               </Link>
@@ -125,4 +125,4 @@ export default function Navbar() {
       </div>
     </header>
   );
-} 
+}

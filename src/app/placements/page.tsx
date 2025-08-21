@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import PlacementGrid from '@/components/PlacementGrid';
 
 interface Placement {
@@ -82,6 +82,17 @@ const recentPlacements: Placement[] = [
 
 export default function Placements() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<string>('All');
+
+  const games = useMemo(() => {
+    const unique = Array.from(new Set(recentPlacements.map(p => p.game)));
+    return ['All', ...unique];
+  }, []);
+
+  const filteredPlacements = useMemo(() => {
+    if (selectedGame === 'All') return recentPlacements;
+    return recentPlacements.filter(p => p.game === selectedGame);
+  }, [selectedGame]);
 
   useEffect(() => {
     setIsLoaded(true);
@@ -119,9 +130,24 @@ export default function Placements() {
             Our teams&apos; latest achievements across various esports titles
           </p>
         </div>
+        
+        <div className="flex flex-col items-center mb-8 gap-2">
+          <span className="text-sm font-medium text-gray-400">Filter by game:</span>
+          <div className="flex flex-wrap gap-2 bg-[#1A1A1A] rounded-full p-1.5 border border-[#2A2A2A]">
+            {games.map(game => (
+              <button
+                key={game}
+                onClick={() => setSelectedGame(game)}
+                className={`px-4 py-2 rounded-full font-medium text-sm transition-colors ${selectedGame === game ? 'bg-white text-black' : 'text-white hover:bg-[#252525]'}`}
+              >
+                {game}
+              </button>
+            ))}
+          </div>
+        </div>
 
-        <div className="scroll-reveal">
-          <PlacementGrid placements={recentPlacements} itemsPerPage={6} />
+        <div className="placements-container overflow-auto">
+          <PlacementGrid placements={filteredPlacements} itemsPerPage={6} />
         </div>
       </div>
     </div>

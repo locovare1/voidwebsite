@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import AnimatedSection from '@/components/AnimatedSection';
 import Link from 'next/link';
 
 const values = [
@@ -33,14 +34,17 @@ export default function AboutPage() {
     <div className="pt-20 min-h-screen bg-[#0F0F0F]">
       <div className="void-container py-12">
         {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">About Void</h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            A professional esports organization dedicated to excellence, innovation, and community building in competitive gaming.
-          </p>
-        </div>
+        <AnimatedSection animationType="fadeIn" delay={100}>
+          <div className="text-center mb-16">
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">About Void</h1>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              A professional esports organization dedicated to excellence, innovation, and community building in competitive gaming.
+            </p>
+          </div>
+        </AnimatedSection>
 
         {/* Mission Statement */}
+        <AnimatedSection animationType="slideUp" delay={150}>
         <div className="void-card mb-16">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div className="relative h-64 md:h-full min-h-[300px] rounded-lg overflow-hidden">
@@ -62,25 +66,31 @@ export default function AboutPage() {
             </div>
           </div>
         </div>
+        </AnimatedSection>
 
         {/* Core Values */}
+        <AnimatedSection animationType="fadeIn" delay={200}>
         <div className="mb-16">
           <h2 className="text-3xl font-bold mb-8 text-center gradient-text">Our Values</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {values.map((value) => (
-              <div key={value.title} className="void-card">
+            {values.map((value, idx) => (
+              <AnimatedSection key={value.title} animationType="slideUp" delay={idx * 100}>
+              <div className="void-card">
                 <h3 className="text-xl font-bold mb-3 text-white">{value.title}</h3>
                 <p className="text-gray-400">{value.description}</p>
               </div>
+              </AnimatedSection>
             ))}
           </div>
         </div>
+        </AnimatedSection>
 
         {/* Achievements */}
+        <AnimatedSection animationType="slideUp" delay={250}>
         <div className="void-card">
           <h2 className="text-3xl font-bold mb-8 gradient-text">Our Goals</h2>
           <ul className="grid gap-4">
-            {achievements.map((achievement) => (
+            {achievements.map((achievement, idx) => (
               <li key={achievement} className="flex items-center gap-3 text-gray-300">
                 <span className="h-2 w-2 rounded-full bg-[#a2a2a2]" />
                 {achievement}
@@ -88,6 +98,7 @@ export default function AboutPage() {
             ))}
           </ul>
         </div>
+        </AnimatedSection>
 
         {/* CTA Section */}
         <div className="mt-16 text-center">
