@@ -204,19 +204,3 @@ export default function AmbassadorsPage() {
   );
 }
 
-// Add this to the bottom of the file for the fade effect
-if (typeof window !== 'undefined') {
-  window.addEventListener('scroll', () => {
-    const logo = document.querySelector('.fade-on-scroll');
-    if (logo) {
-      const fadeStart = 0;
-      const fadeEnd = 200;
-      const scrollY = window.scrollY;
-      let opacity = 1;
-      if (scrollY > fadeStart) {
-        opacity = Math.max(0, 1 - (scrollY - fadeStart) / (fadeEnd - fadeStart));
-      }
-      (logo as HTMLElement).style.opacity = String(opacity * 0.2); // 0.2 is the base opacity
-    }
-  });
-}
