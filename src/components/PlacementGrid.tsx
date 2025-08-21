@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import AnimatedSection from '@/components/AnimatedSection';
+import Badge from '@/components/Badge';
 
 interface Placement {
   game: string;
@@ -51,21 +52,16 @@ export default function PlacementGrid({ placements, itemsPerPage }: PlacementGri
               </div>
               <div className="ml-auto">
                 {placement.position.includes('1st') || placement.position.includes('2nd') || placement.position.includes('3rd') ? (
-                  <span
-                    className={`text-2xl font-extrabold px-3 py-1 rounded-full bg-white/10 ${
-                      placement.position.includes('1st')
-                        ? 'text-[#FFD700]'
-                        : placement.position.includes('2nd')
-                        ? 'text-[#C0C0C0]'
-                        : 'text-[#CD7F32]'
-                    }`}
+                  <Badge
+                    color={placement.position.includes('1st') ? 'gold' : placement.position.includes('2nd') ? 'silver' : 'bronze'}
+                    className="text-lg md:text-xl"
                   >
                     #{placement.position.split(' ')[0].replace(/\D/g, '')}
-                  </span>
+                  </Badge>
                 ) : (
-                  <span className="text-2xl font-extrabold px-3 py-1 rounded-full bg-white/10 text-[#4CAF50]">
+                  <Badge color="green" className="text-lg md:text-xl">
                     #{placement.position.split(' ')[0].replace(/\D/g, '')}
-                  </span>
+                  </Badge>
                 )}
               </div>
             </div>
