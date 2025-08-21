@@ -174,7 +174,7 @@ export default function AdvancedPageTransition({ children }: AdvancedPageTransit
           initial="initial"
           animate="in"
           exit="out"
-          className={isLoading ? 'hidden' : ''}
+          className={`${isLoading ? 'hidden' : ''} ${isTransitioning ? 'opacity-0 pointer-events-none' : ''}`}
         >
           {children}
         </motion.div>
