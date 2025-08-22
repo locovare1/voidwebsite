@@ -159,7 +159,7 @@ export default function ShopPage() {
             Discover official VOID merchandise including apparel, accessories, and gaming gear for true esports enthusiasts.
           </p>
         </div>
-        <ProductGrid products={products as any} itemsPerPage={12} />
+        <ProductGrid products={products} itemsPerPage={12} />
       </div>
     </div>
   );
