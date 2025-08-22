@@ -73,8 +73,8 @@ export default function AboutPage() {
         <div className="mb-16">
           <h2 className="text-3xl font-bold mb-8 text-center gradient-text">Our Values</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {values.map((value, idx) => (
-              <AnimatedSection key={value.title} animationType="slideUp" delay={idx * 100}>
+            {values.map((value, index) => (
+              <AnimatedSection key={value.title} animationType="slideUp" delay={index * 100}>
               <div className="void-card">
                 <h3 className="text-xl font-bold mb-3 text-white">{value.title}</h3>
                 <p className="text-gray-400">{value.description}</p>
@@ -90,7 +90,7 @@ export default function AboutPage() {
         <div className="void-card">
           <h2 className="text-3xl font-bold mb-8 gradient-text">Our Goals</h2>
           <ul className="grid gap-4">
-            {achievements.map((achievement, idx) => (
+            {achievements.map((achievement) => (
               <li key={achievement} className="flex items-center gap-3 text-gray-300">
                 <span className="h-2 w-2 rounded-full bg-[#a2a2a2]" />
                 {achievement}
