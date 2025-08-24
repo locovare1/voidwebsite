@@ -1,8 +1,16 @@
 import Image from 'next/image';
+import AnimatedSection from '@/components/AnimatedSection';
 
 const newsArticles = [
   {
-    title: 'Void Announces New Giveaway',
+    title: 'Void Announces 1v1 Map Challenge Giveaway',
+    date: '2025-08-18',
+    image: '/news/wavedashh.png',
+    description: 'Along with our new map we are doing another giveaway! Spend at least 30 minutes in our 1v1 map, then post on twitter with proof of you doing so! Then use #void1v1challenge and tag us! For every 30 minutes you get another entry into the giveaway! You can get unlimited entries so get to playing today! Giveaway ends on Saturday, August 23rd.',
+    category: 'Fortnite',
+  },
+  {
+    title: 'Void Announces Fortnite Battle Pass Giveaway',
     date: '2025-08-5',
     image: '/news/wavedashh.png',
     description: 'We are thrilled to announce our Fortnite Battle Pass giveaway. For more information scroll down to the bottom of this page and join our discord.',
@@ -16,10 +24,10 @@ const newsArticles = [
     category: 'Fortnite',
   },
   {
-    title: 'Void Blu and Void Drvzy Qualify to FNCS Grand Finals',
+    title: 'Void Blu, Void Drvzy, and Void Fx1ine Qualify to FNCS Grand Finals',
     date: '2025-07-20',
     image: '/news/FNCS.png',
-    description: 'We are excited to announce that Both of our signings, Blue and Drvzy, qualified to FNCS Major 3 Grand Finals! We really wish them the best of luck in winning and qualifying to the FNCS Global Championships in France!',
+    description: 'We are excited to announce that three of our signings, Blue, Drvzy, and Fx1ine, qualified to FNCS Major 3 Grand Finals! We really wish them the best of luck in winning and qualifying to the FNCS Global Championships in France!',
     category: 'Fortnite',
   },
   {
@@ -56,37 +64,41 @@ export default function NewsPage() {
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F]">
       <div className="void-container py-12">
-        <h1 className="text-4xl font-bold mb-12 gradient-text text-center">Latest News</h1>
+        <AnimatedSection animationType="fadeIn" delay={100}>
+          <h1 className="text-4xl font-bold mb-12 gradient-text text-center">Latest News</h1>
+        </AnimatedSection>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {newsArticles.map((article) => (
-            <div key={article.title} className="void-card group cursor-pointer">
-              <div className="relative h-48 mb-4 overflow-hidden rounded-lg">
-                <Image
-                  src={article.image}
-                  alt={article.title}
-                  fill
-                  className="object-cover transform group-hover:scale-110 transition-transform duration-300"
-                />
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between items-center text-sm text-gray-400">
-                  <span>{article.date}</span>
-                  <span className="px-2 py-1 bg-[#FFFFFF]/20 rounded-full text-[#FFFFFF]">
-                    {article.category}
-                  </span>
+          {newsArticles.map((article, index) => (
+            <AnimatedSection key={article.title} animationType="slideUp" delay={index * 100}>
+              <div className="void-card group cursor-pointer">
+                <div className="relative h-48 mb-4 overflow-hidden rounded-lg">
+                  <Image
+                    src={article.image}
+                    alt={article.title}
+                    fill
+                    className="object-cover transform group-hover:scale-110 transition-transform duration-300"
+                  />
                 </div>
                 
-                <h2 className="text-xl font-bold group-hover:text-[#a2a2a2] transition-colors">
-                  {article.title}
-                </h2>
-                
-                <p className="text-gray-400 line-clamp-3">
-                  {article.description}
-                </p>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-sm text-gray-400">
+                    <span>{article.date}</span>
+                    <span className="px-2 py-1 bg-[#FFFFFF]/20 rounded-full text-[#FFFFFF]">
+                      {article.category}
+                    </span>
+                  </div>
+                  
+                  <h2 className="text-xl font-bold group-hover:text-[#a2a2a2] transition-colors">
+                    {article.title}
+                  </h2>
+                  
+                  <p className="text-gray-400">
+                    {article.description}
+                  </p>
+                </div>
               </div>
-            </div>
+            </AnimatedSection>
           ))}
         </div>
       </div>

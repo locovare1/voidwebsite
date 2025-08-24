@@ -36,10 +36,10 @@ const featuredTeams = [
 
 const latestNews = [
   {
-    title: 'Void Announces New Giveaway',
-    date: '2025-08-5',
+    title: 'Void Announces 1v1 Map Challenge Giveaway',
+    date: '2025-08-18',
     image: '/news/wavedashh.png',
-    description: 'We are thrilled to announce our Fortnite Battle Pass giveaway. For more information scroll down to the bottom of this page and join our discord.',
+    description: 'Along with our new map we are doing another giveaway! Spend at least 30 minutes in our 1v1 map, then post on twitter with proof of you doing so! Then use #void1v1challenge and tag us! For every 30 minutes you get another entry into the giveaway! You can get unlimited entries so get to playing today! Giveaway ends on Saturday, August 23rd.',
   },
   {
     title: 'Void Earns in FNCS Grand Finals',
@@ -48,10 +48,10 @@ const latestNews = [
     description: 'We are proud to say that Void Blu went crazy in FNCS Grands and earned over 2500 dollars split across his trio. We want to wish Blu good luck in the next FNCS and we are very proud of him.',
   },
   {
-    title: 'Void Blu and Void Drvzy Qualify to FNCS Grand Finals',
+    title: 'Void Blu, Void Drvzy, and Void Fx1ine Qualify to FNCS Grand Finals',
     date: '2025-07-20',
     image: '/news/FNCS.png',
-    description: 'We are excited to announce that Both of our signings, Blue and Drvzy, qualified to FNCS Major 3 Grand Finals! We really wish them the best of luck in winning and qualifying to the FNCS Global Championships in France!',
+    description: 'We are excited to announce that three of our signings, Blue, Drvzy, and Fx1ine, qualified to FNCS Major 3 Grand Finals! We really wish them the best of luck in winning and qualifying to the FNCS Global Championships in France!',
   },
 ];
 

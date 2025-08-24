@@ -1,4 +1,7 @@
-import Image from 'next/image';
+"use client";
+
+import { useEffect, useMemo, useState } from 'react';
+import PlacementGrid from '@/components/PlacementGrid';
 
 interface Placement {
   game: string;
@@ -57,7 +60,6 @@ const recentPlacements: Placement[] = [
     prize: "$0",
     logo: "/logos/fortnite.jpg"
   },
-  
   {
     game: "Fortnite",
     tournament: "Platinum & Diamond Ranked Cup (Solos)",
@@ -67,7 +69,6 @@ const recentPlacements: Placement[] = [
     prize: "$0",
     logo: "/logos/fortnite.jpg"
   },
-  
   {
     game: "Fortnite",
     tournament: "OG Cup Builds",
@@ -80,71 +81,75 @@ const recentPlacements: Placement[] = [
 ];
 
 export default function Placements() {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<string>('All');
+
+  const games = useMemo(() => {
+    const unique = Array.from(new Set(recentPlacements.map(p => p.game)));
+    return ['All', ...unique];
+  }, []);
+
+  const filteredPlacements = useMemo(() => {
+    if (selectedGame === 'All') return recentPlacements;
+    return recentPlacements.filter(p => p.game === selectedGame);
+  }, [selectedGame]);
+
+  useEffect(() => {
+    setIsLoaded(true);
+    
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    const elements = document.querySelectorAll('.scroll-reveal');
+    elements.forEach(el => observer.observe(el));
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#0F0F0F] pt-24 pb-16">
+    <div className={`min-h-screen bg-[#0F0F0F] pt-24 pb-16 transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
       <div className="void-container">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 stagger-child stagger-1">
             Recent Placements
           </h1>
-          <p className="text-gray-400 text-lg">
+          <p className="text-gray-400 text-lg stagger-child stagger-2">
             Our teams&apos; latest achievements across various esports titles
           </p>
         </div>
+        
+        <div className="flex flex-col items-center mb-8 gap-2">
+          <span className="text-sm font-medium text-gray-400">Filter by game:</span>
+          <div className="flex flex-wrap gap-2 bg-[#1A1A1A] rounded-full p-1.5 border border-[#2A2A2A]">
+            {games.map(game => (
+              <button
+                key={game}
+                onClick={() => setSelectedGame(game)}
+                className={`px-4 py-2 rounded-full font-medium text-sm transition-colors ${selectedGame === game ? 'bg-white text-black' : 'text-white hover:bg-[#252525]'}`}
+              >
+                {game}
+              </button>
+            ))}
+          </div>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {recentPlacements.map((placement, index) => (
-            <div
-              key={index}
-              className="bg-[#1A1A1A] rounded-xl p-6 transform hover:scale-105 transition-transform duration-300 border border-[#2A2A2A]"
-            >
-              <div className="flex items-center mb-4">
-                <div className="relative w-12 h-12 mr-4">
-                  <Image
-                    src={placement.logo}
-                    alt={placement.game}
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold text-xl">
-                    {placement.game}
-                  </h3>
-                  <p className="text-[#bdbdbd]">{placement.team}</p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div>
-                  <p className="text-gray-400">Tournament</p>
-                  <p className="text-white font-medium">{placement.tournament}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Position</p>
-                  <p className="text-white font-medium">{placement.position}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Players</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {placement.players.map((player, idx) => (
-                      <p key={idx} className="text-white font-medium">{player}</p>
-                    ))}
-                  </div>
-                </div>
-                {placement.prize && (
-                  <div>
-                    <p className="text-gray-400">Prize</p>
-                    <p className="text-[#a2a2a2] font-semibold">
-                      {placement.prize}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+        <div className="placements-container overflow-auto">
+          <PlacementGrid placements={filteredPlacements} itemsPerPage={6} />
         </div>
       </div>
     </div>
   );
-} 
+}
