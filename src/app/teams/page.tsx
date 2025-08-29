@@ -1,6 +1,7 @@
 "use client";
 
 import Image from 'next/image';
+import AnimatedSection from '@/components/AnimatedSection';
 import PlayerCard from '@/components/PlayerCard';
 
 const teams = [
@@ -118,13 +119,16 @@ export default function TeamsPage() {
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F]">
       <div className="void-container py-12">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold gradient-text">Our Teams</h1>
-        </div>
+        <AnimatedSection animationType="fadeIn" delay={100}>
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold gradient-text">Our Teams</h1>
+          </div>
+        </AnimatedSection>
         
         <div className="space-y-20">
-          {teams.map((team) => (
-            <div key={team.name} className="void-card">
+          {teams.map((team, idx) => (
+            <AnimatedSection key={team.name} animationType="slideUp" delay={idx * 100}>
+            <div className="void-card">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
                 <div className="relative h-64 lg:h-full min-h-[300px] rounded-lg overflow-hidden group">
                   <Image
@@ -162,8 +166,9 @@ export default function TeamsPage() {
                   ? "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6" 
                   : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
                 }>
-                  {team.players.map((player) => (
-                    <div key={player.name}>
+                  {team.players.map((player, pIdx) => (
+                    <AnimatedSection key={player.name} animationType="fadeIn" delay={pIdx * 100}>
+                    <div>
                       <PlayerCard
                         name={player.name}
                         role={player.role}
@@ -173,10 +178,12 @@ export default function TeamsPage() {
                         socialLinks={player.socialLinks}
                       />
                     </div>
+                    </AnimatedSection>
                   ))}
                 </div>
               </div>
             </div>
+            </AnimatedSection>
           ))}
         </div>
       </div>

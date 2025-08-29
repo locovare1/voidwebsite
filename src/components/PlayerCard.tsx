@@ -54,6 +54,7 @@ export default function PlayerCard({
                 href={socialLinks.twitter} 
                 target="_blank" 
                 rel="noopener noreferrer"
+                aria-label="Twitter profile"
                 className="bg-white/20 backdrop-blur-sm p-2 rounded-full hover:bg-white/30 transition-colors duration-300"
               >
                 <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -66,6 +67,7 @@ export default function PlayerCard({
                 href={socialLinks.twitch} 
                 target="_blank" 
                 rel="noopener noreferrer"
+                aria-label="Twitch channel"
                 className="bg-white/20 backdrop-blur-sm p-2 rounded-full hover:bg-white/30 transition-colors duration-300"
               >
                 <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -78,6 +80,7 @@ export default function PlayerCard({
                 href={socialLinks.instagram} 
                 target="_blank" 
                 rel="noopener noreferrer"
+                aria-label="Instagram profile"
                 className="bg-white/20 backdrop-blur-sm p-2 rounded-full hover:bg-white/30 transition-colors duration-300"
               >
                 <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -100,20 +103,14 @@ export default function PlayerCard({
         {/* Achievements */}
         {achievements.length > 0 && (
           <div className="space-y-1">
-            {achievements.slice(0, 2).map((achievement, index) => (
-              <p 
-                key={index} 
-                className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors duration-300"
-                style={{ animationDelay: `${index * 0.1}s` }}
+            {achievements.map((achievement, index) => (
+              <p
+                key={index}
+                className={`text-xs text-gray-500 group-hover:text-gray-400 transition-colors duration-300 ${index === 0 ? 'delay-0' : index === 1 ? 'delay-50' : index === 2 ? 'delay-100' : index === 3 ? 'delay-150' : 'delay-200'}`}
               >
                 {achievement}
               </p>
             ))}
-            {achievements.length > 2 && (
-              <p className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors duration-300">
-                +{achievements.length - 2} more achievements
-              </p>
-            )}
           </div>
         )}
       </div>
