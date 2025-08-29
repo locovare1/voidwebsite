@@ -42,13 +42,13 @@ const teams = [
         }
       },
       {
-        name: 'Void Fx1ine',
+        name: 'Void Golden',
         role: 'Player',
-        image: '/teams/players/fxing.png',
+        image: '/teams/players/1xGolden.jpg',
         game: 'Fortnite',
-        achievements: ['30k+ PR', 'Major 3 Qualifier', 'Future Champion'],
+        achievements: ['100k+ PR', '11K+ earned', 'Future Champion'],
         socialLinks: {
-          twitter: 'https://x.com/Forest_veroo'
+          twitter: 'https://x.com/1xgolden'
         }
       }
     ],
