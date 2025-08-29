@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdvancedPageTransition from "@/components/AdvancedPageTransition";
 import GlobalErrorBoundary from "@/components/GlobalErrorBoundary";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -36,6 +37,7 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning>
         <GlobalErrorBoundary>
           <AdvancedPageTransition>
+            <ScrollToTop />
             <Navbar />
             <main className="min-h-screen">{children}</main>
             <Footer />

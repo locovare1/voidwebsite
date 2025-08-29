@@ -32,14 +32,14 @@ const isMotionAvailable = typeof motion !== 'undefined';
 export const motionVariants = {
   // Hero section animations
   heroTitle: {
-    hidden: { opacity: 0, y: 50 },
+    hidden: { opacity: 0, y: 40 },
     visible: { 
       opacity: 1, 
       y: 0,
       transition: {
-        duration: 1.2,
+        duration: 0.7,
         ease: easeOut,
-        delay: 0.3
+        delay: 0.15
       }
     }
   },
@@ -49,9 +49,9 @@ export const motionVariants = {
       opacity: 1, 
       y: 0,
       transition: {
-        duration: 1,
+        duration: 0.6,
         ease: easeOut,
-        delay: 0.6
+        delay: 0.25
       }
     }
   },
@@ -61,30 +61,30 @@ export const motionVariants = {
       opacity: 1, 
       y: 0,
       transition: {
-        duration: 0.8,
+        duration: 0.5,
         ease: easeOut,
-        delay: 0.9
+        delay: 0.35
       }
     }
   },
 
   // Card animations
   card: {
-    hidden: { opacity: 0, y: 30, scale: 0.95 },
+    hidden: { opacity: 0, y: 20, scale: 0.97 },
     visible: { 
       opacity: 1, 
       y: 0, 
       scale: 1,
       transition: {
-        duration: 0.6,
+        duration: 0.45,
         ease: easeOut
       }
     },
     hover: {
       y: -8,
-      scale: 1.02,
+      scale: 1.015,
       transition: {
-        duration: 0.3,
+        duration: 0.25,
         ease: easeOut
       }
     }
@@ -119,19 +119,19 @@ export const motionVariants = {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1,
+        staggerChildren: 0.08,
+        delayChildren: 0.05,
         ease: easeOut
       }
     }
   },
   staggerItem: {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 16 },
     visible: { 
       opacity: 1, 
       y: 0,
       transition: {
-        duration: 0.5,
+        duration: 0.35,
         ease: easeOut
       }
     }
@@ -157,21 +157,21 @@ export const motionVariants = {
       opacity: 1, 
       scale: 1,
       transition: {
-        duration: 0.5,
+        duration: 0.35,
         ease: easeOut
       }
     },
     hover: {
-      scale: 1.05,
+      scale: 1.03,
       transition: {
-        duration: 0.2,
+        duration: 0.15,
         ease: easeOut
       }
     },
     tap: {
       scale: 0.95,
       transition: {
-        duration: 0.1
+        duration: 0.08
       }
     }
   }
@@ -216,9 +216,8 @@ export function AnimatedCard({
       <motion.div
         variants={motionVariants.card}
         initial="hidden"
-        whileInView="visible"
+        animate="visible"
         whileHover="hover"
-        viewport={{ once: true, amount: 0.3 }}
         transition={{ delay }}
         className={className}
       >
@@ -276,8 +275,7 @@ export function StaggeredList({
       <motion.div
         variants={motionVariants.staggerContainer}
         initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.1 }}
+        animate="visible"
         className={className}
       >
         {children}
@@ -331,7 +329,7 @@ export function FadeInSection({
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.8, ease: easeOut, delay }}
+        transition={{ duration: 0.5, ease: easeOut, delay }}
         className={className}
       >
         {children}

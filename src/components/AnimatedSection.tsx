@@ -17,17 +17,19 @@ export default function AnimatedSection({
   children,
   animationType = 'fadeIn',
   delay = 0,
-  duration = 0.8,
+  duration = 0.5,
   className = '',
   threshold = 0.1
 }: AnimatedSectionProps) {
   const { elementRef, isVisible } = useIntersectionObserver<HTMLDivElement>({ threshold });
 
   const getAnimationClasses = () => {
+    // Compress long delays into shorter Tailwind delay classes
     const delayClass =
-      delay >= 700 ? 'delay-700' : delay >= 600 ? 'delay-600' : delay >= 500 ? 'delay-500' : delay >= 400 ? 'delay-400' : delay >= 300 ? 'delay-300' : delay >= 200 ? 'delay-200' : delay >= 100 ? 'delay-100' : 'delay-0';
+      delay >= 300 ? 'delay-200' : delay >= 150 ? 'delay-100' : delay > 0 ? 'delay-75' : 'delay-0';
+    // Use shorter durations overall
     const durationClass =
-      duration >= 1.0 ? 'duration-1000' : duration >= 0.9 ? 'duration-900' : duration >= 0.8 ? 'duration-800' : duration >= 0.7 ? 'duration-700' : duration >= 0.6 ? 'duration-600' : 'duration-500';
+      duration >= 0.8 ? 'duration-500' : duration >= 0.6 ? 'duration-400' : 'duration-300';
     const baseClasses = `transition-all ${durationClass} ${delayClass}`;
     
     switch (animationType) {

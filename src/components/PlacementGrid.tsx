@@ -1,9 +1,10 @@
-'use client';
+ 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import AnimatedSection from '@/components/AnimatedSection';
 import Badge from '@/components/Badge';
+import { AnimatedCard, StaggeredList, StaggeredItem } from '@/components/FramerAnimations';
 
 interface Placement {
   game: string;
@@ -25,91 +26,107 @@ export default function PlacementGrid({ placements, itemsPerPage }: PlacementGri
   const totalPages = Math.ceil(placements.length / itemsPerPage);
   
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedPlacements = placements.slice(startIndex, startIndex + itemsPerPage);
+  let paginatedPlacements = placements.slice(startIndex, startIndex + itemsPerPage);
+
+  // Reset to first page whenever the incoming placements list changes (e.g., filter)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [placements]);
+
+  // Clamp current page to valid range if counts/itemsPerPage change
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(placements.length / itemsPerPage));
+    if (currentPage > maxPage) {
+      setCurrentPage(maxPage);
+    }
+  }, [placements.length, itemsPerPage, currentPage]);
+
+  // Safety: if slice is empty but we have items (page out of range temporarily), fall back to first page slice
+  if (paginatedPlacements.length === 0 && placements.length > 0) {
+    paginatedPlacements = placements.slice(0, itemsPerPage);
+  }
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {paginatedPlacements.map((placement, index) => (
-          <AnimatedSection key={`${placement.game}-${index}`} animationType="slideUp" delay={index * 100}>
-          <div 
-            className="bg-[#1A1A1A] rounded-lg p-6 hover:bg-[#252525] transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg border border-[#2A2A2A] hover:border-[#3A3A3A]"
-          >
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="w-16 h-16 relative">
-                <Image
-                  src={placement.logo}
-                  alt={`${placement.game} logo`}
-                  fill
-                  className="object-contain"
-                />
+          <StaggeredItem key={`${placement.game}-${placement.tournament}-${startIndex + index}`}>
+            <AnimatedCard
+              key={`card-${placement.game}-${placement.tournament}-${startIndex + index}`}
+              delay={index * 0.05}
+              className="rounded-2xl p-5 bg-gradient-to-b from-[#1A1A1A] to-[#202020] border border-white/10 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1"
+            >
+              <div className="relative flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 relative">
+                  <Image
+                    src={placement.logo}
+                    alt={`${placement.game} logo`}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold text-xl">
+                    {placement.game}
+                  </h3>
+                  <p className="text-gray-400 text-sm">{placement.team}</p>
+                </div>
+                <span
+                  className={`absolute right-0 top-0 m-2 text-xs md:text-sm font-bold ${
+                    parseInt(placement.position.split(' ')[0].replace(/\D/g, ''), 10) <= 10
+                      ? 'text-green-400'
+                      : 'text-blue-400'
+                  }`}
+                >
+                  #{placement.position.split(' ')[0].replace(/\D/g, '')}
+                </span>
               </div>
-              <div>
-                <h3 className="text-white font-semibold text-xl">
-                  {placement.game}
-                </h3>
-                <p className="text-[#bdbdbd]">{placement.team}</p>
-              </div>
-              <div className="ml-auto">
-                {placement.position.includes('1st') || placement.position.includes('2nd') || placement.position.includes('3rd') ? (
-                  <Badge
-                    color={placement.position.includes('1st') ? 'gold' : placement.position.includes('2nd') ? 'silver' : 'bronze'}
-                    className="text-lg md:text-xl"
-                  >
-                    #{placement.position.split(' ')[0].replace(/\D/g, '')}
-                  </Badge>
-                ) : (
-                  <Badge color="green" className="text-lg md:text-xl">
-                    #{placement.position.split(' ')[0].replace(/\D/g, '')}
-                  </Badge>
-                )}
-              </div>
-            </div>
 
-            <div className="space-y-4">
-              <div>
-                <p className="text-gray-400 text-sm mb-1">Tournament</p>
-                <p className="text-white font-medium">{placement.tournament}</p>
-              </div>
-              <div>
-                <p className="text-gray-400 text-sm mb-1">Position</p>
-                <p className="text-white font-medium">
-                  {placement.position.includes('1st') || placement.position.includes('2nd') || placement.position.includes('3rd') ? (
-                    <span
-                      className={
-                        placement.position.includes('1st')
-                          ? 'text-[#FFD700]'
-                          : placement.position.includes('2nd')
-                          ? 'text-[#C0C0C0]'
-                          : 'text-[#CD7F32]'
-                      }
-                    >
-                      {placement.position}
-                    </span>
-                  ) : (
-                    placement.position
-                  )}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-400 text-sm mb-1">Players</p>
-                <p className="text-white font-medium">
-                  {placement.players.join(', ')}
-                </p>
-              </div>
-              {placement.prize && placement.prize !== "$0" && (
-                <div className="pt-2">
-                  <p className="text-gray-400 text-sm mb-1">Prize Earned</p>
-                  <p className="text-[#FFD700] font-semibold">
-                    {placement.prize}
+              <div className="space-y-3">
+                <div>
+                  <p className="text-gray-400 text-sm mb-1">Tournament</p>
+                  <p className="text-white font-semibold leading-snug text-base">{placement.tournament}</p>
+                </div>
+                <div className="border-t border-white/5" />
+                <div>
+                  <p className="text-gray-400 text-sm mb-1">Position</p>
+                  <p
+                    className={`font-semibold underline text-base ${
+                      parseInt(placement.position.split(' ')[0].replace(/\D/g, ''), 10) <= 10
+                        ? 'text-green-400'
+                        : 'text-blue-400'
+                    }`}
+                  >
+                    {placement.position}
                   </p>
                 </div>
-              )}
-            </div>
-          </div>
-          </AnimatedSection>
+                <div className="border-t border-white/5" />
+                <div>
+                  <p className="text-gray-400 text-sm mb-1">Players</p>
+                  <p className="text-white font-semibold text-base flex items-start gap-2">
+                    <span className="text-gray-400 leading-6">•</span>
+                    <span>{placement.players.join(', ')}</span>
+                  </p>
+                </div>
+                {placement.prize && placement.prize !== "$0" && (
+                  <div className="pt-2">
+                    <p className="text-gray-400 text-sm mb-1">Prize Earned</p>
+                    <p className="text-[#FFD700] font-semibold text-base">
+                      {placement.prize}
+                    </p>
+                  </div>
+                )}
+                {placement.prize === "$0" && (
+                  <div className="pt-2">
+                    <p className="text-gray-400 text-sm mb-1">Prize Earned</p>
+                    <p className="text-gray-300 font-medium text-base">$0</p>
+                  </div>
+                )}
+              </div>
+            </AnimatedCard>
+          </StaggeredItem>
         ))}
-      </div>
+      </StaggeredList>
 
       {totalPages > 1 && (
         <AnimatedSection animationType="fadeIn" delay={100}>

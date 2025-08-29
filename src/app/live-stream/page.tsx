@@ -20,6 +20,13 @@ const streamers: Streamer[] = [
     description: 'Professional fortnite player and content creator',
     channelLink: 'https://www.twitch.tv/voidfrankenstein',
   },
+  {
+    name: 'Void Esports 2x',
+    game: 'Fortnite',
+    image: '/teams/fortnite.png',
+    description: 'Official Void Esports stream channel',
+    channelLink: 'https://www.twitch.tv/voidesports2x',
+  },
   // Add more streamers as needed
 ];
 

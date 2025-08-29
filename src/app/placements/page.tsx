@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import PlacementGrid from '@/components/PlacementGrid';
+import { ParallaxText, AnimatedCard, ScrollProgress, FadeInSection } from '@/components/FramerAnimations';
 
 interface Placement {
   game: string;
@@ -81,7 +82,6 @@ const recentPlacements: Placement[] = [
 ];
 
 export default function Placements() {
-  const [isLoaded, setIsLoaded] = useState(false);
   const [selectedGame, setSelectedGame] = useState<string>('All');
 
   const games = useMemo(() => {
@@ -94,44 +94,26 @@ export default function Placements() {
     return recentPlacements.filter(p => p.game === selectedGame);
   }, [selectedGame]);
 
-  useEffect(() => {
-    setIsLoaded(true);
-    
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('revealed');
-          observer.unobserve(entry.target);
-        }
-      });
-    }, observerOptions);
-
-    const elements = document.querySelectorAll('.scroll-reveal');
-    elements.forEach(el => observer.observe(el));
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
+  // Removed fade/observer logic to ensure the container doesn't disappear
 
   return (
-    <div className={`min-h-screen bg-[#0F0F0F] pt-24 pb-16 transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+    <div className="min-h-screen bg-[#0F0F0F] pt-24 pb-16">
+      <ScrollProgress />
       <div className="void-container">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 stagger-child stagger-1">
-            Recent Placements
-          </h1>
-          <p className="text-gray-400 text-lg stagger-child stagger-2">
-            Our teams&apos; latest achievements across various esports titles
-          </p>
+          <ParallaxText speed={0.2}>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Recent Placements
+            </h1>
+          </ParallaxText>
+          <FadeInSection delay={0.1}>
+            <p className="text-gray-400 text-lg">
+              Our teams&apos; latest achievements across various esports titles
+            </p>
+          </FadeInSection>
         </div>
         
-        <div className="flex flex-col items-center mb-8 gap-2">
+        <AnimatedCard className="flex flex-col items-center mb-8 gap-2 bg-transparent border-0 shadow-none">
           <span className="text-sm font-medium text-gray-400">Filter by game:</span>
           <div className="flex flex-wrap gap-2 bg-[#1A1A1A] rounded-full p-1.5 border border-[#2A2A2A]">
             {games.map(game => (
@@ -144,9 +126,9 @@ export default function Placements() {
               </button>
             ))}
           </div>
-        </div>
+        </AnimatedCard>
 
-        <div className="placements-container overflow-auto">
+        <div>
           <PlacementGrid placements={filteredPlacements} itemsPerPage={6} />
         </div>
       </div>
