@@ -97,7 +97,7 @@ export default function Placements() {
   // Removed fade/observer logic to ensure the container doesn't disappear
 
   return (
-    <div className="min-h-screen bg-[#0F0F0F] pt-24 pb-16">
+    <div className="min-h-screen bg-[#0F0F0F] pt-24 pb-20">
       <ScrollProgress />
       <div className="void-container">
         <div className="text-center mb-12">
@@ -113,14 +113,18 @@ export default function Placements() {
           </FadeInSection>
         </div>
         
-        <AnimatedCard className="flex flex-col items-center mb-8 gap-2 bg-transparent border-0 shadow-none">
+        <AnimatedCard className="flex flex-col items-center mb-10 gap-3 bg-transparent border-0 shadow-none">
           <span className="text-sm font-medium text-gray-400">Filter by game:</span>
           <div className="flex flex-wrap gap-2 bg-[#1A1A1A] rounded-full p-1.5 border border-[#2A2A2A]">
             {games.map(game => (
               <button
                 key={game}
                 onClick={() => setSelectedGame(game)}
-                className={`px-4 py-2 rounded-full font-medium text-sm transition-colors ${selectedGame === game ? 'bg-white text-black' : 'text-white hover:bg-[#252525]'}`}
+                className={`px-4 py-2 rounded-full font-medium text-sm transition-colors ${
+                  selectedGame === game
+                    ? 'bg-white text-black'
+                    : 'bg-transparent text-white hover:bg-white/10'
+                }`}
               >
                 {game}
               </button>

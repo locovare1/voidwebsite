@@ -25,7 +25,7 @@ export default function PlayerCard({
 }: PlayerCardProps) {
   return (
     <div 
-      className="player-card group cursor-pointer"
+      className="player-card group cursor-pointer transition-transform duration-300 hover:-translate-y-1"
     >
       <div className="relative h-64 mb-4 overflow-hidden rounded-lg">
         <Image

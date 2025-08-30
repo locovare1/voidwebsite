@@ -71,7 +71,7 @@ export default function NewsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {newsArticles.map((article, index) => (
             <AnimatedSection key={article.title} animationType="slideUp" delay={index * 100}>
-              <div className="void-card group cursor-pointer">
+              <div className="void-card group cursor-pointer transition-transform duration-300 hover:-translate-y-1">
                 <div className="relative h-48 mb-4 overflow-hidden rounded-lg">
                   <Image
                     src={article.image}

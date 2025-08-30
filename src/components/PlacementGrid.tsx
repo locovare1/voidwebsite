@@ -46,14 +46,14 @@ export default function PlacementGrid({ placements, itemsPerPage }: PlacementGri
   }
 
   return (
-    <div className="space-y-6">
-      <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="space-y-8">
+      <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {paginatedPlacements.map((placement, index) => (
           <StaggeredItem key={`${placement.game}-${placement.tournament}-${startIndex + index}`}>
             <AnimatedCard
               key={`card-${placement.game}-${placement.tournament}-${startIndex + index}`}
               delay={index * 0.05}
-              className="rounded-2xl p-5 bg-gradient-to-b from-[#1A1A1A] to-[#202020] border border-white/10 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1"
+              className="void-card p-5 hover:-translate-y-1"
             >
               <div className="relative flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 relative">
@@ -65,7 +65,7 @@ export default function PlacementGrid({ placements, itemsPerPage }: PlacementGri
                   />
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold text-xl">
+                  <h3 className="text-white font-semibold text-lg md:text-xl">
                     {placement.game}
                   </h3>
                   <p className="text-gray-400 text-sm">{placement.team}</p>
@@ -84,13 +84,13 @@ export default function PlacementGrid({ placements, itemsPerPage }: PlacementGri
               <div className="space-y-3">
                 <div>
                   <p className="text-gray-400 text-sm mb-1">Tournament</p>
-                  <p className="text-white font-semibold leading-snug text-base">{placement.tournament}</p>
+                  <p className="text-white font-semibold leading-snug text-base md:text-lg">{placement.tournament}</p>
                 </div>
                 <div className="border-t border-white/5" />
                 <div>
                   <p className="text-gray-400 text-sm mb-1">Position</p>
                   <p
-                    className={`font-semibold underline text-base ${
+                    className={`font-semibold underline text-base md:text-lg ${
                       parseInt(placement.position.split(' ')[0].replace(/\D/g, ''), 10) <= 10
                         ? 'text-green-400'
                         : 'text-blue-400'
@@ -102,7 +102,7 @@ export default function PlacementGrid({ placements, itemsPerPage }: PlacementGri
                 <div className="border-t border-white/5" />
                 <div>
                   <p className="text-gray-400 text-sm mb-1">Players</p>
-                  <p className="text-white font-semibold text-base flex items-start gap-2">
+                  <p className="text-white font-semibold text-base md:text-lg flex items-start gap-2">
                     <span className="text-gray-400 leading-6">•</span>
                     <span>{placement.players.join(', ')}</span>
                   </p>
@@ -110,7 +110,7 @@ export default function PlacementGrid({ placements, itemsPerPage }: PlacementGri
                 {placement.prize && placement.prize !== "$0" && (
                   <div className="pt-2">
                     <p className="text-gray-400 text-sm mb-1">Prize Earned</p>
-                    <p className="text-[#FFD700] font-semibold text-base">
+                    <p className="text-[#FFD700] font-semibold text-base md:text-lg">
                       {placement.prize}
                     </p>
                   </div>
@@ -118,7 +118,7 @@ export default function PlacementGrid({ placements, itemsPerPage }: PlacementGri
                 {placement.prize === "$0" && (
                   <div className="pt-2">
                     <p className="text-gray-400 text-sm mb-1">Prize Earned</p>
-                    <p className="text-gray-300 font-medium text-base">$0</p>
+                    <p className="text-gray-300 font-medium text-base md:text-lg">$0</p>
                   </div>
                 )}
               </div>
@@ -129,12 +129,12 @@ export default function PlacementGrid({ placements, itemsPerPage }: PlacementGri
 
       {totalPages > 1 && (
         <AnimatedSection animationType="fadeIn" delay={100}>
-          <div className="flex flex-col items-center mt-8 space-y-3">
-            <div className="flex items-center space-x-1">
+          <div className="flex flex-col items-center mt-10 space-y-4">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-3 h-10 flex items-center justify-center rounded-md bg-[#252525] text-white hover:bg-[#3A3A3A] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="void-button h-10 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
@@ -143,7 +143,9 @@ export default function PlacementGrid({ placements, itemsPerPage }: PlacementGri
                   key={page}
                   onClick={() => setCurrentPage(page)}
                   className={`w-10 h-10 flex items-center justify-center rounded-md transition-all duration-300 ${
-                    currentPage === page ? 'bg-[#FFFFFF] text-black font-bold' : 'bg-[#252525] text-white hover:bg-[#3A3A3A]'
+                    currentPage === page
+                      ? 'bg-white text-black font-bold'
+                      : 'bg-transparent border border-white/20 text-white hover:bg-white/10'
                   }`}
                 >
                   {page}
@@ -152,7 +154,7 @@ export default function PlacementGrid({ placements, itemsPerPage }: PlacementGri
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="px-3 h-10 flex items-center justify-center rounded-md bg-[#252525] text-white hover:bg-[#3A3A3A] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="void-button h-10 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
               </button>
