@@ -13,12 +13,36 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Void Esports",
   description: "Professional Esports Organization",
+  metadataBase: new URL("https://voidwebsite-smoky.vercel.app"),
   icons: {
     icon: '/void.ico',
     apple: [
       { url: '/logos/apple-icon.png', sizes: '180x180' },
     ],
   },
+  openGraph: {
+    title: "Void Esports",
+    description: "Professional Esports Organization",
+    url: "https://voidwebsite-smoky.vercel.app",
+    siteName: "Void Esports",
+    images: [
+      { url: "/logos/icon-512.png", width: 512, height: 512, alt: "Void" },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Void Esports",
+    description: "Professional Esports Organization",
+    images: ["/logos/icon-512.png"],
+  },
+  manifest: "/manifest.webmanifest",
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+  },
+  themeColor: '#000000',
 };
 
 export default function RootLayout({

@@ -10,13 +10,14 @@ import { usePathname, useSearchParams } from "next/navigation";
 export default function ScrollToTop() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const searchKey = searchParams?.toString();
 
   useEffect(() => {
     // Always jump to top on navigation
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     }
-  }, [pathname, searchParams?.toString()]);
+  }, [pathname, searchKey]);
 
   return null;
 }

@@ -38,11 +38,11 @@ const newsArticles = [
     category: 'Fortnite',
   },
   {
-    title: 'Void Announces Upcoming Valorant Team',
+    title: 'Community Update: Summer Events',
     date: '2025-06-01',
-    image: '/teams/valorant.png',
-    description: 'We are thrilled to announce our new Valorant team, featuring some of the most talented players in the region. Get ready for an exciting season ahead!',
-    category: 'Valorant',
+    image: '/news/wavedashh.png',
+    description: 'We hosted several community scrims and giveaways this summer. Thanks to everyone who participated—more events coming soon!',
+    category: 'Community',
   },
   {
     title: 'Void Updates Assets',

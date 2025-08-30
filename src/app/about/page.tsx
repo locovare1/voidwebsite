@@ -26,8 +26,8 @@ const achievements = [
   'Sign 2 more Fortnite professionals',
   'Have a player compete in FNCS Grand Finals',
   'Have a player compete at a LAN event',
-  'Grow our Valorant team',
-  'Win a Valorant Tournament',
+  'Grow our community and content presence',
+  'Win an organization-hosted tournament',
 ];
 
 export default function AboutPage() {

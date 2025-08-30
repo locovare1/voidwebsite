@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import AnimatedSection from '@/components/AnimatedSection';
-import Badge from '@/components/Badge';
 import { AnimatedCard, StaggeredList, StaggeredItem } from '@/components/FramerAnimations';
 
 interface Placement {
