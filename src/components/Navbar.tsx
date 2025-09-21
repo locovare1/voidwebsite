@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, XMarkIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { useCart } from '@/contexts/CartContext';
+import CartIcon from './CartIcon';
 
 const navigation = [
   { name: 'Home', href: '/' },
@@ -20,6 +22,7 @@ const navigation = [
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const { itemCount } = useCart();
 
   useEffect(() => {
     // Trigger navbar animation after a short delay
@@ -70,7 +73,8 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end">
+        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-4">
+          <CartIcon />
           <Link href="/contact" className="void-button glow-on-hover">
             Contact Us
           </Link>
@@ -114,8 +118,16 @@ export default function Navbar() {
               </Link>
             ))}
             <Link
+              href="/cart"
+              className="mt-4 block py-3 text-base font-semibold text-white hover:text-[#a6a6a6] transition-all duration-300 hover:bg-white/5 hover:pl-2 flex items-center gap-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <ShoppingCartIcon className="h-5 w-5" />
+              Cart {itemCount > 0 && `(${itemCount})`}
+            </Link>
+            <Link
               href="/contact"
-              className="mt-4 block py-3 text-base font-semibold text-white hover:text-[#a6a6a6] transition-all duration-300 hover:bg-white/5 hover:pl-2"
+              className="block py-3 text-base font-semibold text-white hover:text-[#a6a6a6] transition-all duration-300 hover:bg-white/5 hover:pl-2"
               onClick={() => setMobileMenuOpen(false)}
             >
               Contact Us

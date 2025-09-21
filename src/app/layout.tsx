@@ -7,6 +7,8 @@ import Footer from "@/components/Footer";
 import AdvancedPageTransition from "@/components/AdvancedPageTransition";
 import GlobalErrorBoundary from "@/components/GlobalErrorBoundary";
 import ScrollToTop from "@/components/ScrollToTop";
+import { CartProvider } from "@/contexts/CartContext";
+import { OrderProvider } from "@/contexts/OrderContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -59,14 +61,18 @@ export default function RootLayout({
         crossOrigin="anonymous"
       />
       <body className={inter.className} suppressHydrationWarning>
-        <GlobalErrorBoundary>
-          <AdvancedPageTransition>
-            <ScrollToTop />
-            <Navbar />
-            <main className="min-h-screen">{children}</main>
-            <Footer />
-          </AdvancedPageTransition>
-        </GlobalErrorBoundary>
+        <OrderProvider>
+          <CartProvider>
+            <GlobalErrorBoundary>
+              <AdvancedPageTransition>
+                <ScrollToTop />
+                <Navbar />
+                <main className="min-h-screen">{children}</main>
+                <Footer />
+              </AdvancedPageTransition>
+            </GlobalErrorBoundary>
+          </CartProvider>
+        </OrderProvider>
       </body>
     </html>
   );

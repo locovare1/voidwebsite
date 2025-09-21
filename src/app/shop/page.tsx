@@ -4,6 +4,15 @@ import ProductGrid from '@/components/ProductGrid';
 
 const products = [
   {
+    id: 0,
+    name: 'FREE Test Product',
+    price: 0.00,
+    image: '/store/sticker.png',
+    category: 'Test',
+    description: 'Free test product for testing checkout functionality. No payment required.',
+    link: '#',
+  },
+  {
     id: 1,
     name: 'VOID Esports Premium Jersey',
     price: 55.00,

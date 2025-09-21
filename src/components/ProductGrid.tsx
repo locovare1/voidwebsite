@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Pagination from './Pagination';
+import { useCart } from '@/contexts/CartContext';
 
 interface Product {
 	id: number;
@@ -23,6 +24,8 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 	const [currentPage, setCurrentPage] = useState(1);
 	const [selectedCategory, setSelectedCategory] = useState<string>('All');
 	const [sortBy, setSortBy] = useState<string>('name');
+	const [addingToCart, setAddingToCart] = useState<number | null>(null);
+	const { addItem } = useCart();
 
 	const categories = useMemo(() => {
 		const unique = Array.from(new Set(products.map(p => p.category)));
@@ -61,6 +64,24 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 	const handleSortChange = (sort: string) => {
 		setSortBy(sort);
 		setCurrentPage(1);
+	};
+
+	const handleAddToCart = async (product: Product) => {
+		setAddingToCart(product.id);
+		
+		// Add a small delay for better UX
+		await new Promise(resolve => setTimeout(resolve, 500));
+		
+		addItem({
+			id: product.id,
+			name: product.name,
+			price: product.price,
+			image: product.image,
+			category: product.category,
+			description: product.description,
+		});
+		
+		setAddingToCart(null);
 	};
 
 	return (
@@ -108,7 +129,7 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 								className="object-contain transition-transform duration-500 group-hover:scale-105 p-4"
 							/>
 							<div className="absolute top-3 right-3 bg-black/80 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
-								${product.price.toFixed(2)}
+								{product.price === 0 ? 'FREE' : `$${product.price.toFixed(2)}`}
 							</div>
 						</div>
 
@@ -128,10 +149,20 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 							</p>
 
 							<button
-								className="w-full bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white text-center py-3 px-4 rounded-lg transition-all duration-300 mt-4 font-medium hover:shadow-lg transform hover:scale-[1.02]"
-								onClick={() => window.open(product.link, '_blank')}
+								className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black text-center py-3 px-4 rounded-lg transition-all duration-300 mt-4 font-medium hover:shadow-lg transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed glow-on-hover"
+								onClick={() => handleAddToCart(product)}
+								disabled={addingToCart === product.id}
 							>
-								Buy Now - ${product.price.toFixed(2)}
+								{addingToCart === product.id ? (
+									<div className="flex items-center justify-center gap-2">
+										<div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
+										Adding...
+									</div>
+								) : product.price === 0 ? (
+									'Add to Cart - FREE'
+								) : (
+									`Add to Cart - $${product.price.toFixed(2)}`
+								)}
 							</button>
 						</div>
 					</div>
