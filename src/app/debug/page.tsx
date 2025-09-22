@@ -26,7 +26,7 @@ export default function DebugPage() {
             <p>2. <strong>Test Review Service:</strong> Click the green button to test the review service specifically</p>
             <p>3. <strong>Check Console:</strong> Open browser developer tools (F12) and check the Console tab for detailed error messages</p>
             <p>4. <strong>Check Network:</strong> In developer tools, check the Network tab to see if Firebase requests are being made</p>
-            <p>5. <strong>Firebase Rules:</strong> Make sure Firestore security rules allow writes to the 'reviews' collection</p>
+            <p>5. <strong>Firebase Rules:</strong> Make sure Firestore security rules allow writes to the &apos;reviews&apos; collection</p>
           </div>
         </div>
       </div>

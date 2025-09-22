@@ -11,6 +11,7 @@ import {
   increment
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { FirebaseError } from 'firebase/app';
 
 export interface Review {
   id?: string;
@@ -56,20 +57,23 @@ export const reviewService = {
       const docRef = await addDoc(collection(db, REVIEWS_COLLECTION), reviewData);
       console.log('Review added successfully with ID:', docRef.id);
       return docRef.id;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Detailed error adding review:', error);
-      console.error('Error code:', (error as any)?.code);
-      console.error('Error message:', (error as any)?.message);
-      
+
+      const firebaseError = error as FirebaseError;
+      console.error('Error code:', firebaseError?.code);
+      console.error('Error message:', firebaseError?.message);
+
       // Provide more specific error messages
-      if ((error as any)?.code === 'permission-denied') {
+      if (firebaseError?.code === 'permission-denied') {
         throw new Error('Permission denied. Please check Firebase security rules.');
-      } else if ((error as any)?.code === 'unavailable') {
+      } else if (firebaseError?.code === 'unavailable') {
         throw new Error('Firebase service is currently unavailable. Please try again later.');
-      } else if ((error as any)?.code === 'invalid-argument') {
+      } else if (firebaseError?.code === 'invalid-argument') {
         throw new Error('Invalid data provided. Please check your input.');
       } else {
-        throw new Error(`Failed to add review: ${(error as unknown)?.message || 'Unknown error'}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to add review: ${errorMessage}`);
       }
     }
   },

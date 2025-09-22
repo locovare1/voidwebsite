@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { collection, addDoc, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { FirebaseError } from 'firebase/app';
 
 export default function FirebaseTest() {
   const [testResult, setTestResult] = useState<string>('');
@@ -36,9 +37,10 @@ export default function FirebaseTest() {
       setTestResult(`Step 2: ✅ Write access works. Document ID: ${docRef.id}`);
       
       setTestResult('🎉 All tests passed! Firebase is working correctly.');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Firebase test error:', error);
-      setTestResult(`❌ Error: ${error.code || 'Unknown'} - ${error.message || 'Unknown error'}`);
+      const firebaseError = error as FirebaseError;
+      setTestResult(`❌ Error: ${firebaseError.code || 'Unknown'} - ${firebaseError.message || 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
@@ -61,9 +63,10 @@ export default function FirebaseTest() {
       
       const reviewId = await reviewService.addReview(testReview);
       setTestResult(`✅ Review service works! Review ID: ${reviewId}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Review service test error:', error);
-      setTestResult(`❌ Review service error: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setTestResult(`❌ Review service error: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
