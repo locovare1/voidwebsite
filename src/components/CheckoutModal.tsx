@@ -47,6 +47,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
   const [showPayment, setShowPayment] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
+  const [orderProcessed, setOrderProcessed] = useState(false);
   
   const { addOrder } = useOrders();
   const { clearCart } = useCart();
@@ -57,16 +58,19 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      setOrderProcessed(false); // Reset when opening
     } else {
       document.body.style.overflow = 'unset';
-      setShowPayment(false);
-      setClientSecret('');
+      if (!orderProcessed) {
+        setShowPayment(false);
+        setClientSecret('');
+      }
     }
 
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen]);
+  }, [isOpen, orderProcessed]);
 
   const handleInputChange = (field: keyof CustomerInfo, value: string) => {
     setCustomerInfo(prev => ({
@@ -126,13 +130,13 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
         addOrder(newOrder);
         clearCart();
         
-        // Show success modal immediately
+        // Set the completed order and show success modal immediately
         setCompletedOrder(newOrder);
-        onClose(); // Close checkout modal first
-        // Show success modal after checkout modal closes
-        setTimeout(() => {
-          setShowSuccessModal(true);
-        }, 200);
+        setOrderProcessed(true);
+        setShowSuccessModal(true);
+        
+        // Close the checkout modal immediately
+        onClose();
         
         return;
       }
@@ -343,11 +347,10 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                     customerInfo={customerInfo}
                     onSuccess={(order) => {
                       setCompletedOrder(order);
-                      onClose(); // Close checkout modal first
-                      // Show success modal after checkout modal closes
-                      setTimeout(() => {
-                        setShowSuccessModal(true);
-                      }, 200);
+                      setOrderProcessed(true);
+                      setShowSuccessModal(true);
+                      // Close checkout modal immediately
+                      onClose();
                     }}
                     total={finalTotal}
                   />
@@ -360,12 +363,23 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
         </div>
       )}
 
-      {/* Order Success Modal - Outside checkout modal */}
+      {/* Order Success Modal - Persists even when checkout modal closes */}
       <OrderSuccessModal
-        isOpen={showSuccessModal}
+        isOpen={showSuccessModal && orderProcessed}
         onClose={() => {
           setShowSuccessModal(false);
           setCompletedOrder(null);
+          setOrderProcessed(false);
+          // Reset checkout modal state
+          setCustomerInfo({
+            name: '',
+            email: '',
+            address: '',
+            zipCode: '',
+            phone: '',
+          });
+          setShowPayment(false);
+          setClientSecret('');
         }}
         order={completedOrder}
       />

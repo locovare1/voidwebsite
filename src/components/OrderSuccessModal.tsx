@@ -14,6 +14,8 @@ interface OrderSuccessModalProps {
 
 export default function OrderSuccessModal({ isOpen, onClose, order }: OrderSuccessModalProps) {
   const [copied, setCopied] = useState(false);
+  
+
 
   useEffect(() => {
     if (isOpen) {
