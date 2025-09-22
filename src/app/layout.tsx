@@ -9,6 +9,7 @@ import GlobalErrorBoundary from "@/components/GlobalErrorBoundary";
 import ScrollToTop from "@/components/ScrollToTop";
 import { CartProvider } from "@/contexts/CartContext";
 import { OrderProvider } from "@/contexts/OrderContext";
+import { ReviewProvider } from "@/contexts/ReviewContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -63,14 +64,16 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning>
         <OrderProvider>
           <CartProvider>
-            <GlobalErrorBoundary>
-              <AdvancedPageTransition>
-                <ScrollToTop />
-                <Navbar />
-                <main className="min-h-screen">{children}</main>
-                <Footer />
-              </AdvancedPageTransition>
-            </GlobalErrorBoundary>
+            <ReviewProvider>
+              <GlobalErrorBoundary>
+                <AdvancedPageTransition>
+                  <ScrollToTop />
+                  <Navbar />
+                  <main className="min-h-screen">{children}</main>
+                  <Footer />
+                </AdvancedPageTransition>
+              </GlobalErrorBoundary>
+            </ReviewProvider>
           </CartProvider>
         </OrderProvider>
       </body>

@@ -4,16 +4,8 @@ import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Pagination from './Pagination';
 import { useCart } from '@/contexts/CartContext';
-
-interface Product {
-	id: number;
-	name: string;
-	price: number;
-	image: string;
-	category: string;
-	description: string;
-	link: string;
-}
+import ReviewButton from './ReviewButton';
+import { Product } from '@/data/products';
 
 interface ProductGridProps {
 	products: Product[];
@@ -164,6 +156,8 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 									`Add to Cart - $${product.price.toFixed(2)}`
 								)}
 							</button>
+
+							<ReviewButton productId={product.id} productName={product.name} />
 						</div>
 					</div>
 				))}
