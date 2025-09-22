@@ -1,9 +1,13 @@
 "use client";
 
-import { useOrders, Order, OrderSet } from '@/contexts/OrderContext';
+import { useOrders, Order } from '@/contexts/OrderContext';
 import { useState } from 'react';
 import Image from 'next/image';
 import { TrashIcon, ChevronDownIcon, ChevronRightIcon, FolderIcon } from '@heroicons/react/24/outline';
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { formatOrderNumber } from '@/lib/orderUtils';
+import OrderTestButton from './OrderTestButton';
 
 const statusColors = {
   pending: 'bg-yellow-900/20 text-yellow-400 border-yellow-500/20',
@@ -37,10 +41,25 @@ export default function AdminDashboard() {
       : set.orders.filter(order => order.status === filterStatus)
   })).filter(set => set.orders.length > 0);
 
-  const handleStatusUpdate = (orderId: string, newStatus: Order['status']) => {
-    updateOrderStatus(orderId, newStatus);
-    if (selectedOrder && selectedOrder.id === orderId) {
-      setSelectedOrder({ ...selectedOrder, status: newStatus });
+  const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
+    try {
+      // Update in Firebase
+      await updateDoc(doc(db, 'orders', orderId), {
+        status: newStatus
+      });
+      
+      // Update local state
+      updateOrderStatus(orderId, newStatus);
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder({ ...selectedOrder, status: newStatus });
+      }
+    } catch (error) {
+      console.error('Error updating order status in Firebase:', error);
+      // Still update locally as fallback
+      updateOrderStatus(orderId, newStatus);
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder({ ...selectedOrder, status: newStatus });
+      }
     }
   };
 
@@ -48,7 +67,15 @@ export default function AdminDashboard() {
     return orders.filter(order => order.status === status).length;
   };
 
-  const handleDeleteOrder = (orderId: string) => {
+  const handleDeleteOrder = async (orderId: string) => {
+    try {
+      // Delete from Firebase
+      await deleteDoc(doc(db, 'orders', orderId));
+    } catch (error) {
+      console.error('Error deleting order from Firebase:', error);
+    }
+    
+    // Delete from local state
     deleteOrder(orderId);
     if (selectedOrder && selectedOrder.id === orderId) {
       setSelectedOrder(null);
@@ -83,7 +110,19 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = async () => {
+    // Delete from Firebase
+    const deletePromises = Array.from(selectedOrders).map(async (orderId) => {
+      try {
+        await deleteDoc(doc(db, 'orders', orderId));
+      } catch (error) {
+        console.error(`Error deleting order ${orderId} from Firebase:`, error);
+      }
+    });
+    
+    await Promise.all(deletePromises);
+    
+    // Delete from local state
     selectedOrders.forEach(orderId => deleteOrder(orderId));
     setSelectedOrders(new Set());
     setShowBulkDelete(false);
@@ -99,6 +138,9 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Firebase Test */}
+      <OrderTestButton />
+      
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -226,7 +268,7 @@ export default function AdminDashboard() {
                                   className="text-white text-sm font-medium cursor-pointer"
                                   onClick={() => setSelectedOrder(order)}
                                 >
-                                  #{order.id.slice(-8)}
+                                  #{formatOrderNumber(order.id, true)}
                                 </span>
                               </div>
                               <div className="flex items-center gap-1">
@@ -282,7 +324,7 @@ export default function AdminDashboard() {
                           className="text-white font-medium cursor-pointer"
                           onClick={() => setSelectedOrder(order)}
                         >
-                          #{order.id.slice(-8)}
+                          #{formatOrderNumber(order.id, true)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -328,8 +370,11 @@ export default function AdminDashboard() {
               {/* Order Info */}
               <div>
                 <h3 className="text-lg font-semibold text-white mb-2">
-                  Order #{selectedOrder.id.slice(-8)}
+                  Order #{formatOrderNumber(selectedOrder.id, true)}
                 </h3>
+                <p className="text-gray-500 text-xs mb-1">
+                  Full Order ID: {selectedOrder.id}
+                </p>
                 <p className="text-gray-400 text-sm">
                   Created: {new Date(selectedOrder.createdAt).toLocaleString()}
                 </p>
@@ -449,7 +494,7 @@ export default function AdminDashboard() {
               </div>
               <h3 className="text-xl font-bold text-white mb-2">Delete Order</h3>
               <p className="text-gray-400 mb-6">
-                Are you sure you want to delete order #{showDeleteConfirm.slice(-8)}? This action cannot be undone.
+                Are you sure you want to delete order #{formatOrderNumber(showDeleteConfirm, true)}? This action cannot be undone.
               </p>
               <div className="flex gap-3">
                 <button

@@ -7,7 +7,10 @@ import {
   useElements
 } from '@stripe/react-stripe-js';
 import { useCart } from '@/contexts/CartContext';
-import { useOrders } from '@/contexts/OrderContext';
+import { useOrders, Order } from '@/contexts/OrderContext';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { generateOrderNumber } from '@/lib/orderUtils';
 
 interface CheckoutFormProps {
   clientSecret: string;
@@ -18,7 +21,7 @@ interface CheckoutFormProps {
     zipCode: string;
     phone: string;
   };
-  onSuccess: () => void;
+  onSuccess: (order: Order) => void;
   total: number;
 }
 
@@ -68,7 +71,7 @@ export default function CheckoutForm({ customerInfo, onSuccess, total }: Checkou
     } else {
       // Payment succeeded - create order
       const newOrder = {
-        id: `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: generateOrderNumber(),
         items: items.map(item => ({
           id: item.id,
           name: item.name,
@@ -82,14 +85,38 @@ export default function CheckoutForm({ customerInfo, onSuccess, total }: Checkou
         createdAt: new Date().toISOString(),
       };
       
-      addOrderToContext(newOrder);
-      clearCart();
-      setMessage('Payment successful! Thank you for your order.');
-      
-      // Show success message for a moment then close
-      setTimeout(() => {
-        onSuccess();
-      }, 2000);
+      try {
+        console.log('Saving paid order to Firebase:', newOrder.id);
+        
+        // Save order to Firebase
+        await setDoc(doc(db, 'orders', newOrder.id), {
+          ...newOrder,
+          createdAt: new Date(), // Use Firebase Timestamp
+        });
+        
+        console.log('Paid order saved to Firebase successfully');
+        
+        // Also save to local context for immediate UI updates
+        addOrderToContext(newOrder);
+        clearCart();
+        setMessage('Payment successful! Thank you for your order.');
+        
+        // Show success message for a moment then show order details
+        setTimeout(() => {
+          onSuccess(newOrder);
+        }, 1500);
+      } catch (error) {
+        console.error('Error saving order to Firebase:', error);
+        
+        // Still add to local context as fallback
+        addOrderToContext(newOrder);
+        clearCart();
+        setMessage('Payment successful! Order created with ID: ' + newOrder.id);
+        
+        setTimeout(() => {
+          onSuccess(newOrder);
+        }, 1500);
+      }
     }
 
     setIsLoading(false);

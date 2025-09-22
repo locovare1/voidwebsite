@@ -44,6 +44,14 @@ export default function Footer() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  href="/track-order"
+                  className="text-gray-400 hover:text-[#FFFFFF] transition-colors"
+                >
+                  Track Order
+                </Link>
+              </li>
             </ul>
           </div>
 

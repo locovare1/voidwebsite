@@ -1,6 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export interface OrderItem {
   id: number;
@@ -204,28 +206,84 @@ const OrderContext = createContext<OrderContextType | undefined>(undefined);
 export function OrderProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(orderReducer, initialState);
 
-  // Load orders and sets from localStorage on mount
+  // Load orders and sets from Firebase and localStorage on mount
   useEffect(() => {
-    const savedOrders = localStorage.getItem('void-orders');
-    const savedSets = localStorage.getItem('void-sets');
-    
-    if (savedOrders) {
+    const loadOrders = async () => {
       try {
-        const orders = JSON.parse(savedOrders);
-        dispatch({ type: 'LOAD_ORDERS', payload: orders });
+        // Load from Firebase first
+        const ordersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(ordersQuery);
+        
+        const firebaseOrders: Order[] = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const order: Order = {
+            id: doc.id,
+            items: data.items.map((item: {
+              id: number;
+              name: string;
+              price: number;
+              quantity: number;
+              image?: string;
+            }) => ({
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image || '/placeholder-product.jpg',
+            })),
+            total: data.total || data.finalTotal || 0,
+            customerInfo: data.customerInfo,
+            status: data.status || 'pending',
+            createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            paymentIntentId: data.paymentIntentId,
+          };
+          firebaseOrders.push(order);
+        });
+        
+        if (firebaseOrders.length > 0) {
+          dispatch({ type: 'LOAD_ORDERS', payload: firebaseOrders });
+        } else {
+          // Fallback to localStorage if no Firebase orders
+          const savedOrders = localStorage.getItem('void-orders');
+          if (savedOrders) {
+            try {
+              const orders = JSON.parse(savedOrders);
+              dispatch({ type: 'LOAD_ORDERS', payload: orders });
+            } catch (error) {
+              console.error('Error loading orders from localStorage:', error);
+            }
+          }
+        }
       } catch (error) {
-        console.error('Error loading orders from localStorage:', error);
+        console.error('Error loading orders from Firebase:', error);
+        // Fallback to localStorage
+        const savedOrders = localStorage.getItem('void-orders');
+        if (savedOrders) {
+          try {
+            const orders = JSON.parse(savedOrders);
+            dispatch({ type: 'LOAD_ORDERS', payload: orders });
+          } catch (error) {
+            console.error('Error loading orders from localStorage:', error);
+          }
+        }
       }
-    }
-    
-    if (savedSets) {
-      try {
-        const sets = JSON.parse(savedSets);
-        dispatch({ type: 'LOAD_SETS', payload: sets });
-      } catch (error) {
-        console.error('Error loading sets from localStorage:', error);
+    };
+
+    const loadSets = () => {
+      const savedSets = localStorage.getItem('void-sets');
+      if (savedSets) {
+        try {
+          const sets = JSON.parse(savedSets);
+          dispatch({ type: 'LOAD_SETS', payload: sets });
+        } catch (error) {
+          console.error('Error loading sets from localStorage:', error);
+        }
       }
-    }
+    };
+
+    loadOrders();
+    loadSets();
   }, []);
 
   // Save orders and sets to localStorage whenever they change

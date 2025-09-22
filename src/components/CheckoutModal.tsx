@@ -5,8 +5,12 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Elements } from '@stripe/react-stripe-js';
 import stripePromise from '@/lib/stripe';
 import CheckoutForm from './CheckoutForm';
-import { useOrders } from '@/contexts/OrderContext';
+import { useOrders, Order } from '@/contexts/OrderContext';
 import { useCart } from '@/contexts/CartContext';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import OrderSuccessModal from './OrderSuccessModal';
+import { generateOrderNumber } from '@/lib/orderUtils';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -41,6 +45,8 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
   const [clientSecret, setClientSecret] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   
   const { addOrder } = useOrders();
   const { clearCart } = useCart();
@@ -79,7 +85,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
       if (finalTotal === 0) {
         // Create order directly for free items
         const newOrder = {
-          id: `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          id: generateOrderNumber(),
           items: items.map(item => ({
             id: item.id,
             name: item.name,
@@ -93,13 +99,43 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
           createdAt: new Date().toISOString(),
         };
         
-        addOrder(newOrder);
-        clearCart();
-        
-        setTimeout(() => {
-          onClose();
-          alert('Order placed successfully! Thank you for your free order.');
-        }, 1000);
+        try {
+          console.log('Saving order to Firebase:', newOrder.id);
+          
+          // Save order to Firebase
+          await setDoc(doc(db, 'orders', newOrder.id), {
+            ...newOrder,
+            createdAt: new Date(), // Use Firebase Timestamp
+          });
+          
+          console.log('Order saved to Firebase successfully');
+          
+          // Also save to local context
+          addOrder(newOrder);
+          clearCart();
+          
+          // Show success modal immediately
+          setCompletedOrder(newOrder);
+          onClose(); // Close checkout modal first
+          // Show success modal after checkout modal closes
+          setTimeout(() => {
+            setShowSuccessModal(true);
+          }, 200);
+        } catch (error) {
+          console.error('Error saving free order to Firebase:', error);
+          alert('Order created but there was an issue saving to database. Your order number is: ' + newOrder.id);
+          
+          // Still add to local context as fallback
+          addOrder(newOrder);
+          clearCart();
+          
+          setCompletedOrder(newOrder);
+          onClose(); // Close checkout modal first
+          // Show success modal after checkout modal closes
+          setTimeout(() => {
+            setShowSuccessModal(true);
+          }, 200);
+        }
         
         return;
       }
@@ -143,8 +179,6 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
     }
   };
 
-  if (!isOpen) return null;
-
   const appearance = {
     theme: 'night' as const,
     variables: {
@@ -164,7 +198,10 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-300">
+    <>
+      {/* Checkout Modal */}
+      {isOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-300">
       <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#2A2A2A]">
@@ -307,7 +344,14 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                   <CheckoutForm 
                     clientSecret={clientSecret}
                     customerInfo={customerInfo}
-                    onSuccess={onClose}
+                    onSuccess={(order) => {
+                      setCompletedOrder(order);
+                      onClose(); // Close checkout modal first
+                      // Show success modal after checkout modal closes
+                      setTimeout(() => {
+                        setShowSuccessModal(true);
+                      }, 200);
+                    }}
                     total={finalTotal}
                   />
                 </Elements>
@@ -316,6 +360,18 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
           )}
         </div>
       </div>
-    </div>
+        </div>
+      )}
+
+      {/* Order Success Modal - Outside checkout modal */}
+      <OrderSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          setCompletedOrder(null);
+        }}
+        order={completedOrder}
+      />
+    </>
   );
 }
