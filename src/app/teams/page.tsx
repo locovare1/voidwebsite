@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from 'react';
 import Image from 'next/image';
 import AnimatedSection from '@/components/AnimatedSection';
 import PlayerCard from '@/components/PlayerCard';
@@ -72,12 +73,22 @@ const teams = [
       },
       {
         name: 'Gruun',
-        role: 'Founder & CTO',
+        role: 'Founder',
         image: '/teams/players/gruun.png',
         game: 'Management',
         achievements: ['Founder', 'Developer', 'Technical Director'],
         socialLinks: {
           twitter: 'https://x.com/gruunvfx'
+        }
+      },
+      {
+        name: 'Dixuez',
+        role: 'Ownership',
+        image: '/teams/players/dix.png',
+        game: 'Management',
+        achievements: ['Team Manager', 'Infrastructure', 'Innovation'],
+        socialLinks: {
+          twitter: 'https://www.twitch.tv/dixuez'
         }
       },
       {
@@ -91,23 +102,13 @@ const teams = [
         }
       },
       {
-        name: 'Bxezy',
-        role: 'Management',
-        image: '/teams/players/bxezy.jpg',
+        name: 'Nick',
+        role: 'CEO',
+        image: '/teams/players/nick.png',
         game: 'Management',
         achievements: ['Innovation', 'Community Manager', 'Manager'],
         socialLinks: {
-          twitter: 'https://x.com/bxezyfnx'
-        }
-      },
-      {
-        name: 'Dixuez',
-        role: 'Management',
-        image: '/teams/players/dix.png',
-        game: 'Management',
-        achievements: ['Team Manager', 'Infrastructure', 'Innovation'],
-        socialLinks: {
-          twitter: 'https://www.twitch.tv/dixuez'
+          twitter: 'https://x.com/void_nicholas'
         }
       },
     ],
@@ -116,73 +117,117 @@ const teams = [
 ];
 
 export default function TeamsPage() {
+  const [ownershipClicks, setOwnershipClicks] = useState(0);
+  const [showEasterEgg, setShowEasterEgg] = useState(false);
+
+  const handleOwnershipClick = () => {
+    const newClickCount = ownershipClicks + 1;
+    setOwnershipClicks(newClickCount);
+
+    if (newClickCount === 4) {
+      setShowEasterEgg(true);
+      setOwnershipClicks(0);
+
+      // Hide the easter egg after 5 seconds
+      setTimeout(() => {
+        setShowEasterEgg(false);
+      }, 5000);
+    }
+  };
+
   return (
-    <div className="pt-20 min-h-screen bg-[#0F0F0F]">
+    <div className="pt-20 min-h-screen bg-[#0F0F0F] relative">
+      {/* Easter Egg Message */}
+      {showEasterEgg && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+          <div
+            className="text-6xl font-bold gradient-text transition-opacity duration-1000 ease-in-out"
+            style={{
+              animation: 'fadeInOut 5s ease-in-out forwards'
+            }}
+          >
+            The King/Legend DrPuffin
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes fadeInOut {
+          0% { opacity: 0; transform: scale(0.8); }
+          20% { opacity: 1; transform: scale(1); }
+          80% { opacity: 1; transform: scale(1); }
+          100% { opacity: 0; transform: scale(0.8); }
+        }
+      `}</style>
+
       <div className="void-container py-12">
         <AnimatedSection animationType="fadeIn" delay={100}>
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold gradient-text">Our Teams</h1>
           </div>
         </AnimatedSection>
-        
+
         <div className="space-y-20">
           {teams.map((team, idx) => (
             <AnimatedSection key={team.name} animationType="slideUp" delay={idx * 100}>
-            <div className="void-card">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                <div className="relative h-64 lg:h-full min-h-[300px] rounded-lg overflow-hidden group">
-                  <Image
-                    src={team.image}
-                    alt={team.name}
-                    fill
-                    className={team.name === 'Fortnite' ? 'object-cover object-[50%_15%] w-full h-full' : 'object-cover w-full h-full'}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div
+                className={`void-card ${team.name === 'Ownership' ? 'cursor-pointer' : ''}`}
+                onClick={team.name === 'Ownership' ? handleOwnershipClick : undefined}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                  <div className="relative h-64 lg:h-full min-h-[300px] rounded-lg overflow-hidden group">
+                    <Image
+                      src={team.image}
+                      alt={team.name}
+                      fill
+                      className={team.name === 'Fortnite' ? 'object-cover object-[50%_15%] w-full h-full' : 'object-cover w-full h-full'}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <h2 className="text-3xl font-bold gradient-text">{team.name}</h2>
+                    <p className="text-gray-300 text-lg">{team.description}</p>
+
+                    <div>
+                      <h3 className="text-xl font-semibold mb-3 text-white">Team Achievements</h3>
+                      <ul className="space-y-2">
+                        {team.achievements.map((achievement) => (
+                          <li key={achievement} className="text-gray-400 flex items-center">
+                            <span className="w-2 h-2 bg-white rounded-full mr-3"></span>
+                            {achievement}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
-                
-                <div className="space-y-6">
-                  <h2 className="text-3xl font-bold gradient-text">{team.name}</h2>
-                  <p className="text-gray-300 text-lg">{team.description}</p>
-                  
-                  <div>
-                    <h3 className="text-xl font-semibold mb-3 text-white">Team Achievements</h3>
-                    <ul className="space-y-2">
-                      {team.achievements.map((achievement) => (
-                        <li key={achievement} className="text-gray-400 flex items-center">
-                          <span className="w-2 h-2 bg-white rounded-full mr-3"></span>
-                          {achievement}
-                        </li>
-                      ))}
-                    </ul>
+
+                {/* Player Cards Grid */}
+                <div className="mt-12">
+                  <h3 className="text-2xl font-bold mb-8 gradient-text text-center">Meet the Team</h3>
+
+                  <div className={team.name === 'Ownership'
+                    ? "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6"
+                    : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                  }>
+                    {team.players.map((player, pIdx) => (
+                      <AnimatedSection key={player.name} animationType="fadeIn" delay={pIdx * 100}>
+                        <div>
+                          <PlayerCard
+                            name={player.name}
+                            role={player.role}
+                            image={player.image}
+                            game={player.game}
+                            achievements={player.achievements}
+                            socialLinks={player.socialLinks}
+                          />
+                        </div>
+                      </AnimatedSection>
+                    ))}
                   </div>
                 </div>
               </div>
-
-              {/* Player Cards Grid */}
-              <div className="mt-12">
-                <h3 className="text-2xl font-bold mb-8 gradient-text text-center">Meet the Team</h3>
-                
-                <div className={team.name === 'Ownership' 
-                  ? "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6" 
-                  : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-                }>
-                  {team.players.map((player, pIdx) => (
-                    <AnimatedSection key={player.name} animationType="fadeIn" delay={pIdx * 100}>
-                    <div>
-                      <PlayerCard
-                        name={player.name}
-                        role={player.role}
-                        image={player.image}
-                        game={player.game}
-                        achievements={player.achievements}
-                        socialLinks={player.socialLinks}
-                      />
-                    </div>
-                    </AnimatedSection>
-                  ))}
-                </div>
-              </div>
-            </div>
             </AnimatedSection>
           ))}
         </div>
