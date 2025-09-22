@@ -42,6 +42,8 @@ export const reviewService = {
   // Add a new review
   async addReview(review: Omit<Review, 'id' | 'createdAt' | 'helpful' | 'verified'>): Promise<string> {
     try {
+      console.log('Attempting to add review:', review);
+      
       const reviewData = {
         ...review,
         createdAt: Timestamp.now(),
@@ -49,11 +51,26 @@ export const reviewService = {
         verified: false
       };
       
+      console.log('Review data to be saved:', reviewData);
+      
       const docRef = await addDoc(collection(db, REVIEWS_COLLECTION), reviewData);
+      console.log('Review added successfully with ID:', docRef.id);
       return docRef.id;
     } catch (error) {
-      console.error('Error adding review:', error);
-      throw new Error('Failed to add review');
+      console.error('Detailed error adding review:', error);
+      console.error('Error code:', (error as any)?.code);
+      console.error('Error message:', (error as any)?.message);
+      
+      // Provide more specific error messages
+      if ((error as any)?.code === 'permission-denied') {
+        throw new Error('Permission denied. Please check Firebase security rules.');
+      } else if ((error as any)?.code === 'unavailable') {
+        throw new Error('Firebase service is currently unavailable. Please try again later.');
+      } else if ((error as any)?.code === 'invalid-argument') {
+        throw new Error('Invalid data provided. Please check your input.');
+      } else {
+        throw new Error(`Failed to add review: ${(error as unknown)?.message || 'Unknown error'}`);
+      }
     }
   },
 

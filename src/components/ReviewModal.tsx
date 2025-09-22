@@ -37,27 +37,49 @@ export default function ReviewModal({ isOpen, onClose, productId, productName }:
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!rating || !userName.trim() || !userEmail.trim() || !comment.trim()) {
-      alert('Please fill in all fields and select a rating.');
+    // Validation
+    if (!rating || rating < 1 || rating > 5) {
+      alert('Please select a rating between 1 and 5 stars.');
+      return;
+    }
+    
+    if (!userName.trim() || userName.trim().length < 2) {
+      alert('Please enter a valid name (at least 2 characters).');
+      return;
+    }
+    
+    if (!userEmail.trim() || !userEmail.includes('@')) {
+      alert('Please enter a valid email address.');
+      return;
+    }
+    
+    if (!comment.trim() || comment.trim().length < 10) {
+      alert('Please write a review with at least 10 characters.');
       return;
     }
 
     setIsSubmitting(true);
     
     try {
-      await addReview({
+      const reviewData = {
         productId,
         userName: userName.trim(),
         userEmail: userEmail.trim(),
         rating,
         comment: comment.trim(),
-      });
+      };
       
+      console.log('Submitting review:', reviewData);
+      
+      await addReview(reviewData);
+      
+      console.log('Review submitted successfully');
       alert('Review submitted successfully!');
       handleClose();
     } catch (error) {
       console.error('Error submitting review:', error);
-      alert('Failed to submit review. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit review. Please try again.';
+      alert(`Error: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
