@@ -7,7 +7,6 @@ import { TrashIcon, ChevronDownIcon, ChevronRightIcon, FolderIcon } from '@heroi
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { formatOrderNumber } from '@/lib/orderUtils';
-import OrderTestButton from './OrderTestButton';
 
 const statusColors = {
   pending: 'bg-yellow-900/20 text-yellow-400 border-yellow-500/20',
@@ -138,9 +137,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Firebase Test */}
-      <OrderTestButton />
-      
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

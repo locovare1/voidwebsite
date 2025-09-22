@@ -44,12 +44,36 @@ export default function GlobalErrorBoundary({ children }: { children: React.Reac
     
     const handleError = (event: ErrorEvent) => {
       console.warn('Global error caught:', event.error);
-      setHasError(true);
+      
+      // Only trigger error boundary for critical errors
+      const errorMessage = event.error?.message || '';
+      const isCriticalError = errorMessage.includes('ChunkLoadError') || 
+                             errorMessage.includes('Loading chunk') ||
+                             errorMessage.includes('Script error') ||
+                             event.error?.name === 'ChunkLoadError';
+      
+      if (isCriticalError) {
+        setHasError(true);
+      }
     };
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       console.warn('Unhandled promise rejection:', event.reason);
-      setHasError(true);
+      
+      // Only trigger error boundary for critical promise rejections
+      const reason = event.reason?.message || event.reason || '';
+      const isCriticalRejection = reason.includes('ChunkLoadError') || 
+                                 reason.includes('Loading chunk') ||
+                                 reason.includes('Script error');
+      
+      if (isCriticalRejection) {
+        setHasError(true);
+      }
+      
+      // Prevent the default browser behavior for non-critical rejections
+      if (!isCriticalRejection) {
+        event.preventDefault();
+      }
     };
 
     window.addEventListener('error', handleError);

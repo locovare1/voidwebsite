@@ -69,7 +69,7 @@ function orderReducer(state: OrderState, action: OrderAction): OrderState {
       if (unsetOrders.length >= 5) {
         // Create a new set with the 5 oldest unset orders
         const ordersForSet = unsetOrders.slice(-5);
-        const setId = `set_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const setId = `set_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
         const newSet: OrderSet = {
           id: setId,
           name: `Order Set ${state.sets.length + 1}`,
@@ -206,71 +206,21 @@ const OrderContext = createContext<OrderContextType | undefined>(undefined);
 export function OrderProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(orderReducer, initialState);
 
-  // Load orders and sets from Firebase and localStorage on mount
+  // Load orders and sets from localStorage first, then try Firebase
   useEffect(() => {
-    const loadOrders = async () => {
-      try {
-        // Load from Firebase first
-        const ordersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-        const querySnapshot = await getDocs(ordersQuery);
-        
-        const firebaseOrders: Order[] = [];
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          const order: Order = {
-            id: doc.id,
-            items: data.items.map((item: {
-              id: number;
-              name: string;
-              price: number;
-              quantity: number;
-              image?: string;
-            }) => ({
-              id: item.id,
-              name: item.name,
-              price: item.price,
-              quantity: item.quantity,
-              image: item.image || '/placeholder-product.jpg',
-            })),
-            total: data.total || data.finalTotal || 0,
-            customerInfo: data.customerInfo,
-            status: data.status || 'pending',
-            createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-            paymentIntentId: data.paymentIntentId,
-          };
-          firebaseOrders.push(order);
-        });
-        
-        if (firebaseOrders.length > 0) {
-          dispatch({ type: 'LOAD_ORDERS', payload: firebaseOrders });
-        } else {
-          // Fallback to localStorage if no Firebase orders
-          const savedOrders = localStorage.getItem('void-orders');
-          if (savedOrders) {
-            try {
-              const orders = JSON.parse(savedOrders);
-              dispatch({ type: 'LOAD_ORDERS', payload: orders });
-            } catch (error) {
-              console.error('Error loading orders from localStorage:', error);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error loading orders from Firebase:', error);
-        // Fallback to localStorage
-        const savedOrders = localStorage.getItem('void-orders');
-        if (savedOrders) {
-          try {
-            const orders = JSON.parse(savedOrders);
-            dispatch({ type: 'LOAD_ORDERS', payload: orders });
-          } catch (error) {
-            console.error('Error loading orders from localStorage:', error);
-          }
+    const loadFromLocalStorage = () => {
+      // Load orders from localStorage first (immediate)
+      const savedOrders = localStorage.getItem('void-orders');
+      if (savedOrders) {
+        try {
+          const orders = JSON.parse(savedOrders);
+          dispatch({ type: 'LOAD_ORDERS', payload: orders });
+        } catch (error) {
+          console.error('Error loading orders from localStorage:', error);
         }
       }
-    };
 
-    const loadSets = () => {
+      // Load sets from localStorage
       const savedSets = localStorage.getItem('void-sets');
       if (savedSets) {
         try {
@@ -282,8 +232,81 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    loadOrders();
-    loadSets();
+    const loadFromFirebase = async () => {
+      try {
+        console.log('Attempting to load orders from Firebase...');
+        
+        // Only try Firebase if we're in a browser environment
+        if (typeof window === 'undefined') {
+          console.log('Server-side rendering, skipping Firebase');
+          return;
+        }
+
+        const ordersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(ordersQuery);
+        
+        const firebaseOrders: Order[] = [];
+        querySnapshot.forEach((doc) => {
+          try {
+            const data = doc.data();
+            
+            // Validate required fields
+            if (!data.items || !Array.isArray(data.items) || !data.customerInfo) {
+              console.warn(`Skipping invalid order ${doc.id}:`, data);
+              return;
+            }
+
+            const order: Order = {
+              id: doc.id,
+              items: data.items.map((item: {
+                id: number;
+                name: string;
+                price: number;
+                quantity: number;
+                image?: string;
+              }) => ({
+                id: item.id || 0,
+                name: item.name || 'Unknown Item',
+                price: item.price || 0,
+                quantity: item.quantity || 1,
+                image: item.image || '/placeholder-product.jpg',
+              })),
+              total: data.total || data.finalTotal || 0,
+              customerInfo: {
+                name: data.customerInfo?.name || 'Unknown',
+                email: data.customerInfo?.email || '',
+                address: data.customerInfo?.address || '',
+                zipCode: data.customerInfo?.zipCode || '',
+                phone: data.customerInfo?.phone || '',
+              },
+              status: data.status || 'pending',
+              createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+              paymentIntentId: data.paymentIntentId,
+            };
+            firebaseOrders.push(order);
+          } catch (itemError) {
+            console.error(`Error processing order ${doc.id}:`, itemError);
+          }
+        });
+        
+        console.log(`Loaded ${firebaseOrders.length} orders from Firebase`);
+        
+        if (firebaseOrders.length > 0) {
+          dispatch({ type: 'LOAD_ORDERS', payload: firebaseOrders });
+        }
+      } catch (error) {
+        console.error('Error loading orders from Firebase:', error);
+        // Don't throw the error, just log it and continue with localStorage data
+      }
+    };
+
+    // Load localStorage data immediately
+    loadFromLocalStorage();
+    
+    // Try Firebase after a short delay to avoid blocking the UI
+    setTimeout(() => {
+      loadFromFirebase();
+    }, 1000);
   }, []);
 
   // Save orders and sets to localStorage whenever they change

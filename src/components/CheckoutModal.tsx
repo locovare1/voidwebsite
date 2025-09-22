@@ -102,40 +102,37 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
         try {
           console.log('Saving order to Firebase:', newOrder.id);
           
-          // Save order to Firebase
-          await setDoc(doc(db, 'orders', newOrder.id), {
+          // Save order to Firebase with timeout
+          const savePromise = setDoc(doc(db, 'orders', newOrder.id), {
             ...newOrder,
             createdAt: new Date(), // Use Firebase Timestamp
           });
           
+          // Add timeout to prevent hanging
+          await Promise.race([
+            savePromise,
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Firebase timeout')), 10000)
+            )
+          ]);
+          
           console.log('Order saved to Firebase successfully');
-          
-          // Also save to local context
-          addOrder(newOrder);
-          clearCart();
-          
-          // Show success modal immediately
-          setCompletedOrder(newOrder);
-          onClose(); // Close checkout modal first
-          // Show success modal after checkout modal closes
-          setTimeout(() => {
-            setShowSuccessModal(true);
-          }, 200);
         } catch (error) {
           console.error('Error saving free order to Firebase:', error);
-          alert('Order created but there was an issue saving to database. Your order number is: ' + newOrder.id);
-          
-          // Still add to local context as fallback
-          addOrder(newOrder);
-          clearCart();
-          
-          setCompletedOrder(newOrder);
-          onClose(); // Close checkout modal first
-          // Show success modal after checkout modal closes
-          setTimeout(() => {
-            setShowSuccessModal(true);
-          }, 200);
+          // Don't show alert, just log the error
         }
+        
+        // Always proceed with local storage and success modal
+        addOrder(newOrder);
+        clearCart();
+        
+        // Show success modal immediately
+        setCompletedOrder(newOrder);
+        onClose(); // Close checkout modal first
+        // Show success modal after checkout modal closes
+        setTimeout(() => {
+          setShowSuccessModal(true);
+        }, 200);
         
         return;
       }

@@ -88,35 +88,35 @@ export default function CheckoutForm({ customerInfo, onSuccess, total }: Checkou
       try {
         console.log('Saving paid order to Firebase:', newOrder.id);
         
-        // Save order to Firebase
-        await setDoc(doc(db, 'orders', newOrder.id), {
+        // Save order to Firebase with timeout
+        const savePromise = setDoc(doc(db, 'orders', newOrder.id), {
           ...newOrder,
           createdAt: new Date(), // Use Firebase Timestamp
         });
         
+        // Add timeout to prevent hanging
+        await Promise.race([
+          savePromise,
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Firebase timeout')), 10000)
+          )
+        ]);
+        
         console.log('Paid order saved to Firebase successfully');
-        
-        // Also save to local context for immediate UI updates
-        addOrderToContext(newOrder);
-        clearCart();
-        setMessage('Payment successful! Thank you for your order.');
-        
-        // Show success message for a moment then show order details
-        setTimeout(() => {
-          onSuccess(newOrder);
-        }, 1500);
       } catch (error) {
         console.error('Error saving order to Firebase:', error);
-        
-        // Still add to local context as fallback
-        addOrderToContext(newOrder);
-        clearCart();
-        setMessage('Payment successful! Order created with ID: ' + newOrder.id);
-        
-        setTimeout(() => {
-          onSuccess(newOrder);
-        }, 1500);
+        // Don't throw the error, just log it
       }
+      
+      // Always proceed with local storage and success
+      addOrderToContext(newOrder);
+      clearCart();
+      setMessage('Payment successful! Thank you for your order.');
+      
+      // Show success message for a moment then show order details
+      setTimeout(() => {
+        onSuccess(newOrder);
+      }, 1500);
     }
 
     setIsLoading(false);
