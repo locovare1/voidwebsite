@@ -34,7 +34,7 @@ export default function Footer() {
           <div>
             <h4 className="text-lg font-semibold mb-4 text-white">Quick Links</h4>
             <ul className="space-y-2">
-              {footerLinks.slice(0, 3).map((link) => (
+              {footerLinks.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}

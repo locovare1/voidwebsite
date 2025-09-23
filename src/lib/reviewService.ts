@@ -8,7 +8,8 @@ import {
   Timestamp,
   doc,
   updateDoc,
-  increment
+  increment,
+  deleteDoc
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { FirebaseError } from 'firebase/app';
@@ -81,23 +82,27 @@ export const reviewService = {
   // Get reviews for a specific product
   async getProductReviews(productId: number): Promise<Review[]> {
     try {
+      // First get all reviews for the product without orderBy to avoid index requirement
       const q = query(
         collection(db, REVIEWS_COLLECTION),
-        where('productId', '==', productId),
-        orderBy('createdAt', 'desc')
+        where('productId', '==', productId)
       );
-      
+
       const querySnapshot = await getDocs(q);
       const reviews: Review[] = [];
-      
+
       querySnapshot.forEach((doc) => {
         reviews.push({
           id: doc.id,
           ...doc.data()
         } as Review);
       });
-      
-      return reviews;
+
+      // Sort the reviews by createdAt in memory
+      return reviews.sort((a, b) => {
+        if (!a.createdAt || !b.createdAt) return 0;
+        return b.createdAt.toMillis() - a.createdAt.toMillis();
+      });
     } catch (error) {
       console.error('Error fetching reviews:', error);
       throw new Error('Failed to fetch reviews');
@@ -146,6 +151,26 @@ export const reviewService = {
     }
   },
 
+  // Delete a review
+  async deleteReview(reviewId: string): Promise<void> {
+    try {
+      const reviewRef = doc(db, REVIEWS_COLLECTION, reviewId);
+      await deleteDoc(reviewRef);
+      console.log('Review deleted successfully:', reviewId);
+    } catch (error: unknown) {
+      console.error('Error deleting review:', error);
+      const firebaseError = error as FirebaseError;
+      if (firebaseError?.code === 'permission-denied') {
+        throw new Error('Permission denied. Please check Firebase security rules.');
+      } else if (firebaseError?.code === 'not-found') {
+        throw new Error('Review not found.');
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to delete review: ${errorMessage}`);
+      }
+    }
+  },
+
   // Get all reviews (for admin purposes)
   async getAllReviews(): Promise<Review[]> {
     try {
@@ -153,21 +178,27 @@ export const reviewService = {
         collection(db, REVIEWS_COLLECTION),
         orderBy('createdAt', 'desc')
       );
-      
+
       const querySnapshot = await getDocs(q);
       const reviews: Review[] = [];
-      
+
       querySnapshot.forEach((doc) => {
         reviews.push({
           id: doc.id,
           ...doc.data()
         } as Review);
       });
-      
+
       return reviews;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching all reviews:', error);
-      throw new Error('Failed to fetch all reviews');
+      const firebaseError = error as FirebaseError;
+      if (firebaseError?.code === 'permission-denied') {
+        throw new Error('Permission denied. Please check Firebase security rules.');
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to fetch all reviews: ${errorMessage}`);
+      }
     }
   }
 };

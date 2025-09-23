@@ -60,7 +60,7 @@ export default function Navbar() {
           </button>
         </div>
         
-        <div className="hidden lg:flex lg:gap-x-12">
+        <div className="hidden lg:flex lg:gap-x-8">
           {navigation.map((item, index) => (
             <Link
               key={item.name}
@@ -73,7 +73,7 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-4">
+        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-6">
           <CartIcon />
           <Link href="/contact" className="void-button glow-on-hover">
             Contact Us
@@ -127,7 +127,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="/contact"
-              className="block py-3 text-base font-semibold text-white hover:text-[#a6a6a6] transition-all duration-300 hover:bg-white/5 hover:pl-2"
+              className="mt-4 block py-3 text-base font-semibold text-white hover:text-[#a6a6a6] transition-all duration-300 hover:bg-white/5 hover:pl-2"
               onClick={() => setMobileMenuOpen(false)}
             >
               Contact Us
