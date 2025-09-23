@@ -239,6 +239,12 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       // Only run on client side
       if (typeof window === 'undefined') return;
       
+      // Check if db is available
+      if (!db) {
+        console.log('Firebase not initialized, skipping Firebase load');
+        return;
+      }
+      
       try {
         console.log('Attempting to load orders from Firebase...');
         
