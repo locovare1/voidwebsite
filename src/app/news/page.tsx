@@ -1,5 +1,9 @@
+"use client";
+
 import Image from 'next/image';
 import AnimatedSection from '@/components/AnimatedSection';
+// Removed useLanguage import
+// Removed getTranslatedNews import
 
 const newsArticles = [
   {
@@ -61,11 +65,15 @@ const newsArticles = [
 ];
 
 export default function NewsPage() {
+  // Removed language context usage
+  
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F]">
       <div className="void-container py-12">
         <AnimatedSection animationType="fadeIn" delay={100}>
-          <h1 className="text-4xl font-bold mb-12 gradient-text text-center">Latest News</h1>
+          <h1 className="text-4xl font-bold mb-12 gradient-text text-center">
+            Latest News
+          </h1>
         </AnimatedSection>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

@@ -23,70 +23,87 @@ export function useOrderTracking() {
     }
 
     try {
-      // First try to get from Firebase
-      const orderDoc = await getDoc(doc(db, 'orders', orderNumber));
-      
-      if (orderDoc.exists()) {
-        const firebaseOrder = orderDoc.data();
+      // First try to get from Firebase, only if db is available
+      if (db) {
+        const orderDoc = await getDoc(doc(db, 'orders', orderNumber));
         
-        // Convert Firebase order to our Order format
-        const order: Order = {
-          id: orderDoc.id,
-          items: firebaseOrder.items.map((item: {
-            id: number;
-            name: string;
-            price: number;
-            quantity: number;
-            image?: string;
-          }) => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image || '/placeholder-product.jpg', // Add default image if missing
-          })),
-          total: firebaseOrder.total || firebaseOrder.finalTotal || 0,
-          customerInfo: firebaseOrder.customerInfo,
-          status: firebaseOrder.status || 'pending',
-          createdAt: firebaseOrder.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-          paymentIntentId: firebaseOrder.paymentIntentId,
-        };
-        
-        setOrder(order);
-        
-        // Set up real-time listener for status updates
-        const unsubscribe = onSnapshot(doc(db, 'orders', orderNumber), (doc) => {
-          if (doc.exists()) {
-            const updatedData = doc.data();
-            const updatedOrder: Order = {
-              id: doc.id,
-              items: updatedData.items.map((item: {
-                id: number;
-                name: string;
-                price: number;
-                quantity: number;
-                image?: string;
-              }) => ({
-                id: item.id,
-                name: item.name,
-                price: item.price,
-                quantity: item.quantity,
-                image: item.image || '/placeholder-product.jpg',
-              })),
-              total: updatedData.total || updatedData.finalTotal || 0,
-              customerInfo: updatedData.customerInfo,
-              status: updatedData.status || 'pending',
-              createdAt: updatedData.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-              paymentIntentId: updatedData.paymentIntentId,
-            };
-            setOrder(updatedOrder);
+        if (orderDoc.exists()) {
+          const firebaseOrder = orderDoc.data();
+          
+          // Convert Firebase order to our Order format
+          const order: Order = {
+            id: orderDoc.id,
+            items: firebaseOrder.items.map((item: {
+              id: number;
+              name: string;
+              price: number;
+              quantity: number;
+              image?: string;
+            }) => ({
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image || '/placeholder-product.jpg', // Add default image if missing
+            })),
+            total: firebaseOrder.total || firebaseOrder.finalTotal || 0,
+            customerInfo: firebaseOrder.customerInfo,
+            status: firebaseOrder.status || 'pending',
+            createdAt: firebaseOrder.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            paymentIntentId: firebaseOrder.paymentIntentId,
+          };
+          
+          setOrder(order);
+          
+          // Set up real-time listener for status updates
+          const unsubscribe = onSnapshot(doc(db, 'orders', orderNumber), (doc) => {
+            if (doc.exists()) {
+              const updatedData = doc.data();
+              const updatedOrder: Order = {
+                id: doc.id,
+                items: updatedData.items.map((item: {
+                  id: number;
+                  name: string;
+                  price: number;
+                  quantity: number;
+                  image?: string;
+                }) => ({
+                  id: item.id,
+                  name: item.name,
+                  price: item.price,
+                  quantity: item.quantity,
+                  image: item.image || '/placeholder-product.jpg',
+                })),
+                total: updatedData.total || updatedData.finalTotal || 0,
+                customerInfo: updatedData.customerInfo,
+                status: updatedData.status || 'pending',
+                createdAt: updatedData.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+                paymentIntentId: updatedData.paymentIntentId,
+              };
+              setOrder(updatedOrder);
+            }
+          });
+          
+          // Store unsubscribe function for cleanup
+          unsubscribeRef.current = unsubscribe;
+        } else {
+          // If not found in Firebase, try localStorage (for backward compatibility)
+          const localOrders = localStorage.getItem('void-orders');
+          if (localOrders) {
+            const orders: Order[] = JSON.parse(localOrders);
+            const foundOrder = orders.find(o => o.id === orderNumber);
+            
+            if (foundOrder) {
+              setOrder(foundOrder);
+            } else {
+              setError('Order not found. Please check your order number and try again.');
+            }
+          } else {
+            setError('Order not found. Please check your order number and try again.');
           }
-        });
-        
-        // Store unsubscribe function for cleanup
-        unsubscribeRef.current = unsubscribe;
+        }
       } else {
-        // If not found in Firebase, try localStorage (for backward compatibility)
+        // If Firebase is not available, try localStorage
         const localOrders = localStorage.getItem('void-orders');
         if (localOrders) {
           const orders: Order[] = JSON.parse(localOrders);

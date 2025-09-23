@@ -11,6 +11,7 @@ import {
 } from '@/components/FramerAnimations';
 
 export default function AmbassadorsPage() {
+
   return (
     <>
       {/* SEO / Meta Tags */}
@@ -119,7 +120,9 @@ export default function AmbassadorsPage() {
                     <AnimatedCard className="bg-[#18181b] p-6 rounded-xl shadow-md border border-[#2A2A2A] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                       <h3 className="text-xl font-semibold mb-4 text-white">Fortnite</h3>
                       <div className="space-y-2">
-                        <p className="text-gray-400 text-sm">Current Ambassadors:</p>
+                        <p className="text-gray-400 text-sm">
+                          Current Ambassadors:
+                        </p>
                         <p className="text-gray-300">- Void Frankenstein</p>
                         <p className="text-gray-300">- Void Gruun</p>
                       </div>
@@ -131,7 +134,9 @@ export default function AmbassadorsPage() {
                     <AnimatedCard delay={0.1} className="bg-[#18181b] p-6 rounded-xl shadow-md border border-[#2A2A2A] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                       <h3 className="text-xl font-semibold mb-4 text-white">Brawl Stars</h3>
                       <div className="space-y-2">
-                        <p className="text-gray-400 text-sm">Current Ambassadors:</p>
+                        <p className="text-gray-400 text-sm">
+                          Current Ambassadors:
+                        </p>
                         <p className="text-gray-300">- Void Hyper</p>
                       </div>
                     </AnimatedCard>
@@ -142,7 +147,9 @@ export default function AmbassadorsPage() {
                     <AnimatedCard delay={0.2} className="bg-[#18181b] p-6 rounded-xl shadow-md border border-[#2A2A2A] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                       <h3 className="text-xl font-semibold mb-4 text-white">Clash Royale</h3>
                       <div className="space-y-2">
-                        <p className="text-gray-400 text-sm">Current Ambassadors:</p>
+                        <p className="text-gray-400 text-sm">
+                          Current Ambassadors:
+                        </p>
                         <p className="text-gray-300">- Void Bxezy</p>
                       </div>
                     </AnimatedCard>
@@ -153,7 +160,9 @@ export default function AmbassadorsPage() {
                     <AnimatedCard delay={0.3} className="bg-[#18181b] p-6 rounded-xl shadow-md border border-[#2A2A2A] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                       <h3 className="text-xl font-semibold mb-4 text-white">Split Gate 2</h3>
                       <div className="space-y-2">
-                        <p className="text-gray-400 text-sm">Current Ambassadors:</p>
+                        <p className="text-gray-400 text-sm">
+                          Current Ambassadors:
+                        </p>
                         <p className="text-gray-300">- Void Ego</p>
                       </div>
                     </AnimatedCard>
@@ -164,7 +173,9 @@ export default function AmbassadorsPage() {
                     <AnimatedCard delay={0.4} className="bg-[#18181b] p-6 rounded-xl shadow-md border border-[#2A2A2A] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                       <h3 className="text-xl font-semibold mb-4 text-white">Overwatch 2</h3>
                       <div className="space-y-2">
-                        <p className="text-gray-400 text-sm">Current Ambassadors:</p>
+                        <p className="text-gray-400 text-sm">
+                          Current Ambassadors:
+                        </p>
                         <p className="text-gray-300">- Void Fuzzy</p>
                       </div>
                     </AnimatedCard>
@@ -203,4 +214,3 @@ export default function AmbassadorsPage() {
     </>
   );
 }
-

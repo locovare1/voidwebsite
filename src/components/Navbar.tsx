@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { Bars3Icon, XMarkIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 import { useCart } from '@/contexts/CartContext';
 import CartIcon from './CartIcon';
+// Removed LanguageSelector import
 
 const navigation = [
   { name: 'Home', href: '/' },
@@ -17,6 +18,7 @@ const navigation = [
   { name: 'Shop', href: '/shop' },
   { name: 'About', href: '/about' },
   { name: 'Ambassadors', href: '/ambassadors' },
+  // Removed Translation Test link
 ];
 
 export default function Navbar() {
@@ -74,6 +76,7 @@ export default function Navbar() {
         </div>
 
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-6">
+          {/* Removed LanguageSelector */}
           <CartIcon />
           <Link href="/contact" className="void-button glow-on-hover">
             Contact Us
@@ -132,6 +135,7 @@ export default function Navbar() {
             >
               Contact Us
             </Link>
+            {/* Removed Translation Test link */}
           </div>
         </div>
       </div>

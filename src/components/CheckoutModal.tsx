@@ -106,21 +106,25 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
         try {
           console.log('Saving order to Firebase:', newOrder.id);
           
-          // Save order to Firebase with timeout
-          const savePromise = setDoc(doc(db, 'orders', newOrder.id), {
-            ...newOrder,
-            createdAt: new Date(), // Use Firebase Timestamp
-          });
-          
-          // Add timeout to prevent hanging
-          await Promise.race([
-            savePromise,
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Firebase timeout')), 10000)
-            )
-          ]);
-          
-          console.log('Order saved to Firebase successfully');
+          // Save order to Firebase with timeout, only if db is available
+          if (db) {
+            const savePromise = setDoc(doc(db, 'orders', newOrder.id), {
+              ...newOrder,
+              createdAt: new Date(), // Use Firebase Timestamp
+            });
+            
+            // Add timeout to prevent hanging
+            await Promise.race([
+              savePromise,
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Firebase timeout')), 10000)
+              )
+            ]);
+            
+            console.log('Order saved to Firebase successfully');
+          } else {
+            console.log('Firebase not available, skipping save');
+          }
         } catch (error) {
           console.error('Error saving free order to Firebase:', error);
           // Don't show alert, just log the error

@@ -60,6 +60,10 @@ export default function Home() {
   const { elementRef: teamsRef } = useIntersectionObserver();
   const { elementRef: newsRef } = useIntersectionObserver();
 
+  // Use original data without translation
+  const translatedFeaturedTeams = featuredTeams;
+  const translatedLatestNews = latestNews;
+
   // Fade logo on scroll
   useEffect(() => {
     const handleScroll = () => {
@@ -144,7 +148,7 @@ export default function Home() {
           </ParallaxText>
           
           <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredTeams.map((team, index) => (
+            {translatedFeaturedTeams.map((team, index) => (
               <StaggeredItem key={team.name || index}>
                 <AnimatedCard delay={index * 0.2} className="void-card group">
                   <div className="relative h-48 mb-4 overflow-hidden rounded-lg">
@@ -174,7 +178,7 @@ export default function Home() {
           </ParallaxText>
           
           <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {latestNews.map((news, index) => (
+            {translatedLatestNews.map((news, index) => (
               <StaggeredItem key={news.title}>
                 <AnimatedCard delay={index * 0.2} className="void-card group cursor-pointer">
                   <div className="relative h-48 mb-4 overflow-hidden rounded-lg">

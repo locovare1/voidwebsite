@@ -14,7 +14,11 @@ export default function FirebaseTest() {
     setTestResult('Testing Firebase connection...');
     
     try {
-      // Test 1: Try to read from a collection
+      // Test 1: Try to read from a collection, only if db is available
+      if (!db) {
+        throw new Error('Firebase not initialized');
+      }
+      
       setTestResult('Step 1: Testing read access...');
       const testQuery = collection(db, 'reviews');
       const snapshot = await getDocs(testQuery);

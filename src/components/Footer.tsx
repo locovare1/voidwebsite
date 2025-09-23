@@ -18,6 +18,10 @@ const footerLinks = [
 ];
 
 export default function Footer() {
+  // Use original data without translation
+  const translatedFooterLinks = footerLinks;
+  const translatedSocialLinks = socialLinks;
+
   return (
     <footer className="bg-[#0F0F0F] border-t border-gray-800">
       <div className="void-container py-12">
@@ -32,9 +36,11 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 text-white">Quick Links</h4>
+            <h4 className="text-lg font-semibold mb-4 text-white">
+              Quick Links
+            </h4>
             <ul className="space-y-2">
-              {footerLinks.map((link) => (
+              {translatedFooterLinks.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
@@ -57,9 +63,11 @@ export default function Footer() {
 
           {/* Social Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 text-white">Connect With Us</h4>
+            <h4 className="text-lg font-semibold mb-4 text-white">
+              Connect With Us
+            </h4>
             <div className="flex space-x-4">
-              {socialLinks.map((social) => (
+              {translatedSocialLinks.map((social) => (
                 <Link
                   key={social.name}
                   href={social.href}
@@ -75,10 +83,10 @@ export default function Footer() {
 
         <div className="mt-8 pt-8 border-t border-gray-800">
           <p className="text-center text-gray-400">
-            © {new Date().getFullYear()} Void Esports. All rights reserved.
+            © 2025 Void Esports. All rights reserved.
           </p>
         </div>
       </div>
     </footer>
   );
-} 
+}

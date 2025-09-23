@@ -1,13 +1,48 @@
 "use client";
 
-import { useOrders, Order } from '@/contexts/OrderContext';
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { TrashIcon, ChevronDownIcon, ChevronRightIcon, FolderIcon, StarIcon, UserIcon } from '@heroicons/react/24/outline';
-import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { formatOrderNumber } from '@/lib/orderUtils';
+import { TrashIcon, UserIcon, StarIcon, FolderIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { useOrders } from '@/contexts/OrderContext';
 import { reviewService, Review } from '@/lib/reviewService';
+import { formatOrderNumber } from '@/lib/orderUtils';
+import Image from 'next/image';
+
+interface OrderItem {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+}
+
+interface Order {
+  id: string;
+  items: OrderItem[];
+  total: number;
+  customerInfo: {
+    name: string;
+    email: string;
+    address: string;
+    zipCode: string;
+    phone: string;
+  };
+  status: 'pending' | 'accepted' | 'processing' | 'delivered' | 'declined' | 'canceled';
+  createdAt: string;
+  paymentIntentId?: string;
+  setId?: string;
+}
+
+interface OrderSet {
+  id: string;
+  name: string;
+  orders: Order[];
+  createdAt: string;
+  isExpanded?: boolean;
+}
+
+// Review interface imported from '@/lib/reviewService'
 
 const statusColors = {
   pending: 'bg-yellow-900/20 text-yellow-400 border-yellow-500/20',
@@ -41,14 +76,14 @@ export default function AdminDashboard() {
   const unsetOrders = getUnsetOrders();
   const filteredUnsetOrders = filterStatus === 'all' 
     ? unsetOrders 
-    : unsetOrders.filter(order => order.status === filterStatus);
+    : unsetOrders.filter((order: Order) => order.status === filterStatus);
   
-  const filteredSets = sets.map(set => ({
+  const filteredSets = sets.map((set: OrderSet) => ({
     ...set,
     orders: filterStatus === 'all' 
       ? set.orders 
-      : set.orders.filter(order => order.status === filterStatus)
-  })).filter(set => set.orders.length > 0);
+      : set.orders.filter((order: Order) => order.status === filterStatus)
+  })).filter((set: OrderSet) => set.orders.length > 0);
 
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
     try {
@@ -196,7 +231,7 @@ export default function AdminDashboard() {
     if (selectedReviews.size === reviews.length) {
       setSelectedReviews(new Set());
     } else {
-      setSelectedReviews(new Set(reviews.map(review => review.id!)));
+      setSelectedReviews(new Set(reviews.map(review => review.id || '')));
     }
   };
 
@@ -208,11 +243,11 @@ export default function AdminDashboard() {
 
       await Promise.all(deletePromises);
 
-      setReviews(prev => prev.filter(review => !selectedReviews.has(review.id!)));
+      setReviews(prev => prev.filter(review => !selectedReviews.has(review.id || '')));
       setSelectedReviews(new Set());
       setShowBulkReviewDelete(false);
 
-      if (selectedReview && selectedReviews.has(selectedReview.id!)) {
+      if (selectedReview && selectedReviews.has(selectedReview.id || '')) {
         setSelectedReview(null);
         setShowReviewDetails(false);
       }
@@ -231,7 +266,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gray-900 text-white p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -457,7 +492,7 @@ export default function AdminDashboard() {
           </div>
           
           {selectedOrder ? (
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-6">
               {/* Order Info */}
               <div>
                 <h3 className="text-lg font-semibold text-white mb-2">
@@ -632,8 +667,8 @@ export default function AdminDashboard() {
                     <div className="flex items-start gap-3">
                       <input
                         type="checkbox"
-                        checked={selectedReviews.has(review.id!)}
-                        onChange={() => toggleReviewSelection(review.id!)}
+                        checked={selectedReviews.has(review.id || '')}
+                        onChange={() => toggleReviewSelection(review.id || '')}
                         className="w-4 h-4 text-[#FFFFFF] bg-[#0F0F0F] border-[#2A2A2A] rounded focus:ring-[#FFFFFF] focus:ring-2 mt-1"
                       />
                       <div className="flex-grow">
@@ -667,7 +702,7 @@ export default function AdminDashboard() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setShowDeleteReviewConfirm(review.id!);
+                          setShowDeleteReviewConfirm(review.id || '');
                         }}
                         className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-400/10 transition-all duration-300"
                         title="Delete review"
@@ -684,13 +719,13 @@ export default function AdminDashboard() {
                       setShowReviewDetails(true);
                     }}
                   >
-                    <p className="text-white text-sm font-medium mb-1">"{review.comment}"</p>
+                    <p className="text-white text-sm font-medium mb-1">&quot;{review.comment}&quot;</p>
                     <div className="flex items-center justify-between text-xs text-gray-400">
                       <span>
                         {review.verified ? '✓ Verified Purchase' : '○ Unverified'} •
                         {review.helpful > 0 && ` ${review.helpful} helpful`}
                       </span>
-                      <span>{new Date(review.createdAt.toDate()).toLocaleDateString()}</span>
+                      <span>{new Date(review.createdAt.toMillis ? review.createdAt.toMillis() : review.createdAt.seconds * 1000).toLocaleDateString()}</span>
                     </div>
                   </div>
                 </div>
@@ -868,7 +903,7 @@ export default function AdminDashboard() {
               <div>
                 <h4 className="text-lg font-semibold text-white mb-3">Review Comment</h4>
                 <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-4">
-                  <p className="text-white italic">"{selectedReview.comment}"</p>
+                  <p className="text-white italic">&quot;{selectedReview.comment}&quot;</p>
                 </div>
               </div>
 
@@ -879,7 +914,7 @@ export default function AdminDashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-gray-400">Created:</span>
-                      <p className="text-white">{new Date(selectedReview.createdAt.toDate()).toLocaleString()}</p>
+                      <p className="text-white">{new Date(selectedReview.createdAt.toMillis ? selectedReview.createdAt.toMillis() : selectedReview.createdAt.seconds * 1000).toLocaleString()}</p>
                     </div>
                     <div>
                       <span className="text-gray-400">Helpful Votes:</span>
@@ -902,7 +937,7 @@ export default function AdminDashboard() {
                 </button>
                 <button
                   onClick={() => {
-                    setShowDeleteReviewConfirm(selectedReview.id!);
+                    setShowDeleteReviewConfirm(selectedReview.id || '');
                     setShowReviewDetails(false);
                   }}
                   className="bg-red-600/20 hover:bg-red-600/30 border border-red-600/30 text-red-400 font-medium py-2 px-4 rounded-lg transition-all duration-300 flex items-center gap-2"

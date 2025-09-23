@@ -68,7 +68,7 @@ export default function AdminPanelPage() {
   }
 
   return (
-    <div className="pt-20 min-h-screen bg-[#0F0F0F]">
+    <div className="pt-20 min-h-screen bg-gray-900">
       <div className="container mx-auto px-4 py-12">
         <AdminDashboard />
       </div>

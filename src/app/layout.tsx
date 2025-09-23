@@ -10,6 +10,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { CartProvider } from "@/contexts/CartContext";
 import { OrderProvider } from "@/contexts/OrderContext";
 import { ReviewProvider } from "@/contexts/ReviewContext";
+// Removed LanguageProvider import
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -67,6 +68,7 @@ export default function RootLayout({
         )}
       </head>
       <body className={inter.className} suppressHydrationWarning>
+        {/* Removed LanguageProvider */}
         <OrderProvider>
           <CartProvider>
             <ReviewProvider>
@@ -74,7 +76,7 @@ export default function RootLayout({
                 <AdvancedPageTransition>
                   <ScrollToTop />
                   <Navbar />
-                  <main className="min-h-screen">{children}</main>
+                  <main className="min-h-screen bg-gray-900">{children}</main>
                   <Footer />
                 </AdvancedPageTransition>
               </GlobalErrorBoundary>
