@@ -55,12 +55,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <Script
-        id="google-ads"
-        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3190492570821815"
-        strategy="afterInteractive"
-        crossOrigin="anonymous"
-      />
+      <head>
+        {/* Only load Google Ads in browser environment */}
+        {typeof window !== 'undefined' && (
+          <Script
+            id="google-ads"
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3190492570821815"
+            strategy="afterInteractive"
+            crossOrigin="anonymous"
+          />
+        )}
+      </head>
       <body className={inter.className} suppressHydrationWarning>
         <OrderProvider>
           <CartProvider>

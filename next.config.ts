@@ -1,10 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Enable React strict mode for better error handling
+  reactStrictMode: true,
+  
+  // Optimize images
   images: {
     remotePatterns: [],
     unoptimized: true,
   },
+  
+  // Add headers for security
   async headers() {
     return [
       {
@@ -18,6 +24,16 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  
+  // Enable experimental features if needed
+  experimental: {
+    // Add any experimental features here if needed
+  },
+  
+  // Ensure proper environment handling
+  env: {
+    // Add any environment variables here if needed
+  }
 };
 
 export default nextConfig;

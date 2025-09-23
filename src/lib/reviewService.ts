@@ -13,6 +13,10 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { FirebaseError } from 'firebase/app';
+import type { Firestore } from 'firebase/firestore';
+
+// Check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
 
 export interface Review {
   id?: string;
@@ -43,6 +47,12 @@ const REVIEWS_COLLECTION = 'reviews';
 export const reviewService = {
   // Add a new review
   async addReview(review: Omit<Review, 'id' | 'createdAt' | 'helpful' | 'verified'>): Promise<string> {
+    // Skip if not in browser or db not available
+    if (!isBrowser || !db) {
+      console.log('Skipping review addition - not in browser or db not available');
+      return 'mock-id';
+    }
+    
     try {
       console.log('Attempting to add review:', review);
       
@@ -81,6 +91,12 @@ export const reviewService = {
 
   // Get reviews for a specific product
   async getProductReviews(productId: number): Promise<Review[]> {
+    // Return empty array if not in browser or db not available
+    if (!isBrowser || !db) {
+      console.log('Returning empty reviews - not in browser or db not available');
+      return [];
+    }
+    
     try {
       // First get all reviews for the product without orderBy to avoid index requirement
       const q = query(
@@ -111,6 +127,22 @@ export const reviewService = {
 
   // Get review statistics for a product
   async getReviewStats(productId: number): Promise<ReviewStats> {
+    // Return mock data if not in browser or db not available
+    if (!isBrowser || !db) {
+      console.log('Returning mock review stats - not in browser or db not available');
+      return {
+        totalReviews: 0,
+        averageRating: 0,
+        ratingDistribution: {
+          1: 0,
+          2: 0,
+          3: 0,
+          4: 0,
+          5: 0
+        }
+      };
+    }
+    
     try {
       const reviews = await this.getProductReviews(productId);
       
@@ -140,6 +172,12 @@ export const reviewService = {
 
   // Mark a review as helpful
   async markReviewHelpful(reviewId: string): Promise<void> {
+    // Skip if not in browser or db not available
+    if (!isBrowser || !db) {
+      console.log('Skipping mark helpful - not in browser or db not available');
+      return;
+    }
+    
     try {
       const reviewRef = doc(db, REVIEWS_COLLECTION, reviewId);
       await updateDoc(reviewRef, {
@@ -153,6 +191,12 @@ export const reviewService = {
 
   // Delete a review
   async deleteReview(reviewId: string): Promise<void> {
+    // Skip if not in browser or db not available
+    if (!isBrowser || !db) {
+      console.log('Skipping review deletion - not in browser or db not available');
+      return;
+    }
+    
     try {
       const reviewRef = doc(db, REVIEWS_COLLECTION, reviewId);
       await deleteDoc(reviewRef);
@@ -173,9 +217,15 @@ export const reviewService = {
 
   // Get all reviews (for admin purposes)
   async getAllReviews(): Promise<Review[]> {
+    // Return empty array if not in browser or db not available
+    if (!isBrowser || !db) {
+      console.log('Returning empty reviews list - not in browser or db not available');
+      return [];
+    }
+    
     try {
       const q = query(
-        collection(db, REVIEWS_COLLECTION),
+        collection(db as Firestore, REVIEWS_COLLECTION),
         orderBy('createdAt', 'desc')
       );
 

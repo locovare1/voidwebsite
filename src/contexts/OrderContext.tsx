@@ -209,6 +209,9 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
   // Load orders and sets from localStorage first, then try Firebase
   useEffect(() => {
     const loadFromLocalStorage = () => {
+      // Only run on client side
+      if (typeof window === 'undefined') return;
+      
       // Load orders from localStorage first (immediate)
       const savedOrders = localStorage.getItem('void-orders');
       if (savedOrders) {
@@ -233,15 +236,12 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     };
 
     const loadFromFirebase = async () => {
+      // Only run on client side
+      if (typeof window === 'undefined') return;
+      
       try {
         console.log('Attempting to load orders from Firebase...');
         
-        // Only try Firebase if we're in a browser environment
-        if (typeof window === 'undefined') {
-          console.log('Server-side rendering, skipping Firebase');
-          return;
-        }
-
         const ordersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
         const querySnapshot = await getDocs(ordersQuery);
         
@@ -311,10 +311,16 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
 
   // Save orders and sets to localStorage whenever they change
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+    
     localStorage.setItem('void-orders', JSON.stringify(state.orders));
   }, [state.orders]);
 
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+    
     localStorage.setItem('void-sets', JSON.stringify(state.sets));
   }, [state.sets]);
 

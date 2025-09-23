@@ -53,9 +53,11 @@ export default function AdminDashboard() {
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
     try {
       // Update in Firebase
-      await updateDoc(doc(db, 'orders', orderId), {
-        status: newStatus
-      });
+      if (db) {
+        await updateDoc(doc(db, 'orders', orderId), {
+          status: newStatus
+        });
+      }
       
       // Update local state
       updateOrderStatus(orderId, newStatus);
@@ -79,7 +81,9 @@ export default function AdminDashboard() {
   const handleDeleteOrder = async (orderId: string) => {
     try {
       // Delete from Firebase
-      await deleteDoc(doc(db, 'orders', orderId));
+      if (db) {
+        await deleteDoc(doc(db, 'orders', orderId));
+      }
     } catch (error) {
       console.error('Error deleting order from Firebase:', error);
     }
@@ -123,7 +127,9 @@ export default function AdminDashboard() {
     // Delete from Firebase
     const deletePromises = Array.from(selectedOrders).map(async (orderId) => {
       try {
-        await deleteDoc(doc(db, 'orders', orderId));
+        if (db) {
+          await deleteDoc(doc(db, 'orders', orderId));
+        }
       } catch (error) {
         console.error(`Error deleting order ${orderId} from Firebase:`, error);
       }
