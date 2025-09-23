@@ -123,7 +123,7 @@ export default function Home() {
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 gradient-text text-reveal">
               WELCOME TO VOID
             </h1>
-            <p className="text-xl md:text-2xl #000000 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto">
               A professional esports organization dedicated to excellence in competitive gaming
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
