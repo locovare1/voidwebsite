@@ -9,7 +9,8 @@ import {
   doc,
   updateDoc,
   increment,
-  deleteDoc
+  deleteDoc,
+  DocumentData
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { FirebaseError } from 'firebase/app';
@@ -17,6 +18,13 @@ import type { Firestore } from 'firebase/firestore';
 
 // Check if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';
+
+// Debug logging utility
+const debugLog = (message: string, data?: any) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[ReviewService] ${message}`, data || '');
+  }
+};
 
 export interface Review {
   id?: string;
@@ -42,6 +50,9 @@ export interface ReviewStats {
   };
 }
 
+// Type for review data when storing in Firestore (without id)
+type ReviewData = Omit<Review, 'id'>;
+
 const REVIEWS_COLLECTION = 'reviews';
 
 export const reviewService = {
@@ -49,31 +60,31 @@ export const reviewService = {
   async addReview(review: Omit<Review, 'id' | 'createdAt' | 'helpful' | 'verified'>): Promise<string> {
     // Skip if not in browser or db not available
     if (!isBrowser || !db) {
-      console.log('Skipping review addition - not in browser or db not available');
+      debugLog('Skipping review addition - not in browser or db not available');
       return 'mock-id';
     }
     
     try {
-      console.log('Attempting to add review:', review);
+      debugLog('Attempting to add review:', review);
       
-      const reviewData = {
+      const reviewData: ReviewData = {
         ...review,
         createdAt: Timestamp.now(),
         helpful: 0,
         verified: false
       };
       
-      console.log('Review data to be saved:', reviewData);
+      debugLog('Review data to be saved:', reviewData);
       
       const docRef = await addDoc(collection(db, REVIEWS_COLLECTION), reviewData);
-      console.log('Review added successfully with ID:', docRef.id);
+      debugLog('Review added successfully with ID:', docRef.id);
       return docRef.id;
     } catch (error: unknown) {
-      console.error('Detailed error adding review:', error);
+      debugLog('Detailed error adding review:', error);
 
       const firebaseError = error as FirebaseError;
-      console.error('Error code:', firebaseError?.code);
-      console.error('Error message:', firebaseError?.message);
+      debugLog('Error code:', firebaseError?.code);
+      debugLog('Error message:', firebaseError?.message);
 
       // Provide more specific error messages
       if (firebaseError?.code === 'permission-denied') {
@@ -93,11 +104,13 @@ export const reviewService = {
   async getProductReviews(productId: number): Promise<Review[]> {
     // Return empty array if not in browser or db not available
     if (!isBrowser || !db) {
-      console.log('Returning empty reviews - not in browser or db not available');
+      debugLog('Returning empty reviews - not in browser or db not available');
       return [];
     }
     
     try {
+      debugLog(`Fetching reviews for product ID: ${productId}`);
+      
       // First get all reviews for the product without orderBy to avoid index requirement
       const q = query(
         collection(db, REVIEWS_COLLECTION),
@@ -108,19 +121,25 @@ export const reviewService = {
       const reviews: Review[] = [];
 
       querySnapshot.forEach((doc) => {
+        const data = doc.data() as ReviewData;
         reviews.push({
           id: doc.id,
-          ...doc.data()
-        } as Review);
+          ...data
+        });
       });
 
+      debugLog(`Found ${reviews.length} reviews for product ${productId}`);
+      
       // Sort the reviews by createdAt in memory
-      return reviews.sort((a, b) => {
+      const sortedReviews = reviews.sort((a, b) => {
         if (!a.createdAt || !b.createdAt) return 0;
         return b.createdAt.toMillis() - a.createdAt.toMillis();
       });
+      
+      debugLog(`Sorted reviews for product ${productId}`);
+      return sortedReviews;
     } catch (error) {
-      console.error('Error fetching reviews:', error);
+      debugLog('Error fetching reviews:', error);
       throw new Error('Failed to fetch reviews');
     }
   },
@@ -129,7 +148,7 @@ export const reviewService = {
   async getReviewStats(productId: number): Promise<ReviewStats> {
     // Return mock data if not in browser or db not available
     if (!isBrowser || !db) {
-      console.log('Returning mock review stats - not in browser or db not available');
+      debugLog('Returning mock review stats - not in browser or db not available');
       return {
         totalReviews: 0,
         averageRating: 0,
@@ -144,6 +163,7 @@ export const reviewService = {
     }
     
     try {
+      debugLog(`Fetching review stats for product ID: ${productId}`);
       const reviews = await this.getProductReviews(productId);
       
       const totalReviews = reviews.length;
@@ -159,13 +179,16 @@ export const reviewService = {
         5: reviews.filter(r => r.rating === 5).length,
       };
       
-      return {
+      const stats = {
         totalReviews,
         averageRating: Math.round(averageRating * 10) / 10,
         ratingDistribution
       };
+      
+      debugLog(`Review stats for product ${productId}:`, stats);
+      return stats;
     } catch (error) {
-      console.error('Error fetching review stats:', error);
+      debugLog('Error fetching review stats:', error);
       throw new Error('Failed to fetch review statistics');
     }
   },
@@ -174,17 +197,19 @@ export const reviewService = {
   async markReviewHelpful(reviewId: string): Promise<void> {
     // Skip if not in browser or db not available
     if (!isBrowser || !db) {
-      console.log('Skipping mark helpful - not in browser or db not available');
+      debugLog('Skipping mark helpful - not in browser or db not available');
       return;
     }
     
     try {
+      debugLog(`Marking review ${reviewId} as helpful`);
       const reviewRef = doc(db, REVIEWS_COLLECTION, reviewId);
       await updateDoc(reviewRef, {
         helpful: increment(1)
       });
+      debugLog(`Review ${reviewId} marked as helpful successfully`);
     } catch (error) {
-      console.error('Error marking review as helpful:', error);
+      debugLog('Error marking review as helpful:', error);
       throw new Error('Failed to mark review as helpful');
     }
   },
@@ -193,16 +218,17 @@ export const reviewService = {
   async deleteReview(reviewId: string): Promise<void> {
     // Skip if not in browser or db not available
     if (!isBrowser || !db) {
-      console.log('Skipping review deletion - not in browser or db not available');
+      debugLog('Skipping review deletion - not in browser or db not available');
       return;
     }
     
     try {
+      debugLog(`Deleting review with ID: ${reviewId}`);
       const reviewRef = doc(db, REVIEWS_COLLECTION, reviewId);
       await deleteDoc(reviewRef);
-      console.log('Review deleted successfully:', reviewId);
+      debugLog('Review deleted successfully:', reviewId);
     } catch (error: unknown) {
-      console.error('Error deleting review:', error);
+      debugLog('Error deleting review:', error);
       const firebaseError = error as FirebaseError;
       if (firebaseError?.code === 'permission-denied') {
         throw new Error('Permission denied. Please check Firebase security rules.');
@@ -219,13 +245,14 @@ export const reviewService = {
   async getAllReviews(): Promise<Review[]> {
     // Return empty array if not in browser or db not available
     if (!isBrowser || !db) {
-      console.log('Returning empty reviews list - not in browser or db not available');
+      debugLog('Returning empty reviews list - not in browser or db not available');
       return [];
     }
     
     try {
+      debugLog('Fetching all reviews');
       const q = query(
-        collection(db as Firestore, REVIEWS_COLLECTION),
+        collection(db, REVIEWS_COLLECTION),
         orderBy('createdAt', 'desc')
       );
 
@@ -233,15 +260,17 @@ export const reviewService = {
       const reviews: Review[] = [];
 
       querySnapshot.forEach((doc) => {
+        const data = doc.data() as ReviewData;
         reviews.push({
           id: doc.id,
-          ...doc.data()
-        } as Review);
+          ...data
+        });
       });
 
+      debugLog(`Found ${reviews.length} total reviews`);
       return reviews;
     } catch (error: unknown) {
-      console.error('Error fetching all reviews:', error);
+      debugLog('Error fetching all reviews:', error);
       const firebaseError = error as FirebaseError;
       if (firebaseError?.code === 'permission-denied') {
         throw new Error('Permission denied. Please check Firebase security rules.');
@@ -249,6 +278,40 @@ export const reviewService = {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         throw new Error(`Failed to fetch all reviews: ${errorMessage}`);
       }
+    }
+  },
+  
+  // Debug method to check Firebase connection
+  async debugConnection(): Promise<{ status: string; details: any }> {
+    if (!isBrowser || !db) {
+      return { 
+        status: 'error', 
+        details: { message: 'Firebase not initialized or not in browser environment' } 
+      };
+    }
+    
+    try {
+      debugLog('Testing Firebase connection');
+      const testQuery = query(collection(db, REVIEWS_COLLECTION));
+      const snapshot = await getDocs(testQuery);
+      
+      return { 
+        status: 'success', 
+        details: { 
+          message: 'Firebase connection successful', 
+          documentCount: snapshot.size,
+          collection: REVIEWS_COLLECTION
+        } 
+      };
+    } catch (error) {
+      debugLog('Firebase connection test failed:', error);
+      return { 
+        status: 'error', 
+        details: { 
+          message: 'Firebase connection failed',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        } 
+      };
     }
   }
 };

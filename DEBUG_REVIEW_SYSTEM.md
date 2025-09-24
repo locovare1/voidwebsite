@@ -1,5 +1,11 @@
 # Debug Review System Issues
 
+## ⚠️ DEPRECATED - See Advanced Debugging System
+
+**This documentation is deprecated. Please use the new [Advanced Debugging System](/debug) instead.**
+
+The advanced debugging system provides more comprehensive testing, monitoring, and diagnostic capabilities.
+
 ## Quick Fix Steps
 
 ### 1. Check Firebase Security Rules
@@ -26,7 +32,7 @@ service cloud.firestore {
 5. Click "Publish"
 
 ### 2. Test the System
-1. Navigate to `/debug` page on your website
+1. Navigate to `/debug` page on your website (NEW ADVANCED SYSTEM)
 2. Click "Test Firebase Connection" - this should work
 3. Click "Test Review Service" - this should also work
 4. If both work, try submitting a review normally
@@ -104,3 +110,18 @@ If none of these steps work:
 2. Verify your Firebase project has proper billing setup
 3. Try creating a new test document directly in Firebase Console
 4. Check if your domain is whitelisted in Firebase project settings
+
+---
+
+## 🚀 New Advanced Debugging System
+
+For the most comprehensive debugging experience, please use our new Advanced Debugging System located at `/debug`.
+
+Key features:
+- Real-time system status monitoring
+- Comprehensive component testing
+- Performance metrics tracking
+- Detailed error reporting with timestamps
+- Test history tracking
+
+See [ADVANCED_DEBUGGING.md](ADVANCED_DEBUGGING.md) for complete documentation.
