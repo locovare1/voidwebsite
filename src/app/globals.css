@@ -125,7 +125,11 @@ body {
 
 /* Enhanced Card Animations */
 .void-card {
-  @apply bg-[#1A1A1A] rounded-lg p-6 shadow-lg transition-all duration-500;
+  background-color: #1A1A1A;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.5s;
   transform: translateY(0);
   position: relative;
   overflow: hidden;
@@ -147,14 +151,18 @@ body {
 }
 
 .void-card:hover {
-  @apply shadow-2xl;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   transform: translateY(-8px) scale(1.02);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
 /* Player Card Specific Animations */
 .player-card {
-  @apply bg-[#1A1A1A] rounded-lg p-6 shadow-lg transition-all duration-500;
+  background-color: #1A1A1A;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.5s;
   transform: perspective(1000px) rotateX(0deg);
   position: relative;
   overflow: hidden;
@@ -252,10 +260,21 @@ html {
 
 /* Enhanced Button Animations */
 .void-button {
-  @apply bg-[#FFFFFF] hover:bg-[#FFFFFF] text-black font-bold py-2 px-4 rounded-lg transition-all duration-300;
+  background-color: #FFFFFF;
+  color: #000000;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s;
   position: relative;
   overflow: hidden;
   transform: translateY(0);
+}
+
+.void-button:hover {
+  background-color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
 .void-button::before {
@@ -274,11 +293,6 @@ html {
 .void-button:hover::before {
   width: 300px;
   height: 300px;
-}
-
-.void-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
 /* Navbar Animation */
@@ -325,24 +339,66 @@ html {
 
 @layer components {
   .void-container {
-    @apply container mx-auto px-4 sm:px-6 lg:px-8;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .void-container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .void-container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
   }
   
   .void-button {
-    @apply bg-[#FFFFFF] hover:bg-[#FFFFFF] text-black font-bold py-2 px-4 rounded-lg transition-all duration-300;
+    background-color: #FFFFFF;
+    color: #000000;
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s;
+  }
+  
+  .void-button:hover {
+    background-color: #FFFFFF;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s;
   }
   
   .void-card {
-    @apply bg-[#1A1A1A] rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-300;
+    background-color: #1A1A1A;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s;
+  }
+  
+  .void-card:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
   
   .shop-container {
-    @apply max-h-[calc(100vh-200px)] overflow-y-auto pr-2;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    padding-right: 0.5rem;
   }
 }
 
 .gradient-text {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-[#FFFFFF] to-[#dedede];
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, #FFFFFF, #dedede);
 }
 
 /* Loading state styles */
@@ -415,4 +471,12 @@ html {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Add missing keyframes for fadeInOut animation used in teams page easter egg */
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: scale(0.8); }
+  20% { opacity: 1; transform: scale(1); }
+  80% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.8); }
 }

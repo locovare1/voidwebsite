@@ -119,14 +119,17 @@ const teams = [
 export default function TeamsPage() {
   const [ownershipClicks, setOwnershipClicks] = useState(0);
   const [showEasterEgg, setShowEasterEgg] = useState(false);
+  const [clickProgress, setClickProgress] = useState(0); // Track click progress for visual feedback
 
   const handleOwnershipClick = () => {
     const newClickCount = ownershipClicks + 1;
     setOwnershipClicks(newClickCount);
+    setClickProgress((newClickCount / 4) * 100); // Update progress bar
 
     if (newClickCount === 4) {
       setShowEasterEgg(true);
       setOwnershipClicks(0);
+      setClickProgress(0);
 
       // Hide the easter egg after 5 seconds
       setTimeout(() => {
@@ -141,22 +144,38 @@ export default function TeamsPage() {
       {showEasterEgg && (
         <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
           <div
-            className="text-6xl font-bold gradient-text transition-opacity duration-1000 ease-in-out"
+            className="text-4xl md:text-6xl font-bold gradient-text text-center px-4 transition-all duration-1000 ease-in-out transform"
             style={{
-              animation: 'fadeInOut 5s ease-in-out forwards'
+              animation: 'easterEggAppear 2s ease-in-out forwards'
             }}
           >
-            The King/Legend DrPuffin
+            <div className="mb-4">👑 The Legend 👑</div>
+            <div className="text-3xl md:text-5xl">DrPuffin</div>
+            <div className="mt-4 text-xl md:text-2xl">Rules Them All!</div>
           </div>
         </div>
       )}
 
       <style jsx>{`
-        @keyframes fadeInOut {
-          0% { opacity: 0; transform: scale(0.8); }
-          20% { opacity: 1; transform: scale(1); }
-          80% { opacity: 1; transform: scale(1); }
-          100% { opacity: 0; transform: scale(0.8); }
+        @keyframes easterEggAppear {
+          0% { 
+            opacity: 0; 
+            transform: scale(0.5) rotate(0deg); 
+          }
+          50% { 
+            opacity: 1; 
+            transform: scale(1.2) rotate(5deg); 
+          }
+          100% { 
+            opacity: 1; 
+            transform: scale(1) rotate(0deg); 
+          }
+        }
+        
+        .click-progress {
+          height: 4px;
+          background: linear-gradient(90deg, #FFFFFF, #dedede);
+          transition: width 0.3s ease;
         }
       `}</style>
 
@@ -171,9 +190,19 @@ export default function TeamsPage() {
           {teams.map((team, idx) => (
             <AnimatedSection key={team.name} animationType="slideUp" delay={idx * 100}>
               <div
-                className={`void-card ${team.name === 'Ownership' ? 'cursor-pointer' : ''}`}
+                className={`void-card ${team.name === 'Ownership' ? 'cursor-pointer relative' : ''}`}
                 onClick={team.name === 'Ownership' ? handleOwnershipClick : undefined}
               >
+                {/* Progress bar for easter egg clicks */}
+                {team.name === 'Ownership' && (
+                  <div className="absolute top-0 left-0 w-full bg-gray-700 rounded-t-lg">
+                    <div 
+                      className="click-progress rounded-t-lg" 
+                      style={{ width: `${clickProgress}%` }}
+                    ></div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
                   <div className="relative h-64 lg:h-full min-h-[300px] rounded-lg overflow-hidden group">
                     <Image
@@ -200,6 +229,15 @@ export default function TeamsPage() {
                         ))}
                       </ul>
                     </div>
+                    
+                    {/* Hint for easter egg */}
+                    {team.name === 'Ownership' && (
+                      <div className="mt-4 text-sm text-gray-500 italic">
+                        {ownershipClicks > 0 
+                          ? `Click ${4 - ownershipClicks} more times...` 
+                          : 'Click the team card 4 times to unlock a secret!'}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -234,4 +272,4 @@ export default function TeamsPage() {
       </div>
     </div>
   );
-} 
+}
