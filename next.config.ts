@@ -33,6 +33,7 @@ const nextConfig: NextConfig = {
   // Ensure proper environment handling
   env: {
     // Add any environment variables here if needed
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://voidesports.org',
   }
 };
 

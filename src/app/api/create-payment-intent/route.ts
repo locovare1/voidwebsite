@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     // Check if Stripe secret key is properly configured
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     
-    if (!stripeSecretKey || !stripeSecretKey.startsWith('sk_')) {
+    if (!stripeSecretKey || (!stripeSecretKey.startsWith('sk_test_') && !stripeSecretKey.startsWith('sk_live_'))) {
       console.error('Invalid Stripe secret key. Make sure it starts with sk_test_ or sk_live_');
       return NextResponse.json(
         { error: 'Stripe configuration error. Please check your secret key.' },
@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
 
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2025-08-27.basil',
+      typescript: true,
     });
 
     // Create a PaymentIntent with the order amount and currency

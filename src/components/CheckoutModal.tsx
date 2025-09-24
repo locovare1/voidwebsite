@@ -153,6 +153,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
         },
         body: JSON.stringify({
           amount: finalTotal,
+          currency: 'usd',
           metadata: {
             customerName: customerInfo.name,
             customerEmail: customerInfo.email,

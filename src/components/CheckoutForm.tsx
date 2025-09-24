@@ -44,10 +44,15 @@ export default function CheckoutForm({ customerInfo, onSuccess, total }: Checkou
     setIsLoading(true);
     setMessage('');
 
+    // Use the site URL from environment or fallback to window.location.origin
+    const returnUrl = process.env.NEXT_PUBLIC_SITE_URL 
+      ? `${process.env.NEXT_PUBLIC_SITE_URL}/payment-success`
+      : `${window.location.origin}/payment-success`;
+
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/payment-success`,
+        return_url: returnUrl,
         receipt_email: customerInfo.email,
         shipping: {
           name: customerInfo.name,
