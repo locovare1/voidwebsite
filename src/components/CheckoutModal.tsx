@@ -50,12 +50,16 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   const [orderProcessed, setOrderProcessed] = useState(false);
+  const [shippingCost, setShippingCost] = useState<number>(0);
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
   
   const { addOrder } = useOrders();
   const { clearCart } = useCart();
 
   const isFormValid = Object.values(customerInfo).every(value => value.trim() !== '');
-  const finalTotal = total * 1.08; // Including tax
+  const subtotal = total;
+  const tax = total > 0 ? total * 0.08 : 0;
+  const finalTotal = subtotal + tax + shippingCost;
 
   useEffect(() => {
     if (isOpen) {
@@ -73,6 +77,66 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
       document.body.style.overflow = 'unset';
     };
   }, [isOpen, orderProcessed]);
+
+  // Calculate shipping cost when address/zip/country changes
+  useEffect(() => {
+    const calculateShipping = async () => {
+      // Only calculate if we have the required fields
+      if (customerInfo.zipCode && customerInfo.country) {
+        setIsCalculatingShipping(true);
+        try {
+          // In a real implementation, you would get the origin ZIP and country from your business location
+          // For this example, we'll use a mock origin (New York ZIP code)
+          const response = await fetch('/api/calculate-shipping', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              originZip: '10001', // New York ZIP code as example origin
+              originCountry: 'US',
+              destinationZip: customerInfo.zipCode,
+              destinationCountry: customerInfo.country,
+              weight: calculateOrderWeight(), // Calculate total weight of items
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            setShippingCost(data.shippingCost);
+          } else {
+            // If there's an error, default to free shipping
+            setShippingCost(0);
+          }
+        } catch (error) {
+          console.error('Error calculating shipping:', error);
+          // If there's an error, default to free shipping
+          setShippingCost(0);
+        } finally {
+          setIsCalculatingShipping(false);
+        }
+      }
+    };
+
+    // Debounce the shipping calculation
+    const timer = setTimeout(() => {
+      if (customerInfo.zipCode && customerInfo.country) {
+        calculateShipping();
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [customerInfo.zipCode, customerInfo.country]);
+
+  /**
+   * Calculate the total weight of items in the cart
+   * This is a simplified implementation - in a real app, you would have actual product weights
+   * @returns Total weight in pounds
+   */
+  const calculateOrderWeight = (): number => {
+    // Simplified: assume each item weighs 1 pound
+    return items.reduce((total, item) => total + item.quantity, 0);
+  };
 
   const handleInputChange = (field: keyof CustomerInfo, value: string) => {
     setCustomerInfo(prev => ({
@@ -319,17 +383,25 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between text-gray-400">
                     <span>Subtotal</span>
-                    <span>{total === 0 ? 'FREE' : `$${total.toFixed(2)}`}</span>
+                    <span>{subtotal === 0 ? 'FREE' : `$${subtotal.toFixed(2)}`}</span>
                   </div>
-                  {total > 0 && (
+                  {subtotal > 0 && (
                     <div className="flex justify-between text-gray-400">
                       <span>Tax (8%)</span>
-                      <span>${(total * 0.08).toFixed(2)}</span>
+                      <span>${tax.toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-gray-400">
                     <span>Shipping</span>
-                    <span>Free</span>
+                    <span>
+                      {isCalculatingShipping ? (
+                        <span className="text-gray-400">Calculating...</span>
+                      ) : shippingCost > 0 ? (
+                        `$${shippingCost.toFixed(2)}`
+                      ) : (
+                        'Free'
+                      )}
+                    </span>
                   </div>
                   <div className="border-t border-[#2A2A2A] pt-2 mt-2">
                     <div className="flex justify-between text-white font-bold">

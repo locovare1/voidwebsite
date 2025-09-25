@@ -85,7 +85,7 @@ export default function CheckoutForm({ customerInfo, onSuccess, total }: Checkou
           quantity: item.quantity,
           image: item.image,
         })),
-        total: total,
+        total: total, // This now includes shipping
         customerInfo: customerInfo,
         status: 'pending' as const,
         createdAt: new Date().toISOString(),
