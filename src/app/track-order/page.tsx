@@ -244,6 +244,7 @@ export default function TrackOrderPage() {
                     <h4 className="text-sm font-medium text-gray-300 mb-2">Shipping Address</h4>
                     <p className="text-white">{order.customerInfo.address}</p>
                     <p className="text-gray-400">{order.customerInfo.zipCode}</p>
+                    <p className="text-gray-400">{order.customerInfo.country}</p>
                   </div>
                 </div>
               </div>

@@ -164,6 +164,7 @@ export default function OrderSuccessModal({ isOpen, onClose, order }: OrderSucce
               <p className="text-gray-400">{order.customerInfo.address}</p>
               <p className="text-gray-400">{order.customerInfo.zipCode}</p>
               <p className="text-gray-400">{order.customerInfo.phone}</p>
+              <p className="text-gray-400">{order.customerInfo.country}</p>
             </div>
           </div>
 

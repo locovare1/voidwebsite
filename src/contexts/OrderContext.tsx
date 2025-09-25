@@ -22,6 +22,7 @@ export interface Order {
     address: string;
     zipCode: string;
     phone: string;
+    country: string;
   };
   status: 'pending' | 'accepted' | 'processing' | 'delivered' | 'declined' | 'canceled';
   createdAt: string;
@@ -284,6 +285,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
                 address: data.customerInfo?.address || '',
                 zipCode: data.customerInfo?.zipCode || '',
                 phone: data.customerInfo?.phone || '',
+                country: data.customerInfo?.country || '',
               },
               status: data.status || 'pending',
               createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),

@@ -31,6 +31,7 @@ interface CustomerInfo {
   address: string;
   zipCode: string;
   phone: string;
+  country: string;
 }
 
 export default function CheckoutModal({ isOpen, onClose, total, items }: CheckoutModalProps) {
@@ -40,6 +41,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
     address: '',
     zipCode: '',
     phone: '',
+    country: '',
   });
   
   const [clientSecret, setClientSecret] = useState<string>('');
@@ -160,6 +162,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
             customerAddress: customerInfo.address,
             customerZipCode: customerInfo.zipCode,
             customerPhone: customerInfo.phone,
+            customerCountry: customerInfo.country,
             items: JSON.stringify(items.map(item => ({
               name: item.name,
               quantity: item.quantity,
@@ -295,6 +298,19 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                     />
                   </div>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Country *
+                  </label>
+                  <input
+                    type="text"
+                    value={customerInfo.country}
+                    onChange={(e) => handleInputChange('country', e.target.value)}
+                    className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
+                    placeholder="Enter your country"
+                  />
+                </div>
               </div>
 
               {/* Order Summary */}
@@ -382,6 +398,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
             address: '',
             zipCode: '',
             phone: '',
+            country: '',
           });
           setShowPayment(false);
           setClientSecret('');

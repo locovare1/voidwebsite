@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { TrashIcon, UserIcon, StarIcon, FolderIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { useOrders } from '@/contexts/OrderContext';
+import { useOrders, Order, OrderSet } from '@/contexts/OrderContext';
 import { reviewService, Review } from '@/lib/reviewService';
 import { formatOrderNumber } from '@/lib/orderUtils';
 import Image from 'next/image';
@@ -17,30 +17,7 @@ interface OrderItem {
   image: string;
 }
 
-interface Order {
-  id: string;
-  items: OrderItem[];
-  total: number;
-  customerInfo: {
-    name: string;
-    email: string;
-    address: string;
-    zipCode: string;
-    phone: string;
-  };
-  status: 'pending' | 'accepted' | 'processing' | 'delivered' | 'declined' | 'canceled';
-  createdAt: string;
-  paymentIntentId?: string;
-  setId?: string;
-}
 
-interface OrderSet {
-  id: string;
-  name: string;
-  orders: Order[];
-  createdAt: string;
-  isExpanded?: boolean;
-}
 
 // Review interface imported from '@/lib/reviewService'
 
@@ -567,6 +544,7 @@ export default function AdminDashboard() {
                   <p><span className="text-gray-300">Phone:</span> {selectedOrder.customerInfo.phone}</p>
                   <p><span className="text-gray-300">Address:</span> {selectedOrder.customerInfo.address}</p>
                   <p><span className="text-gray-300">ZIP:</span> {selectedOrder.customerInfo.zipCode}</p>
+                  <p><span className="text-gray-300">Country:</span> {selectedOrder.customerInfo.country}</p>
                 </div>
               </div>
 

@@ -20,6 +20,7 @@ interface CheckoutFormProps {
     address: string;
     zipCode: string;
     phone: string;
+    country: string;
   };
   onSuccess: (order: Order) => void;
   total: number;
@@ -59,7 +60,7 @@ export default function CheckoutForm({ customerInfo, onSuccess, total }: Checkou
           address: {
             line1: customerInfo.address,
             postal_code: customerInfo.zipCode,
-            country: 'US',
+            country: customerInfo.country || 'US',
           },
           phone: customerInfo.phone,
         },
