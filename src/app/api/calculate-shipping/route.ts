@@ -66,7 +66,7 @@ function calculateShippingCost(
   const isInternational = originCountry !== destinationCountry;
   
   // Base rate
-  let baseRate = isInternational ? 15.00 : 5.00;
+  const baseRate = isInternational ? 15.00 : 5.00;
   
   // Weight factor
   const weightFactor = weight * (isInternational ? 2.0 : 1.0);
