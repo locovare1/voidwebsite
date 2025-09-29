@@ -52,6 +52,8 @@ export const ANIMATION_CLASSES = {
   TEXT_REVEAL: 'text-reveal',
   PULSE_GLOW: 'pulse-glow',
   NAVBAR_ANIMATE: 'navbar-animate',
+  
+
 } as const;
 
 // Helper function to calculate staggered delays

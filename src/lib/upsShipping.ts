@@ -1,6 +1,9 @@
 // UPS Shipping Calculation Utility
 // This module handles real-time shipping cost calculations
 
+// Shipper number from UPS account
+const SHIPPER_NUMBER = '058JF1';
+
 interface UPSShippingRateRequest {
   shipper: {
     address: {
@@ -103,4 +106,12 @@ export function getUPSShippingServices(): Array<{ code: string; name: string; de
     { code: '01', name: 'UPS Next Day Air', description: 'Next business day' },
     { code: '12', name: 'UPS 3 Day Select', description: '3 business days' },
   ];
+}
+
+/**
+ * Get the configured shipper number
+ * @returns UPS shipper number
+ */
+export function getUPSShipperNumber(): string {
+  return SHIPPER_NUMBER;
 }

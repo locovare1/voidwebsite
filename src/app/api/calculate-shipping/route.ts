@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getUPSShipperNumber } from '@/lib/upsShipping';
 
 interface ShippingRequest {
   originZip: string;
@@ -28,6 +29,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get shipper number
+    const shipperNumber = getUPSShipperNumber();
+    console.log('Using UPS shipper number:', shipperNumber);
+
     // Calculate shipping cost
     // In a real implementation, this would call the UPS API
     const shippingCost = calculateShippingCost(originZip, originCountry, destinationZip, destinationCountry, weight);
@@ -35,7 +40,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       shippingCost: parseFloat(shippingCost.toFixed(2)),
       currency: 'USD',
-      estimatedDelivery: '3-5 business days'
+      estimatedDelivery: '3-5 business days',
+      shipperNumber: shipperNumber // Include shipper number in response for debugging
     });
   } catch (error) {
     console.error('Error calculating shipping:', error);
