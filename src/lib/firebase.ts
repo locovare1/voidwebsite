@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, type Firestore } from "firebase/firestore";
+import { getAuth, type Auth } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -15,17 +16,20 @@ const firebaseConfig = {
 // Initialize Firebase only on the client side
 let app;
 let db: Firestore | null;
+let auth: Auth | null;
 
 if (typeof window !== 'undefined') {
   // Client-side initialization
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
   db = getFirestore(app);
+  auth = getAuth(app);
 } else {
   // Server-side - provide mock objects
   app = null;
   db = null;
+  auth = null;
 }
 
 // Export conditionally
-export { db };
+export { db, auth };
 export default app;
