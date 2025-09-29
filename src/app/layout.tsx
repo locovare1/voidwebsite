@@ -10,6 +10,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { CartProvider } from "@/contexts/CartContext";
 import { OrderProvider } from "@/contexts/OrderContext";
 import { ReviewProvider } from "@/contexts/ReviewContext";
+import { DebugProvider } from "@/contexts/DebugContext";
 // Removed LanguageProvider import
 
 const inter = Inter({ subsets: ["latin"] });
