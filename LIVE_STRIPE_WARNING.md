@@ -68,7 +68,7 @@ Contact your development team or Stripe support.
 
 ## 🎯 **Current Configuration**
 
-**Publishable Key**: `pk_live_51RhAXRL0PZcfAekJ...` ✅ LIVE
-**Secret Key**: `sk_live_51RhAXRL0PZcfAekJ...` ✅ LIVE
+**Publishable Key**: `pk_live_...` ✅ LIVE
+**Secret Key**: `sk_live_...` ✅ LIVE
 
 **Status**: 🔴 **PRODUCTION MODE - REAL PAYMENTS ENABLED**
