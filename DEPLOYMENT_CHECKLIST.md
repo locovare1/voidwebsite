@@ -28,7 +28,7 @@ Set these in your Vercel dashboard (Settings → Environment Variables):
 ```
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_51RhAXRL0PZcfAekJZxsYpCyucC6AH5ljyTg9qqWAe4XHoIEgJrWNpI1DfBsxkA2YQcqiuXydvISaDhDoVucQK5MI00a6X6QXKX
 
-STRIPE_SECRET_KEY=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
+STRIPE_SECRET_KEY=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
 
 NEXT_PUBLIC_SITE_URL=https://your-actual-domain.vercel.app
 

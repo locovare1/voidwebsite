@@ -62,14 +62,14 @@ export default function ReviewModal({ isOpen, onClose, productId, productName }:
     
     try {
       const reviewData = {
-        productId,
+        productId, // This is the numeric ID that maps to the Firestore document
         userName: userName.trim(),
         userEmail: userEmail.trim(),
         rating,
         comment: comment.trim(),
       };
       
-      console.log('Submitting review:', reviewData);
+      console.log('Submitting review for product ID:', productId);
       
       await addReview(reviewData);
       
@@ -103,6 +103,7 @@ export default function ReviewModal({ isOpen, onClose, productId, productName }:
 
           <div className="mb-4">
             <h3 className="text-lg font-semibold text-white mb-2">{productName}</h3>
+            <p className="text-sm text-gray-400">Product ID: {productId}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

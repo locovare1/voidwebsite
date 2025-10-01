@@ -14,7 +14,22 @@ type LegacyProduct = {
   category: string;
   description: string;
   link: string;
+  // Store the original Firestore ID for reference
+  firestoreId?: string;
 };
+
+// Simple hash function to convert string IDs to consistent numeric IDs
+function stringToHash(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  // Ensure positive ID and avoid 0, and make it larger to avoid conflicts with hardcoded products
+  const numericId = Math.abs(hash) || Math.floor(Math.random() * 1000000) + 1000;
+  return numericId;
+}
 
 export default function ShopPage() {
   const [products, setProducts] = useState<LegacyProduct[]>(fallbackProducts);
@@ -26,15 +41,16 @@ export default function ShopPage() {
         const items = await productService.getAll();
         if (!mounted) return;
         if (items && items.length > 0) {
-          // Map Firestore products to legacy format
-          const mapped: LegacyProduct[] = items.map((p: FSProduct, idx: number) => ({
-            id: idx,
+          // Map Firestore products to legacy format using consistent hash of document ID
+          const mapped: LegacyProduct[] = items.map((p: FSProduct) => ({
+            id: p.id ? stringToHash(p.id) : Math.floor(Math.random() * 1000000) + 1000,
             name: p.name,
             price: p.price,
             image: p.image,
             category: p.category,
             description: p.description,
-            link: p.link
+            link: p.link,
+            firestoreId: p.id // Store the original Firestore ID
           }));
           setProducts(mapped);
         } else {

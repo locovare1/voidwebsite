@@ -21,6 +21,7 @@ export default function EnhancedDebugPanel() {
   const [logFilter, setLogFilter] = useState<'all' | 'info' | 'warn' | 'error' | 'debug'>('all');
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [isRunningTests, setIsRunningTests] = useState(false);
+  const [lastLogCount, setLastLogCount] = useState(0);
 
   // Filter logs based on selected filter
   const filteredLogs = useMemo(() => {
@@ -31,51 +32,30 @@ export default function EnhancedDebugPanel() {
   // Start performance monitoring when component mounts
   useEffect(() => {
     debugContext.startMonitoring();
-    // Add a simple log entry directly to the context
-    debugContext.addLog({
-      timestamp: new Date(),
-      level: 'info',
-      category: 'lifecycle',
-      message: 'Debug panel initialized',
-      component: 'EnhancedDebugPanel'
-    });
     
     return () => {
       debugContext.stopMonitoring();
-      // Add a simple log entry directly to the context
-      debugContext.addLog({
-        timestamp: new Date(),
-        level: 'info',
-        category: 'lifecycle',
-        message: 'Debug panel unmounted',
-        component: 'EnhancedDebugPanel'
-      });
     };
-  }, [debugContext]);
+  }, []);
 
-  // Auto-refresh logs
+  // Auto-refresh logs - only update when there are new logs
   useEffect(() => {
     if (!autoRefresh) return;
     
     const interval = setInterval(() => {
-      // Trigger re-render by updating state
-      setLogFilter(prev => prev);
+      // Only update state if log count has changed
+      if (debugContext.logs.length !== lastLogCount) {
+        setLastLogCount(debugContext.logs.length);
+      }
     }, 1000);
     
     return () => clearInterval(interval);
-  }, [autoRefresh]);
+  }, [autoRefresh, debugContext.logs.length, lastLogCount]);
 
   const runAllTests = async () => {
     setIsRunningTests(true);
     try {
       await debugContext.runAllTests();
-      debugContext.addLog({
-        timestamp: new Date(),
-        level: 'info',
-        category: 'test',
-        message: 'All tests completed successfully',
-        component: 'EnhancedDebugPanel'
-      });
     } catch (error: any) {
       debugContext.addLog({
         timestamp: new Date(),

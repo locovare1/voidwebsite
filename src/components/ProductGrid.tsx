@@ -7,8 +7,13 @@ import { useCart } from '@/contexts/CartContext';
 import ReviewButton from './ReviewButton';
 import { Product } from '@/data/products';
 
+// Extend the Product interface to include optional Firestore ID
+interface ExtendedProduct extends Product {
+  firestoreId?: string;
+}
+
 interface ProductGridProps {
-	products: Product[];
+	products: ExtendedProduct[];
 	itemsPerPage?: number;
 }
 
@@ -36,8 +41,8 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 				case 'price-high':
 					return b.price - a.price;
 				case 'name':
-			default:
-				return a.name.localeCompare(b.name);
+				default:
+					return a.name.localeCompare(b.name);
 			}
 		});
 
@@ -58,7 +63,7 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 		setCurrentPage(1);
 	};
 
-	const handleAddToCart = async (product: Product) => {
+	const handleAddToCart = async (product: ExtendedProduct) => {
 		setAddingToCart(product.id);
 		
 		// Add a small delay for better UX

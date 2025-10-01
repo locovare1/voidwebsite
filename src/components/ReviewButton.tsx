@@ -25,7 +25,7 @@ export default function ReviewButton({ productId, productName }: ReviewButtonPro
           averageRating: reviewStats.averageRating
         });
       } catch (error) {
-        console.error('Error fetching review stats:', error);
+        console.error('Error fetching review stats for product ID:', productId, error);
         setStats({ totalReviews: 0, averageRating: 0 });
       } finally {
         setLoading(false);

@@ -276,7 +276,36 @@ export default function SettingsPage() {
                 <button className="bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-medium py-2 px-4 rounded-lg transition-all duration-300">
                   Save Changes
                 </button>
-                <button className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
+                <button 
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/create-payment-intent', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          amount: 1.00,
+                          currency: 'usd',
+                          metadata: {
+                            test: 'true',
+                            source: 'admin-panel'
+                          }
+                        }),
+                      });
+                      
+                      if (response.ok) {
+                        alert('✅ Stripe connection successful!');
+                      } else {
+                        const error = await response.json();
+                        alert(`❌ Stripe connection failed: ${error.error}`);
+                      }
+                    } catch (error: any) {
+                      alert(`❌ Stripe connection failed: ${error.message}`);
+                    }
+                  }}
+                  className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
+                >
                   Test Connection
                 </button>
               </div>

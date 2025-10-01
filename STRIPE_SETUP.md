@@ -6,12 +6,12 @@ For the Stripe payment system to work correctly in production, you need to set t
 
 ### 1. Stripe Publishable Key (Frontend)
 ```
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_XXXXXXXXXXXXXXXXXXXXXXXX
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_51RhAXRL0PZcfAekJZxsYpCyucC6AH5ljyTg9qqWAe4XHoIEgJrWNpI1DfBsxkA2YQcqiuXydvISaDhDoVucQK5MI00a6X6QXKX
 ```
 
 ### 2. Stripe Secret Key (Backend)
 ```
-STRIPE_SECRET_KEY=sk_live_XXXXXXXXXXXXXXXXXXXXXXXX
+STRIPE_SECRET_KEY=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
 ```
 
 ## Deployment Configuration

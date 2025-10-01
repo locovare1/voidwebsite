@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeftIcon, StarIcon } from '@heroicons/react/24/outline';
@@ -11,19 +11,79 @@ import ReviewModal from '@/components/ReviewModal';
 import { useReviews } from '@/contexts/ReviewContext';
 import { products, Product } from '@/data/products';
 import { ReviewStats } from '@/lib/reviewService';
+import { productService } from '@/lib/productService';
+
+// Extend the Product interface to include optional Firestore ID
+interface ExtendedProduct extends Product {
+  firestoreId?: string;
+}
 
 export default function ReviewPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const productId = parseInt(params.productId as string);
   
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<ExtendedProduct | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [stats, setStats] = useState<ReviewStats | null>(null);
   const { getReviewStats } = useReviews();
 
   useEffect(() => {
-    const foundProduct = products.find(p => p.id === productId);
-    setProduct(foundProduct || null);
+    const loadProduct = async () => {
+      // First check if it's a hardcoded product
+      const foundProduct = products.find(p => p.id === productId);
+      if (foundProduct) {
+        setProduct(foundProduct);
+        return;
+      }
+      
+      // If not found in hardcoded products, try to find in Firestore
+      try {
+        const allProducts = await productService.getAll();
+        // Use the same hash function to find matching product
+        const foundFSProduct = allProducts.find(p => {
+          // Simple hash function (same as in shop page)
+          let hash = 0;
+          if (p.id) {
+            for (let i = 0; i < p.id.length; i++) {
+              const char = p.id.charCodeAt(i);
+              hash = ((hash << 5) - hash) + char;
+              hash = hash & hash; // Convert to 32-bit integer
+            }
+          }
+          const numericId = Math.abs(hash) || Math.floor(Math.random() * 1000000) + 1000;
+          return numericId === productId;
+        });
+        
+        if (foundFSProduct) {
+          // Create the extended product with Firestore ID
+          let hash = 0;
+          if (foundFSProduct.id) {
+            for (let i = 0; i < foundFSProduct.id.length; i++) {
+              const char = foundFSProduct.id.charCodeAt(i);
+              hash = ((hash << 5) - hash) + char;
+              hash = hash & hash; // Convert to 32-bit integer
+            }
+          }
+          const numericId = Math.abs(hash) || Math.floor(Math.random() * 1000000) + 1000;
+          
+          setProduct({
+            id: numericId,
+            name: foundFSProduct.name,
+            price: foundFSProduct.price,
+            image: foundFSProduct.image,
+            category: foundFSProduct.category,
+            description: foundFSProduct.description,
+            link: foundFSProduct.link,
+            firestoreId: foundFSProduct.id
+          });
+        }
+      } catch (error) {
+        console.error('Error loading product:', error);
+      }
+    };
+
+    loadProduct();
   }, [productId]);
 
   useEffect(() => {
