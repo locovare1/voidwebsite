@@ -1,11 +1,28 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import AnimatedSection from '@/components/AnimatedSection';
 import PlayerCard from '@/components/PlayerCard';
+import { teamService, type Team as FSTeam } from '@/lib/teamService';
 
-const teams = [
+type DisplayTeam = {
+  name: string;
+  image: string;
+  description: string;
+  players: Array<{
+    name: string;
+    role: string;
+    image: string;
+    game: string;
+    achievements?: string[];
+    socialLinks?: { twitter?: string; twitch?: string; instagram?: string };
+  }>;
+  achievements: string[];
+};
+
+// Fallback to previous hardcoded teams data when Firestore is unavailable or empty
+const fallbackTeams: DisplayTeam[] = [
   {
     name: 'Fortnite',
     image: '/teams/fortnite.png',
@@ -120,12 +137,44 @@ export default function TeamsPage() {
   const [ownershipClicks, setOwnershipClicks] = useState(0);
   const [showEasterEgg, setShowEasterEgg] = useState(false);
   const [clickProgress, setClickProgress] = useState(0); // Track click progress for visual feedback
+  const [teams, setTeams] = useState<DisplayTeam[]>(fallbackTeams);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const items = await teamService.getAll();
+        if (!mounted) return;
+        if (items && items.length > 0) {
+          const mapped: DisplayTeam[] = items.map((t: FSTeam) => ({
+            name: t.name,
+            image: t.image,
+            description: t.description,
+            achievements: t.achievements || [],
+            players: (t.players || []).map(p => ({
+              name: p.name,
+              role: p.role,
+              image: p.image,
+              game: p.game,
+              achievements: p.achievements || [],
+              socialLinks: p.socialLinks || {},
+            })),
+          }));
+          setTeams(mapped);
+        } else {
+          setTeams(fallbackTeams);
+        }
+      } catch {
+        setTeams(fallbackTeams);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   const handleOwnershipClick = () => {
     const newClickCount = ownershipClicks + 1;
     setOwnershipClicks(newClickCount);
     setClickProgress((newClickCount / 4) * 100); // Update progress bar
-
     if (newClickCount === 4) {
       setShowEasterEgg(true);
       setOwnershipClicks(0);

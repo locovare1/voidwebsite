@@ -115,7 +115,7 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 					>
 						<div className="relative h-64 w-full overflow-hidden">
 							<Image
-								src={product.image}
+								src={product.image && product.image.trim() ? product.image : '/logo.png'}
 								alt={product.name}
 								fill
 								className="object-contain transition-transform duration-500 group-hover:scale-105 p-4"
@@ -135,7 +135,6 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 							<h3 className="text-xl font-bold text-white group-hover:text-[#a2a2a2] transition-colors duration-300 mb-0">
 								{product.name}
 							</h3>
-
 							<p className="text-gray-400 text-sm mb-0">
 								{product.description}
 							</p>

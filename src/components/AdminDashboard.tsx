@@ -1,11 +1,16 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { updateDoc, doc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { TrashIcon, UserIcon, StarIcon, FolderIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { useOrders, Order, OrderSet } from '@/contexts/OrderContext';
 import { reviewService, Review } from '@/lib/reviewService';
+import { newsService, type NewsArticle } from '@/lib/newsService';
+import { teamService, type Team, type Player } from '@/lib/teamService';
+import { productService, type Product } from '@/lib/productService';
+import { scheduleService, type Match, type Event } from '@/lib/scheduleService';
+import { uploadService } from '@/lib/uploadService';
 import { formatOrderNumber } from '@/lib/orderUtils';
 import Image from 'next/image';
 
@@ -50,6 +55,78 @@ export default function AdminDashboard() {
   const [showBulkReviewDelete, setShowBulkReviewDelete] = useState(false);
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
 
+  // News management state
+  const [news, setNews] = useState<NewsArticle[]>([]);
+  const [isLoadingNews, setIsLoadingNews] = useState(false);
+  const [editingArticle, setEditingArticle] = useState<NewsArticle | null>(null);
+  const [newsForm, setNewsForm] = useState({
+    title: '',
+    date: '',
+    image: '',
+    description: '',
+    category: ''
+  });
+  const [showDeleteNewsConfirm, setShowDeleteNewsConfirm] = useState<string | null>(null);
+
+  // Teams (roster) management state
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [isLoadingTeams, setIsLoadingTeams] = useState(false);
+  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [showDeleteTeamConfirm, setShowDeleteTeamConfirm] = useState<string | null>(null);
+  const [teamForm, setTeamForm] = useState<Omit<Team, 'id' | 'createdAt'>>({
+    name: '',
+    image: '',
+    description: '',
+    achievements: [],
+    players: []
+  });
+  const [playerDraft, setPlayerDraft] = useState<Player>({
+    name: '', role: '', image: '', game: '', achievements: [], socialLinks: {}
+  });
+  const [uploadingTeamImage, setUploadingTeamImage] = useState(false);
+  const [uploadingPlayerImage, setUploadingPlayerImage] = useState(false);
+  const [uploadingNewsImage, setUploadingNewsImage] = useState(false);
+  const [uploadingProductImage, setUploadingProductImage] = useState(false);
+
+  // Shop (Products) management state
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [productForm, setProductForm] = useState({
+    name: '',
+    price: 0,
+    image: '',
+    category: '',
+    description: '',
+    link: ''
+  });
+  const [showDeleteProductConfirm, setShowDeleteProductConfirm] = useState<string | null>(null);
+
+  // Schedule management state
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [isLoadingSchedule, setIsLoadingSchedule] = useState(false);
+  const [editingMatch, setEditingMatch] = useState<Match | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [matchForm, setMatchForm] = useState({
+    game: '',
+    event: '',
+    opponent: '',
+    date: '',
+    time: '',
+    streamLink: ''
+  });
+  const [eventForm, setEventForm] = useState({
+    name: '',
+    game: '',
+    date: '',
+    type: '',
+    prizePool: '',
+    registrationLink: ''
+  });
+  const [showDeleteMatchConfirm, setShowDeleteMatchConfirm] = useState<string | null>(null);
+  const [showDeleteEventConfirm, setShowDeleteEventConfirm] = useState<string | null>(null);
+
   const unsetOrders = getUnsetOrders();
   const filteredUnsetOrders = filterStatus === 'all' 
     ? unsetOrders 
@@ -83,6 +160,305 @@ export default function AdminDashboard() {
       if (selectedOrder && selectedOrder.id === orderId) {
         setSelectedOrder({ ...selectedOrder, status: newStatus });
       }
+    }
+  };
+
+  // Load news
+  const loadNews = async () => {
+    setIsLoadingNews(true);
+    try {
+      const items = await newsService.getAll();
+      setNews(items);
+    } catch (e) {
+      console.error('Error loading news:', e);
+      setNews([]);
+    } finally {
+      setIsLoadingNews(false);
+    }
+  };
+
+  // Load teams
+  const loadTeams = async () => {
+    setIsLoadingTeams(true);
+    try {
+      const all = await teamService.getAll();
+      setTeams(all);
+    } catch (e) {
+      console.error('Error loading teams:', e);
+      setTeams([]);
+    } finally {
+      setIsLoadingTeams(false);
+    }
+  };
+
+  // News CRUD
+  const resetNewsForm = () => {
+    setNewsForm({ title: '', date: '', image: '', description: '', category: '' });
+    setEditingArticle(null);
+  };
+
+  const submitNews = async () => {
+    try {
+      const resolvedDate = newsForm.date
+        ? Timestamp.fromDate(new Date(newsForm.date))
+        : Timestamp.now();
+
+      if (editingArticle?.id) {
+        await newsService.update(editingArticle.id, {
+          title: newsForm.title,
+          image: newsForm.image,
+          description: newsForm.description,
+          category: newsForm.category,
+          date: resolvedDate
+        });
+      } else {
+        await newsService.create({
+          title: newsForm.title,
+          image: newsForm.image,
+          description: newsForm.description,
+          category: newsForm.category,
+          date: resolvedDate
+        });
+      }
+      await loadNews();
+      resetNewsForm();
+    } catch (e) {
+      console.error('Error saving news:', e);
+    }
+  };
+
+  const deleteNews = async (id: string) => {
+    try {
+      await newsService.remove(id);
+      await loadNews();
+    } catch (e) {
+      console.error('Error deleting news:', e);
+    } finally {
+      setShowDeleteNewsConfirm(null);
+    }
+  };
+
+  // Teams CRUD
+  const resetTeamForm = () => {
+    setTeamForm({ name: '', image: '', description: '', achievements: [], players: [] });
+    setPlayerDraft({ name: '', role: '', image: '', game: '', achievements: [], socialLinks: {} });
+    setEditingTeam(null);
+  };
+
+  const handleTeamImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploadingTeamImage(true);
+    try {
+      const url = await uploadService.uploadTeamImage(file);
+      setTeamForm(p => ({ ...p, image: url }));
+    } catch (error) {
+      console.error('Error uploading team image:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploadingTeamImage(false);
+    }
+  };
+
+  const handlePlayerImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploadingPlayerImage(true);
+    try {
+      const url = await uploadService.uploadPlayerImage(file);
+      setPlayerDraft(p => ({ ...p, image: url }));
+    } catch (error) {
+      console.error('Error uploading player image:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploadingPlayerImage(false);
+    }
+  };
+
+  const handleNewsImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploadingNewsImage(true);
+    try {
+      const url = await uploadService.uploadNewsImage(file);
+      setNewsForm(p => ({ ...p, image: url }));
+    } catch (error) {
+      console.error('Error uploading news image:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploadingNewsImage(false);
+    }
+  };
+
+  const submitTeam = async () => {
+    try {
+      if (editingTeam?.id) {
+        await teamService.update(editingTeam.id, { ...teamForm });
+      } else {
+        await teamService.create({ ...teamForm });
+      }
+      await loadTeams();
+      resetTeamForm();
+    } catch (e) {
+      console.error('Error saving team:', e);
+    }
+  };
+
+  const deleteTeam = async (id: string) => {
+    try {
+      await teamService.remove(id);
+      await loadTeams();
+    } catch (e) {
+      console.error('Error deleting team:', e);
+    }
+  };
+
+  const addPlayerToForm = () => {
+    setTeamForm(prev => ({ ...prev, players: [...(prev.players || []), playerDraft] }));
+    setPlayerDraft({ name: '', role: '', image: '', game: '', achievements: [], socialLinks: {} });
+  };
+
+  const removePlayerFromForm = (index: number) => {
+    setTeamForm(prev => ({ ...prev, players: prev.players.filter((_, i) => i !== index) }));
+  };
+
+  // Products CRUD
+  const loadProducts = async () => {
+    setIsLoadingProducts(true);
+    try {
+      const all = await productService.getAll();
+      setProducts(all);
+    } catch (e) {
+      console.error('Error loading products:', e);
+      setProducts([]);
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  };
+
+  const resetProductForm = () => {
+    setProductForm({ name: '', price: 0, image: '', category: '', description: '', link: '' });
+    setEditingProduct(null);
+  };
+
+  const handleProductImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploadingProductImage(true);
+    try {
+      const url = await uploadService.uploadProductImage(file);
+      setProductForm(p => ({ ...p, image: url }));
+    } catch (error) {
+      console.error('Error uploading product image:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploadingProductImage(false);
+    }
+  };
+
+  const submitProduct = async () => {
+    try {
+      if (editingProduct?.id) {
+        await productService.update(editingProduct.id, { ...productForm });
+      } else {
+        await productService.create({ ...productForm });
+      }
+      await loadProducts();
+      resetProductForm();
+    } catch (e) {
+      console.error('Error saving product:', e);
+    }
+  };
+
+  const deleteProduct = async (id: string) => {
+    try {
+      await productService.remove(id);
+      await loadProducts();
+    } catch (e) {
+      console.error('Error deleting product:', e);
+    } finally {
+      setShowDeleteProductConfirm(null);
+    }
+  };
+
+  // Schedule CRUD
+  const loadSchedule = async () => {
+    setIsLoadingSchedule(true);
+    try {
+      const [allMatches, allEvents] = await Promise.all([
+        scheduleService.getAllMatches(),
+        scheduleService.getAllEvents()
+      ]);
+      setMatches(allMatches);
+      setEvents(allEvents);
+    } catch (e) {
+      console.error('Error loading schedule:', e);
+    } finally {
+      setIsLoadingSchedule(false);
+    }
+  };
+
+  const resetMatchForm = () => {
+    setMatchForm({ game: '', event: '', opponent: '', date: '', time: '', streamLink: '' });
+    setEditingMatch(null);
+  };
+
+  const submitMatch = async () => {
+    try {
+      if (editingMatch?.id) {
+        await scheduleService.updateMatch(editingMatch.id, { ...matchForm });
+      } else {
+        await scheduleService.createMatch({ ...matchForm });
+      }
+      await loadSchedule();
+      resetMatchForm();
+    } catch (e) {
+      console.error('Error saving match:', e);
+    }
+  };
+
+  const deleteMatch = async (id: string) => {
+    try {
+      await scheduleService.removeMatch(id);
+      await loadSchedule();
+    } catch (e) {
+      console.error('Error deleting match:', e);
+    } finally {
+      setShowDeleteMatchConfirm(null);
+    }
+  };
+
+  const resetEventForm = () => {
+    setEventForm({ name: '', game: '', date: '', type: '', prizePool: '', registrationLink: '' });
+    setEditingEvent(null);
+  };
+
+  const submitEvent = async () => {
+    try {
+      if (editingEvent?.id) {
+        await scheduleService.updateEvent(editingEvent.id, { ...eventForm });
+      } else {
+        await scheduleService.createEvent({ ...eventForm });
+      }
+      await loadSchedule();
+      resetEventForm();
+    } catch (e) {
+      console.error('Error saving event:', e);
+    }
+  };
+
+  const deleteEvent = async (id: string) => {
+    try {
+      await scheduleService.removeEvent(id);
+      await loadSchedule();
+    } catch (e) {
+      console.error('Error deleting event:', e);
+    } finally {
+      setShowDeleteEventConfirm(null);
     }
   };
 
@@ -166,6 +542,10 @@ export default function AdminDashboard() {
   // Load reviews on component mount
   useEffect(() => {
     loadReviews();
+    loadNews();
+    loadTeams();
+    loadProducts();
+    loadSchedule();
   }, []);
 
   const loadReviews = async () => {
@@ -242,6 +622,13 @@ export default function AdminDashboard() {
     ));
   };
 
+  // Simple required-field checks for forms
+  const newsRequiredMissing = !newsForm.title || !newsForm.description || !newsForm.category;
+  const teamRequiredMissing = !teamForm.name || !teamForm.description;
+  const productRequiredMissing = !productForm.name || !productForm.category || productForm.price <= 0;
+  const matchRequiredMissing = !matchForm.game || !matchForm.opponent;
+  const eventRequiredMissing = !eventForm.name || !eventForm.game;
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6 space-y-6">
       {/* Header */}
@@ -250,21 +637,472 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-bold gradient-text">Admin Dashboard</h1>
           <p className="text-gray-400 mt-1">Manage orders and track sales</p>
         </div>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-400">Filter:</span>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as Order['status'] | 'all')}
-            className="bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] transition-all duration-300"
+      </div>
+
+      {/* Teams Management (Roster) */}
+      <div className="bg-[#1A1A1A] rounded-xl border border-[#2A2A2A] overflow-hidden">
+        <div className="p-4 border-b border-[#2A2A2A] flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-white">Teams & Roster</h2>
+          <button
+            onClick={resetTeamForm}
+            className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-1 px-3 rounded-lg text-sm"
           >
-            <option value="all">All Orders ({orders.length})</option>
-            {statusOptions.map(status => (
-              <option key={status} value={status}>
-                {status.charAt(0).toUpperCase() + status.slice(1)} ({getStatusCount(status)})
-              </option>
-            ))}
-          </select>
+            New Team
+          </button>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">
+          {/* Teams List */}
+          <div className="max-h-[28rem] overflow-y-auto space-y-3">
+            {isLoadingTeams ? (
+              <div className="p-8 text-center text-gray-400">Loading teams...</div>
+            ) : teams.length === 0 ? (
+              <div className="p-8 text-center text-gray-400">No teams found</div>
+            ) : (
+              teams.map(team => (
+                <div key={team.id ?? team.name} className="p-4 rounded-lg border border-[#3A3A3A] hover:bg-[#2A2A2A] transition">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-white font-semibold">{team.name}</h3>
+                      <p className="text-gray-400 text-sm">{team.description}</p>
+                      <p className="text-gray-500 text-xs mt-1">Players: {team.players?.length || 0} • Achievements: {team.achievements?.length || 0}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setEditingTeam(team);
+                          setTeamForm({
+                            name: team.name,
+                            image: team.image,
+                            description: team.description,
+                            achievements: team.achievements || [],
+                            players: team.players || []
+                          });
+                        }}
+                        className="text-blue-400 hover:text-blue-300 p-1 rounded hover:bg-blue-400/10"
+                      >
+                        Edit
+                      </button>
+                      {team.id && (
+                        <button
+                          onClick={() => setShowDeleteTeamConfirm(team.id!)}
+                          className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-400/10"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Team Form */}
+          <div className="space-y-4">
+            <h3 className="text-white font-semibold">{editingTeam ? 'Edit Team' : 'Create Team'}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <input value={teamForm.name} onChange={e=>setTeamForm(p=>({...p,name:e.target.value}))} placeholder="Team name" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+              <div className="md:col-span-2">
+                <label className="block text-sm text-gray-400 mb-1">Team Image</label>
+                <div className="flex gap-2">
+                  <input value={teamForm.image} onChange={e=>setTeamForm(p=>({...p,image:e.target.value}))} placeholder="Team image URL" className="flex-1 bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+                  <label className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white px-4 py-2 rounded cursor-pointer text-sm flex items-center gap-2">
+                    {uploadingTeamImage ? 'Uploading...' : 'Upload'}
+                    <input type="file" accept="image/*" onChange={handleTeamImageUpload} disabled={uploadingTeamImage} className="hidden" />
+                  </label>
+                </div>
+              </div>
+              {teamForm.image && (
+                <div className="md:col-span-2">
+                  <img src={teamForm.image} alt="Team preview" className="h-20 w-full max-w-xs object-cover rounded border border-[#2A2A2A]" />
+                </div>
+              )}
+              <input value={teamForm.description} onChange={e=>setTeamForm(p=>({...p,description:e.target.value}))} placeholder="Description" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm md:col-span-2" />
+              <input
+                value={(teamForm.achievements||[]).join(', ')}
+                onChange={e=>setTeamForm(p=>({...p,achievements:e.target.value.split(',').map(s=>s.trim()).filter(Boolean)}))}
+                placeholder="Achievements (comma separated)"
+                className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm md:col-span-2"
+              />
+            </div>
+
+            {/* Players sub-form */}
+            <div className="border border-[#2A2A2A] rounded-lg p-3">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-white font-medium">Players</h4>
+                <button onClick={addPlayerToForm} className="text-sm bg-[#2A2A2A] hover:bg-[#3A3A3A] px-2 py-1 rounded">Add Player</button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <input value={playerDraft.name} onChange={e=>setPlayerDraft(p=>({...p,name:e.target.value}))} placeholder="Name" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+                <input value={playerDraft.role} onChange={e=>setPlayerDraft(p=>({...p,role:e.target.value}))} placeholder="Role" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+                <input value={playerDraft.game} onChange={e=>setPlayerDraft(p=>({...p,game:e.target.value}))} placeholder="Game" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+                <div className="md:col-span-2">
+                  <label className="block text-sm text-gray-400 mb-1">Player Image</label>
+                  <div className="flex gap-2">
+                    <input value={playerDraft.image} onChange={e=>setPlayerDraft(p=>({...p,image:e.target.value}))} placeholder="Image URL" className="flex-1 bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+                    <label className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white px-4 py-2 rounded cursor-pointer text-sm flex items-center gap-2">
+                      {uploadingPlayerImage ? 'Uploading...' : 'Upload'}
+                      <input type="file" accept="image/*" onChange={handlePlayerImageUpload} disabled={uploadingPlayerImage} className="hidden" />
+                    </label>
+                  </div>
+                  {playerDraft.image && (
+                    <img src={playerDraft.image} alt="Player preview" className="h-16 w-16 object-cover rounded border border-[#2A2A2A] mt-2" />
+                  )}
+                </div>
+                <input value={(playerDraft.achievements||[]).join(', ')} onChange={e=>setPlayerDraft(p=>({...p,achievements:e.target.value.split(',').map(s=>s.trim()).filter(Boolean)}))} placeholder="Achievements (comma)" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm md:col-span-2" />
+                <input value={playerDraft.socialLinks?.twitter||''} onChange={e=>setPlayerDraft(p=>({...p,socialLinks:{...(p.socialLinks||{}),twitter:e.target.value}}))} placeholder="Twitter URL" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+                <input value={playerDraft.socialLinks?.twitch||''} onChange={e=>setPlayerDraft(p=>({...p,socialLinks:{...(p.socialLinks||{}),twitch:e.target.value}}))} placeholder="Twitch URL" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+              </div>
+              {/* Existing players list */}
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {teamForm.players.map((pl, idx) => (
+                  <div key={idx} className="flex items-center justify-between bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm">
+                    <div className="truncate">
+                      <span className="text-white font-medium">{pl.name}</span>
+                      <span className="text-gray-400 ml-2">{pl.role} • {pl.game}</span>
+                    </div>
+                    <button onClick={()=>removePlayerFromForm(idx)} className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-400/10">Remove</button>
+                  </div>
+                ))}
+                {teamForm.players.length === 0 && (
+                  <div className="text-gray-500 text-sm">No players added yet</div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button onClick={submitTeam} disabled={teamRequiredMissing} className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg text-sm">{editingTeam ? 'Update Team' : 'Create Team'}</button>
+              <button onClick={resetTeamForm} className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg text-sm">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* News Management */}
+      <div className="bg-[#1A1A1A] rounded-xl border border-[#2A2A2A] overflow-hidden">
+        <div className="p-4 border-b border-[#2A2A2A] flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-white">News Articles</h2>
+          <button
+            onClick={resetNewsForm}
+            className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-1 px-3 rounded-lg text-sm"
+          >
+            New Article
+          </button>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">
+          {/* News List */}
+          <div className="max-h-[28rem] overflow-y-auto space-y-3">
+            {isLoadingNews ? (
+              <div className="p-8 text-center text-gray-400">Loading news...</div>
+            ) : news.length === 0 ? (
+              <div className="p-8 text-center text-gray-400">No news found</div>
+            ) : (
+              news.map(article => (
+                <div key={article.id ?? article.title} className="p-4 rounded-lg border border-[#3A3A3A] hover:bg-[#2A2A2A] transition">
+                  <div className="flex items-start justify-between">
+                    <div className="min-w-0">
+                      <h3 className="text-white font-semibold truncate">{article.title}</h3>
+                      <p className="text-gray-400 text-sm truncate">{article.description}</p>
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      <button
+                        onClick={() => {
+                          setEditingArticle(article);
+                          setNewsForm({
+                            title: article.title,
+                            date: (article.date as any)?.toDate ? (article.date as any).toDate().toISOString().slice(0,10) : '',
+                            image: article.image,
+                            description: article.description,
+                            category: article.category
+                          });
+                        }}
+                        className="text-blue-400 hover:text-blue-300 p-1 rounded hover:bg-blue-400/10"
+                      >
+                        Edit
+                      </button>
+                      {article.id && (
+                        <button
+                          onClick={() => setShowDeleteNewsConfirm(article.id!)}
+                          className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-400/10"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">{article.category}</div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* News Form */}
+          <div className="space-y-4">
+            <h3 className="text-white font-semibold">{editingArticle ? 'Edit Article' : 'Create Article'}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <input value={newsForm.title} onChange={e=>setNewsForm(p=>({...p,title:e.target.value}))} placeholder="Title" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm md:col-span-2" />
+              <input type="date" value={newsForm.date} onChange={e=>setNewsForm(p=>({...p,date:e.target.value}))} placeholder="Date" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+              <input value={newsForm.category} onChange={e=>setNewsForm(p=>({...p,category:e.target.value}))} placeholder="Category" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+              <div className="md:col-span-2">
+                <label className="block text-sm text-gray-400 mb-1">News Image</label>
+                <div className="flex gap-2">
+                  <input value={newsForm.image} onChange={e=>setNewsForm(p=>({...p,image:e.target.value}))} placeholder="Image URL" className="flex-1 bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+                  <label className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white px-4 py-2 rounded cursor-pointer text-sm flex items-center gap-2">
+                    {uploadingNewsImage ? 'Uploading...' : 'Upload'}
+                    <input type="file" accept="image/*" onChange={handleNewsImageUpload} disabled={uploadingNewsImage} className="hidden" />
+                  </label>
+                </div>
+              </div>
+              {newsForm.image && (
+                <div className="md:col-span-2">
+                  <img src={newsForm.image} alt="News preview" className="h-20 w-full max-w-xs object-cover rounded border border-[#2A2A2A]" />
+                </div>
+              )}
+              <textarea value={newsForm.description} onChange={e=>setNewsForm(p=>({...p,description:e.target.value}))} placeholder="Description" rows={5} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm md:col-span-2" />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={submitNews} disabled={newsRequiredMissing} className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg text-sm">{editingArticle ? 'Update Article' : 'Create Article'}</button>
+              <button onClick={resetNewsForm} className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg text-sm">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Shop Management */}
+      <div className="bg-[#1A1A1A] rounded-xl border border-[#2A2A2A] overflow-hidden">
+        <div className="p-4 border-b border-[#2A2A2A] flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-white">Shop Products</h2>
+          <button onClick={resetProductForm} className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-1 px-3 rounded-lg text-sm">New Product</button>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">
+          <div className="max-h-[28rem] overflow-y-auto space-y-3">
+            {isLoadingProducts ? (
+              <div className="p-8 text-center text-gray-400">Loading products...</div>
+            ) : products.length === 0 ? (
+              <div className="p-8 text-center text-gray-400">No products found</div>
+            ) : (
+              products.map((product) => (
+                <div key={product.id ?? product.name} className="p-4 rounded-lg border border-[#3A3A3A] hover:bg-[#2A2A2A] transition">
+                  <div className="flex items-start justify-between">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-white font-semibold truncate">{product.name}</h3>
+                      <p className="text-gray-400 text-sm truncate">{product.description}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-green-400 font-bold">${product.price.toFixed(2)}</span>
+                        <span className="text-xs text-gray-500">{product.category}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      <button
+                        onClick={() => {
+                          setEditingProduct(product);
+                          setProductForm({
+                            name: product.name,
+                            price: product.price,
+                            image: product.image,
+                            category: product.category,
+                            description: product.description,
+                            link: product.link
+                          });
+                        }}
+                        className="text-blue-400 hover:text-blue-300 p-1 rounded hover:bg-blue-400/10"
+                      >
+                        Edit
+                      </button>
+                      {product.id && (
+                        <button
+                          onClick={() => setShowDeleteProductConfirm(product.id!)}
+                          className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-400/10"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-white font-semibold">{editingProduct ? 'Edit Product' : 'Create Product'}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <input value={productForm.name} onChange={e=>setProductForm(p=>({...p,name:e.target.value}))} placeholder="Product name" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm md:col-span-2" />
+              <input type="number" step="0.01" value={productForm.price} onChange={e=>setProductForm(p=>({...p,price:parseFloat(e.target.value)||0}))} placeholder="Price" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+              <input value={productForm.category} onChange={e=>setProductForm(p=>({...p,category:e.target.value}))} placeholder="Category" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+              <div className="md:col-span-2">
+                <label className="block text-sm text-gray-400 mb-1">Product Image</label>
+                <div className="flex gap-2">
+                  <input value={productForm.image} onChange={e=>setProductForm(p=>({...p,image:e.target.value}))} placeholder="Image URL" className="flex-1 bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+                  <label className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white px-4 py-2 rounded cursor-pointer text-sm flex items-center gap-2">
+                    {uploadingProductImage ? 'Uploading...' : 'Upload'}
+                    <input type="file" accept="image/*" onChange={handleProductImageUpload} disabled={uploadingProductImage} className="hidden" />
+                  </label>
+                </div>
+              </div>
+              {productForm.image && (
+                <div className="md:col-span-2">
+                  <img src={productForm.image} alt="Product preview" className="h-20 w-full max-w-xs object-cover rounded border border-[#2A2A2A]" />
+                </div>
+              )}
+              <input value={productForm.link} onChange={e=>setProductForm(p=>({...p,link:e.target.value}))} placeholder="Purchase link" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm md:col-span-2" />
+              <textarea value={productForm.description} onChange={e=>setProductForm(p=>({...p,description:e.target.value}))} placeholder="Description" rows={3} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm md:col-span-2" />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={submitProduct} disabled={productRequiredMissing} className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg text-sm">{editingProduct ? 'Update Product' : 'Create Product'}</button>
+              <button onClick={resetProductForm} className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg text-sm">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Schedule Management */}
+      <div className="bg-[#1A1A1A] rounded-xl border border-[#2A2A2A] overflow-hidden">
+        <div className="p-4 border-b border-[#2A2A2A]">
+          <h2 className="text-xl font-semibold text-white">Schedule Management</h2>
+        </div>
+        <div className="p-4 space-y-6">
+          {/* Matches Section */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">Matches</h3>
+              <button onClick={resetMatchForm} className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-1 px-3 rounded-lg text-sm">New Match</button>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="max-h-[20rem] overflow-y-auto space-y-3">
+                {isLoadingSchedule ? (
+                  <div className="p-8 text-center text-gray-400">Loading matches...</div>
+                ) : matches.length === 0 ? (
+                  <div className="p-8 text-center text-gray-400">No matches found</div>
+                ) : (
+                  matches.map((match) => (
+                    <div key={match.id ?? `${match.game}-${match.date}`} className="p-3 rounded-lg border border-[#3A3A3A] hover:bg-[#2A2A2A] transition">
+                      <div className="flex items-start justify-between">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-white font-medium">{match.game}: vs {match.opponent}</div>
+                          <div className="text-sm text-gray-400">{match.event}</div>
+                          <div className="text-xs text-gray-500 mt-1">{match.date} • {match.time}</div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setEditingMatch(match);
+                              setMatchForm({
+                                game: match.game,
+                                event: match.event,
+                                opponent: match.opponent,
+                                date: match.date,
+                                time: match.time,
+                                streamLink: match.streamLink
+                              });
+                            }}
+                            className="text-blue-400 hover:text-blue-300 p-1 rounded hover:bg-blue-400/10 text-sm"
+                          >
+                            Edit
+                          </button>
+                          {match.id && (
+                            <button
+                              onClick={() => setShowDeleteMatchConfirm(match.id!)}
+                              className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-400/10 text-sm"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-white font-medium text-sm">{editingMatch ? 'Edit Match' : 'Create Match'}</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <input value={matchForm.game} onChange={e=>setMatchForm(p=>({...p,game:e.target.value}))} placeholder="Game" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+                  <input value={matchForm.opponent} onChange={e=>setMatchForm(p=>({...p,opponent:e.target.value}))} placeholder="Opponent" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+                  <input value={matchForm.event} onChange={e=>setMatchForm(p=>({...p,event:e.target.value}))} placeholder="Event" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm col-span-2" />
+                  <input value={matchForm.date} onChange={e=>setMatchForm(p=>({...p,date:e.target.value}))} placeholder="Date" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+                  <input value={matchForm.time} onChange={e=>setMatchForm(p=>({...p,time:e.target.value}))} placeholder="Time" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+                  <input value={matchForm.streamLink} onChange={e=>setMatchForm(p=>({...p,streamLink:e.target.value}))} placeholder="Stream link" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm col-span-2" />
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={submitMatch} disabled={matchRequiredMissing} className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg text-sm">{editingMatch ? 'Update' : 'Create'}</button>
+                  <button onClick={resetMatchForm} className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg text-sm">Clear</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Events Section */}
+          <div className="border-t border-[#2A2A2A] pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">Events</h3>
+              <button onClick={resetEventForm} className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-1 px-3 rounded-lg text-sm">New Event</button>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="max-h-[20rem] overflow-y-auto space-y-3">
+                {isLoadingSchedule ? (
+                  <div className="p-8 text-center text-gray-400">Loading events...</div>
+                ) : events.length === 0 ? (
+                  <div className="p-8 text-center text-gray-400">No events found</div>
+                ) : (
+                  events.map((event) => (
+                    <div key={event.id ?? event.name} className="p-3 rounded-lg border border-[#3A3A3A] hover:bg-[#2A2A2A] transition">
+                      <div className="flex items-start justify-between">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-white font-medium">{event.name}</div>
+                          <div className="text-sm text-gray-400">{event.game} • {event.type}</div>
+                          <div className="text-xs text-gray-500 mt-1">{event.date} • {event.prizePool}</div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setEditingEvent(event);
+                              setEventForm({
+                                name: event.name,
+                                game: event.game,
+                                date: event.date,
+                                type: event.type,
+                                prizePool: event.prizePool,
+                                registrationLink: event.registrationLink
+                              });
+                            }}
+                            className="text-blue-400 hover:text-blue-300 p-1 rounded hover:bg-blue-400/10 text-sm"
+                          >
+                            Edit
+                          </button>
+                          {event.id && (
+                            <button
+                              onClick={() => setShowDeleteEventConfirm(event.id!)}
+                              className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-400/10 text-sm"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-white font-medium text-sm">{editingEvent ? 'Edit Event' : 'Create Event'}</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <input value={eventForm.name} onChange={e=>setEventForm(p=>({...p,name:e.target.value}))} placeholder="Event name" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm col-span-2" />
+                  <input value={eventForm.game} onChange={e=>setEventForm(p=>({...p,game:e.target.value}))} placeholder="Game" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+                  <input value={eventForm.type} onChange={e=>setEventForm(p=>({...p,type:e.target.value}))} placeholder="Type" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+                  <input value={eventForm.date} onChange={e=>setEventForm(p=>({...p,date:e.target.value}))} placeholder="Date" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+                  <input value={eventForm.prizePool} onChange={e=>setEventForm(p=>({...p,prizePool:e.target.value}))} placeholder="Prize pool" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm" />
+                  <input value={eventForm.registrationLink} onChange={e=>setEventForm(p=>({...p,registrationLink:e.target.value}))} placeholder="Registration link" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm col-span-2" />
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={submitEvent} disabled={eventRequiredMissing} className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg text-sm">{editingEvent ? 'Update' : 'Create'}</button>
+                  <button onClick={resetEventForm} className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg text-sm">Clear</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -744,6 +1582,25 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* Team Delete Confirmation Modal */}
+      {showDeleteTeamConfirm && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="text-red-400 mb-4">
+                <FolderIcon className="w-16 h-16 mx-auto" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Delete Team</h3>
+              <p className="text-gray-400 mb-6">Are you sure you want to delete this team? This action cannot be undone.</p>
+              <div className="flex gap-3">
+                <button onClick={()=>setShowDeleteTeamConfirm(null)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg">Cancel</button>
+                <button onClick={()=>{ if (showDeleteTeamConfirm) deleteTeam(showDeleteTeamConfirm); }} className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Bulk Delete Confirmation Modal */}
       {showBulkDelete && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
@@ -985,6 +1842,101 @@ export default function AdminDashboard() {
                 >
                   Delete {selectedReviews.size} Reviews
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* News Delete Confirmation Modal */}
+      {showDeleteNewsConfirm && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="text-red-400 mb-4">
+                <StarIcon className="w-16 h-16 mx-auto" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Delete Article</h3>
+              <p className="text-gray-400 mb-6">Are you sure you want to delete this article? This action cannot be undone.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setShowDeleteNewsConfirm(null)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg">Cancel</button>
+                <button onClick={() => { if (showDeleteNewsConfirm) deleteNews(showDeleteNewsConfirm); }} className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Team Delete Confirmation Modal */}
+      {showDeleteTeamConfirm && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="text-red-400 mb-4">
+                <FolderIcon className="w-16 h-16 mx-auto" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Delete Team</h3>
+              <p className="text-gray-400 mb-6">Are you sure you want to delete this team? This action cannot be undone.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setShowDeleteTeamConfirm(null)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg">Cancel</button>
+                <button onClick={() => { if (showDeleteTeamConfirm) { deleteTeam(showDeleteTeamConfirm); setShowDeleteTeamConfirm(null); } }} className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Product Delete Confirmation Modal */}
+      {showDeleteProductConfirm && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="text-red-400 mb-4">
+                <TrashIcon className="w-16 h-16 mx-auto" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Delete Product</h3>
+              <p className="text-gray-400 mb-6">Are you sure you want to delete this product? This action cannot be undone.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setShowDeleteProductConfirm(null)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg">Cancel</button>
+                <button onClick={() => { if (showDeleteProductConfirm) deleteProduct(showDeleteProductConfirm); }} className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Match Delete Confirmation Modal */}
+      {showDeleteMatchConfirm && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="text-red-400 mb-4">
+                <TrashIcon className="w-16 h-16 mx-auto" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Delete Match</h3>
+              <p className="text-gray-400 mb-6">Are you sure you want to delete this match? This action cannot be undone.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setShowDeleteMatchConfirm(null)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg">Cancel</button>
+                <button onClick={() => { if (showDeleteMatchConfirm) deleteMatch(showDeleteMatchConfirm); }} className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Event Delete Confirmation Modal */}
+      {showDeleteEventConfirm && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="text-red-400 mb-4">
+                <TrashIcon className="w-16 h-16 mx-auto" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Delete Event</h3>
+              <p className="text-gray-400 mb-6">Are you sure you want to delete this event? This action cannot be undone.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setShowDeleteEventConfirm(null)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg">Cancel</button>
+                <button onClick={() => { if (showDeleteEventConfirm) deleteEvent(showDeleteEventConfirm); }} className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg">Delete</button>
               </div>
             </div>
           </div>

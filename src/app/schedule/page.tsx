@@ -1,4 +1,10 @@
-const upcomingMatches = [
+"use client";
+
+import { useEffect, useState } from 'react';
+import AnimatedSection from '@/components/AnimatedSection';
+import { scheduleService, type Match, type Event } from '@/lib/scheduleService';
+
+const fallbackMatches = [
   {
     game: 'TBD',
     event: 'TBD',
@@ -9,7 +15,7 @@ const upcomingMatches = [
   },
 ];
 
-const upcomingEvents = [
+const fallbackEvents = [
   {
     name: 'Void Summer Showdown',
     game: 'Fortnite',
@@ -20,9 +26,51 @@ const upcomingEvents = [
   },
 ];
 
-import AnimatedSection from '@/components/AnimatedSection';
-
 export default function SchedulePage() {
+  const [upcomingMatches, setUpcomingMatches] = useState(fallbackMatches);
+  const [upcomingEvents, setUpcomingEvents] = useState(fallbackEvents);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const [matches, events] = await Promise.all([
+          scheduleService.getAllMatches(),
+          scheduleService.getAllEvents()
+        ]);
+        if (!mounted) return;
+        if (matches && matches.length > 0) {
+          setUpcomingMatches(matches.map(m => ({
+            game: m.game,
+            event: m.event,
+            opponent: m.opponent,
+            date: m.date,
+            time: m.time,
+            streamLink: m.streamLink
+          })));
+        } else {
+          setUpcomingMatches(fallbackMatches);
+        }
+        if (events && events.length > 0) {
+          setUpcomingEvents(events.map(e => ({
+            name: e.name,
+            game: e.game,
+            date: e.date,
+            type: e.type,
+            prizePool: e.prizePool,
+            registrationLink: e.registrationLink
+          })));
+        } else {
+          setUpcomingEvents(fallbackEvents);
+        }
+      } catch {
+        setUpcomingMatches(fallbackMatches);
+        setUpcomingEvents(fallbackEvents);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F]">
       <div className="void-container py-12">
