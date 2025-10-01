@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useDebug } from '@/contexts/DebugContext';
-import { useDebug as useDebugHook } from '@/hooks/useDebug';
 import { 
   ChartBarIcon, 
   ClockIcon, 
@@ -18,7 +17,6 @@ import {
 
 export default function EnhancedDebugPanel() {
   const debugContext = useDebug();
-  const { log } = useDebugHook('EnhancedDebugPanel');
   const [activeTab, setActiveTab] = useState<'logs' | 'tests' | 'performance' | 'system'>('logs');
   const [logFilter, setLogFilter] = useState<'all' | 'info' | 'warn' | 'error' | 'debug'>('all');
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -33,13 +31,27 @@ export default function EnhancedDebugPanel() {
   // Start performance monitoring when component mounts
   useEffect(() => {
     debugContext.startMonitoring();
-    log('info', 'Debug panel initialized');
+    // Add a simple log entry directly to the context
+    debugContext.addLog({
+      timestamp: new Date(),
+      level: 'info',
+      category: 'lifecycle',
+      message: 'Debug panel initialized',
+      component: 'EnhancedDebugPanel'
+    });
     
     return () => {
       debugContext.stopMonitoring();
-      log('info', 'Debug panel unmounted');
+      // Add a simple log entry directly to the context
+      debugContext.addLog({
+        timestamp: new Date(),
+        level: 'info',
+        category: 'lifecycle',
+        message: 'Debug panel unmounted',
+        component: 'EnhancedDebugPanel'
+      });
     };
-  }, [debugContext, log]);
+  }, [debugContext]);
 
   // Auto-refresh logs
   useEffect(() => {
@@ -57,9 +69,22 @@ export default function EnhancedDebugPanel() {
     setIsRunningTests(true);
     try {
       await debugContext.runAllTests();
-      log('info', 'All tests completed successfully');
+      debugContext.addLog({
+        timestamp: new Date(),
+        level: 'info',
+        category: 'test',
+        message: 'All tests completed successfully',
+        component: 'EnhancedDebugPanel'
+      });
     } catch (error: any) {
-      log('error', 'Error running tests', { error: error.message });
+      debugContext.addLog({
+        timestamp: new Date(),
+        level: 'error',
+        category: 'test',
+        message: 'Error running tests',
+        details: { error: error.message },
+        component: 'EnhancedDebugPanel'
+      });
     } finally {
       setIsRunningTests(false);
     }
@@ -67,7 +92,13 @@ export default function EnhancedDebugPanel() {
 
   const clearLogs = () => {
     debugContext.clearLogs();
-    log('info', 'Logs cleared');
+    debugContext.addLog({
+      timestamp: new Date(),
+      level: 'info',
+      category: 'action',
+      message: 'Logs cleared',
+      component: 'EnhancedDebugPanel'
+    });
   };
 
   const getLogLevelColor = (level: string) => {
@@ -509,19 +540,19 @@ export default function EnhancedDebugPanel() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
                 <div className="text-gray-400">User Agent</div>
-                <div className="text-white truncate">{navigator.userAgent}</div>
+                <div className="text-white truncate">{typeof navigator !== 'undefined' ? navigator.userAgent : 'N/A'}</div>
               </div>
               <div>
                 <div className="text-gray-400">Platform</div>
-                <div className="text-white">{navigator.platform}</div>
+                <div className="text-white">{typeof navigator !== 'undefined' ? navigator.platform : 'N/A'}</div>
               </div>
               <div>
                 <div className="text-gray-400">Language</div>
-                <div className="text-white">{navigator.language}</div>
+                <div className="text-white">{typeof navigator !== 'undefined' ? navigator.language : 'N/A'}</div>
               </div>
               <div>
                 <div className="text-gray-400">Cookies Enabled</div>
-                <div className="text-white">{navigator.cookieEnabled ? 'Yes' : 'No'}</div>
+                <div className="text-white">{typeof navigator !== 'undefined' ? (navigator.cookieEnabled ? 'Yes' : 'No') : 'N/A'}</div>
               </div>
             </div>
           </div>

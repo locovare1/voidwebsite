@@ -70,20 +70,22 @@ export default function RootLayout({
       </head>
       <body className={inter.className} suppressHydrationWarning>
         {/* Removed LanguageProvider */}
-        <OrderProvider>
-          <CartProvider>
-            <ReviewProvider>
-              <GlobalErrorBoundary>
-                <AdvancedPageTransition>
-                  <ScrollToTop />
-                  <Navbar />
-                  <main className="min-h-screen bg-gray-900">{children}</main>
-                  <Footer />
-                </AdvancedPageTransition>
-              </GlobalErrorBoundary>
-            </ReviewProvider>
-          </CartProvider>
-        </OrderProvider>
+        <DebugProvider>
+          <OrderProvider>
+            <CartProvider>
+              <ReviewProvider>
+                <GlobalErrorBoundary>
+                  <AdvancedPageTransition>
+                    <ScrollToTop />
+                    <Navbar />
+                    <main className="min-h-screen bg-gray-900">{children}</main>
+                    <Footer />
+                  </AdvancedPageTransition>
+                </GlobalErrorBoundary>
+              </ReviewProvider>
+            </CartProvider>
+          </OrderProvider>
+        </DebugProvider>
       </body>
     </html>
   );
