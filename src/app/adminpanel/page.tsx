@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged, type User } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import AdminDashboard from '@/components/AdminDashboard';
 
 export default function AdminPanelPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -21,13 +20,14 @@ export default function AdminPanelPage() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setIsAuthenticated(true);
+        router.push('/adminpanel/dashboard');
       } else {
         setIsAuthenticated(false);
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +43,7 @@ export default function AdminPanelPage() {
       await signInWithEmailAndPassword(auth, email, password);
       setIsAuthenticated(true);
       setError('');
+      router.push('/adminpanel/dashboard');
     } catch (err: any) {
       console.error('Login error:', err);
       let errorMessage = 'Invalid credentials';
@@ -137,20 +138,6 @@ export default function AdminPanelPage() {
     );
   }
 
-  return (
-    <div className="pt-20 min-h-screen bg-gray-900">
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold gradient-text">Admin Dashboard</h1>
-          <button
-            onClick={handleLogout}
-            className="bg-red-600/20 hover:bg-red-600/30 border border-red-600/30 text-red-400 font-medium py-2 px-4 rounded-lg transition-all duration-300"
-          >
-            Logout
-          </button>
-        </div>
-        <AdminDashboard />
-      </div>
-    </div>
-  );
+  // If authenticated, redirect to dashboard
+  return null;
 }

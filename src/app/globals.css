@@ -461,6 +461,24 @@ html {
 
 /* Firefox scrollbar rules removed to satisfy linter compatibility checks */
 
+/* Admin Panel Custom Scrollbar */
+.admin-panel ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.admin-panel ::-webkit-scrollbar-track {
+  background: #1A1A1A;
+}
+
+.admin-panel ::-webkit-scrollbar-thumb {
+  background: #FFFFFF;
+  border-radius: 4px;
+}
+
+.admin-panel ::-webkit-scrollbar-thumb:hover {
+  background: #dedede;
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   *,
