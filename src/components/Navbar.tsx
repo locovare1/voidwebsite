@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { Bars3Icon, XMarkIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 import { useCart } from '@/contexts/CartContext';
 import CartIcon from './CartIcon';
@@ -25,6 +26,12 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const { itemCount } = useCart();
+  const pathname = usePathname();
+
+  // Hide navbar in admin panel
+  if (pathname && pathname.startsWith('/adminpanel')) {
+    return null;
+  }
 
   useEffect(() => {
     // Trigger navbar animation after a short delay

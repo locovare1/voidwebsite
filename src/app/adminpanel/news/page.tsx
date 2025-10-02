@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
+import { Timestamp } from 'firebase/firestore'; // Import Timestamp
 import { newsService } from '@/lib/newsService';
 import { uploadService } from '@/lib/uploadService';
 import { 
@@ -68,31 +69,30 @@ export default function NewsPage() {
 
   const submitNews = async () => {
     try {
-      const resolvedDate = newsForm.date
-        ? new Date(newsForm.date)
-        : new Date();
-
       if (editingArticle?.id) {
+        // Update existing article
         await newsService.update(editingArticle.id, {
           title: newsForm.title,
           image: newsForm.image,
           description: newsForm.description,
           category: newsForm.category,
-          date: resolvedDate as any
-        });
+          date: newsForm.date || undefined // Pass the date string directly or undefined
+        } as any);
       } else {
+        // Create new article
         await newsService.create({
           title: newsForm.title,
           image: newsForm.image,
           description: newsForm.description,
           category: newsForm.category,
-          date: resolvedDate as any
-        });
+          date: newsForm.date || undefined // Pass the date string directly or undefined
+        } as any);
       }
       await loadNews();
       resetNewsForm();
     } catch (e) {
       console.error('Error saving news:', e);
+      alert('Failed to save news article. Please try again.');
     }
   };
 
@@ -102,6 +102,7 @@ export default function NewsPage() {
       await loadNews();
     } catch (e) {
       console.error('Error deleting news:', e);
+      alert('Failed to delete news article. Please try again.');
     } finally {
       setShowDeleteConfirm(null);
     }
@@ -176,7 +177,7 @@ export default function NewsPage() {
                           <span className="text-xs text-gray-500">{article.category}</span>
                           <span className="text-xs text-gray-500">•</span>
                           <span className="text-xs text-gray-500">
-                            {article.date ? new Date(article.date).toLocaleDateString() : 'N/A'}
+                            {article.date ? new Date(article.date.seconds * 1000).toLocaleDateString() : 'N/A'}
                           </span>
                         </div>
                       </div>
@@ -184,9 +185,11 @@ export default function NewsPage() {
                         <button
                           onClick={() => {
                             setEditingArticle(article);
+                            // Convert Firebase Timestamp to date string for form
+                            const dateStr = article.date ? new Date(article.date.seconds * 1000).toISOString().split('T')[0] : '';
                             setNewsForm({
                               title: article.title,
-                              date: article.date ? new Date(article.date).toISOString().split('T')[0] : '',
+                              date: dateStr,
                               image: article.image,
                               description: article.description,
                               category: article.category
@@ -283,6 +286,18 @@ export default function NewsPage() {
                       src={newsForm.image} 
                       alt="News preview" 
                       className="max-h-32 max-w-full object-contain rounded" 
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        // Show a fallback message
+                        const parent = target.parentElement;
+                        if (parent) {
+                          const fallback = document.createElement('span');
+                          fallback.className = 'text-gray-400 text-sm';
+                          fallback.textContent = 'Image preview not available';
+                          parent.appendChild(fallback);
+                        }
+                      }}
                     />
                   </div>
                 </div>
