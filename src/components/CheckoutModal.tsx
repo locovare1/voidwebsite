@@ -82,6 +82,12 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
   // Calculate shipping cost when address/zip/country changes
   useEffect(() => {
     const calculateShipping = async () => {
+      // If subtotal is $0 or less, shipping is free
+      if (subtotal <= 0) {
+        setShippingCost(0);
+        return;
+      }
+      
       // Only calculate if we have the required fields
       if (customerInfo.zipCode && customerInfo.country) {
         setIsCalculatingShipping(true);
@@ -121,13 +127,12 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
 
     // Debounce the shipping calculation
     const timer = setTimeout(() => {
-      if (customerInfo.zipCode && customerInfo.country) {
-        calculateShipping();
-      }
+      // Always run the calculation to handle free products case
+      calculateShipping();
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [customerInfo.zipCode, customerInfo.country, customerInfo]);
+  }, [customerInfo.zipCode, customerInfo.country, customerInfo, subtotal]);
 
   /**
    * Calculate the total weight of items in the cart
@@ -397,6 +402,8 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                     <span>
                       {isCalculatingShipping ? (
                         <span className="text-gray-400">Calculating...</span>
+                      ) : subtotal <= 0 ? (
+                        'FREE (Free product)'
                       ) : shippingCost > 0 ? (
                         `$${shippingCost.toFixed(2)}`
                       ) : (
