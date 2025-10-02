@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { teamService } from '@/lib/teamService';
+import { uploadService } from '@/lib/uploadService';
 import { 
   PlusIcon, 
   PencilIcon, 
   TrashIcon,
   UserGroupIcon,
-  UserIcon
+  UserIcon,
+  CloudArrowUpIcon
 } from '@heroicons/react/24/outline';
 
 export default function TeamsPage() {
@@ -30,6 +32,10 @@ export default function TeamsPage() {
     achievements: [] as string[], 
     socialLinks: {} as any
   });
+  
+  // Refs for file inputs
+  const teamImageFileRef = useRef<HTMLInputElement>(null);
+  const playerImageFileRef = useRef<HTMLInputElement>(null);
 
   const loadTeams = async () => {
     try {
@@ -52,6 +58,9 @@ export default function TeamsPage() {
     setTeamForm({ name: '', image: '', description: '', achievements: [], players: [] });
     setPlayerDraft({ name: '', role: '', image: '', game: '', achievements: [], socialLinks: {} });
     setEditingTeam(null);
+    // Reset file inputs
+    if (teamImageFileRef.current) teamImageFileRef.current.value = '';
+    if (playerImageFileRef.current) playerImageFileRef.current.value = '';
   };
 
   const addPlayerToForm = () => {
@@ -62,6 +71,8 @@ export default function TeamsPage() {
       players: [...(prev.players || []), { ...playerDraft }] 
     }));
     setPlayerDraft({ name: '', role: '', image: '', game: '', achievements: [], socialLinks: {} });
+    // Reset player image file input
+    if (playerImageFileRef.current) playerImageFileRef.current.value = '';
   };
 
   const removePlayerFromForm = (index: number) => {
@@ -69,6 +80,32 @@ export default function TeamsPage() {
       ...prev, 
       players: prev.players.filter((_, i) => i !== index) 
     }));
+  };
+
+  const handleTeamImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const downloadURL = await uploadService.uploadTeamImage(file);
+      setTeamForm(prev => ({ ...prev, image: downloadURL }));
+    } catch (error) {
+      console.error('Error uploading team image:', error);
+      alert('Failed to upload image. Please try again.');
+    }
+  };
+
+  const handlePlayerImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const downloadURL = await uploadService.uploadPlayerImage(file);
+      setPlayerDraft(prev => ({ ...prev, image: downloadURL }));
+    } catch (error) {
+      console.error('Error uploading player image:', error);
+      alert('Failed to upload image. Please try again.');
+    }
   };
 
   const submitTeam = async () => {
@@ -209,6 +246,32 @@ export default function TeamsPage() {
                   className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]" 
                 />
               </div>
+              
+              {/* File Upload for Team Image */}
+              <div className="md:col-span-2">
+                <label className="block text-sm text-gray-400 mb-1">Or Upload Team Image</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    ref={teamImageFileRef}
+                    onChange={handleTeamImageUpload}
+                    accept="image/*"
+                    className="hidden"
+                    id="team-image-upload"
+                  />
+                  <label 
+                    htmlFor="team-image-upload"
+                    className="flex items-center gap-2 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white px-3 py-2 rounded cursor-pointer transition-colors"
+                  >
+                    <CloudArrowUpIcon className="w-5 h-5" />
+                    <span>Choose File</span>
+                  </label>
+                  <span className="text-gray-400 text-sm">
+                    {teamImageFileRef.current?.files?.[0]?.name || 'No file chosen'}
+                  </span>
+                </div>
+              </div>
+              
               {teamForm.image && (
                 <div className="md:col-span-2">
                   <div className="bg-gray-700 w-full h-32 rounded-lg flex items-center justify-center">
@@ -275,6 +338,32 @@ export default function TeamsPage() {
                     className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]" 
                   />
                 </div>
+                
+                {/* File Upload for Player Image */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm text-gray-400 mb-1">Or Upload Player Image</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      ref={playerImageFileRef}
+                      onChange={handlePlayerImageUpload}
+                      accept="image/*"
+                      className="hidden"
+                      id="player-image-upload"
+                    />
+                    <label 
+                      htmlFor="player-image-upload"
+                      className="flex items-center gap-2 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white px-3 py-2 rounded cursor-pointer transition-colors"
+                    >
+                      <CloudArrowUpIcon className="w-5 h-5" />
+                      <span>Choose File</span>
+                    </label>
+                    <span className="text-gray-400 text-sm">
+                      {playerImageFileRef.current?.files?.[0]?.name || 'No file chosen'}
+                    </span>
+                  </div>
+                </div>
+                
                 {playerDraft.image && (
                   <div className="md:col-span-2">
                     <div className="bg-gray-700 w-16 h-16 rounded-lg flex items-center justify-center">

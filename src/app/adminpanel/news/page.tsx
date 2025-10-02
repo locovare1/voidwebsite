@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { newsService } from '@/lib/newsService';
+import { uploadService } from '@/lib/uploadService';
 import { 
   PlusIcon, 
   PencilIcon, 
   TrashIcon,
   NewspaperIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  CloudArrowUpIcon
 } from '@heroicons/react/24/outline';
 
 export default function NewsPage() {
@@ -23,6 +25,9 @@ export default function NewsPage() {
     description: '',
     category: ''
   });
+  
+  // Ref for file input
+  const imageFileRef = useRef<HTMLInputElement>(null);
 
   const loadNews = async () => {
     try {
@@ -44,6 +49,21 @@ export default function NewsPage() {
   const resetNewsForm = () => {
     setNewsForm({ title: '', date: '', image: '', description: '', category: '' });
     setEditingArticle(null);
+    // Reset file input
+    if (imageFileRef.current) imageFileRef.current.value = '';
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const downloadURL = await uploadService.uploadNewsImage(file);
+      setNewsForm(prev => ({ ...prev, image: downloadURL }));
+    } catch (error) {
+      console.error('Error uploading news image:', error);
+      alert('Failed to upload image. Please try again.');
+    }
   };
 
   const submitNews = async () => {
@@ -230,6 +250,32 @@ export default function NewsPage() {
                   className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]" 
                 />
               </div>
+              
+              {/* File Upload for News Image */}
+              <div className="md:col-span-2">
+                <label className="block text-sm text-gray-400 mb-1">Or Upload News Image</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    ref={imageFileRef}
+                    onChange={handleImageUpload}
+                    accept="image/*"
+                    className="hidden"
+                    id="news-image-upload"
+                  />
+                  <label 
+                    htmlFor="news-image-upload"
+                    className="flex items-center gap-2 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white px-3 py-2 rounded cursor-pointer transition-colors"
+                  >
+                    <CloudArrowUpIcon className="w-5 h-5" />
+                    <span>Choose File</span>
+                  </label>
+                  <span className="text-gray-400 text-sm">
+                    {imageFileRef.current?.files?.[0]?.name || 'No file chosen'}
+                  </span>
+                </div>
+              </div>
+              
               {newsForm.image && (
                 <div className="md:col-span-2">
                   <div className="bg-gray-700 w-full h-32 rounded-lg flex items-center justify-center">

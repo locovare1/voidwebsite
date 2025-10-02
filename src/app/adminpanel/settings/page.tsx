@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { updateEmail, updatePassword, updateProfile } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { 
   CogIcon, 
   BellIcon, 
@@ -12,7 +14,136 @@ import {
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
+  const [user, setUser] = useState<any>(null);
   
+  // General settings state
+  const [siteName, setSiteName] = useState('Void Esports');
+  const [adminEmail, setAdminEmail] = useState('admin@voidesports.org');
+  const [timezone, setTimezone] = useState('(GMT-05:00) Eastern Time (US & Canada)');
+  const [dateFormat, setDateFormat] = useState('MM/DD/YYYY');
+  const [darkMode, setDarkMode] = useState(true);
+  
+  // Notification settings state
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [orderUpdates, setOrderUpdates] = useState(true);
+  const [reviewNotifications, setReviewNotifications] = useState(false);
+  const [securityAlerts, setSecurityAlerts] = useState(true);
+  
+  // Security settings state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
+  // Account settings state
+  const [firstName, setFirstName] = useState('Admin');
+  const [lastName, setLastName] = useState('User');
+  const [emailAddress, setEmailAddress] = useState('admin@voidesports.org');
+  
+  // Loading and error states
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  // Get current user on component mount
+  useEffect(() => {
+    if (auth?.currentUser) {
+      setUser(auth.currentUser);
+      setEmailAddress(auth.currentUser.email || '');
+      setAdminEmail(auth.currentUser.email || '');
+    }
+  }, []);
+
+  const showMessage = (msg: string) => {
+    setMessage(msg);
+    setError('');
+    setTimeout(() => setMessage(''), 3000);
+  };
+
+  const showError = (errMsg: string) => {
+    setError(errMsg);
+    setMessage('');
+    setTimeout(() => setError(''), 5000);
+  };
+
+  const handleSaveGeneralSettings = async () => {
+    setLoading(true);
+    try {
+      // In a real app, you would save these to a database
+      // For now, we'll just show a success message
+      showMessage('General settings saved successfully!');
+    } catch (err: any) {
+      showError(err.message || 'Failed to save general settings');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveNotificationSettings = async () => {
+    setLoading(true);
+    try {
+      // In a real app, you would save these to a database
+      showMessage('Notification settings saved successfully!');
+    } catch (err: any) {
+      showError(err.message || 'Failed to save notification settings');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    setLoading(true);
+    try {
+      if (!auth?.currentUser) {
+        throw new Error('No user is currently signed in');
+      }
+      
+      if (newPassword !== confirmPassword) {
+        throw new Error('New passwords do not match');
+      }
+      
+      if (newPassword.length < 6) {
+        throw new Error('Password should be at least 6 characters');
+      }
+      
+      await updatePassword(auth.currentUser, newPassword);
+      showMessage('Password updated successfully!');
+      
+      // Reset password fields
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      showError(err.message || 'Failed to update password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    setLoading(true);
+    try {
+      if (!auth?.currentUser) {
+        throw new Error('No user is currently signed in');
+      }
+      
+      // Update profile information
+      await updateProfile(auth.currentUser, {
+        displayName: `${firstName} ${lastName}`
+      });
+      
+      // Update email if it has changed
+      if (emailAddress !== auth.currentUser.email) {
+        await updateEmail(auth.currentUser, emailAddress);
+      }
+      
+      showMessage('Profile updated successfully!');
+    } catch (err: any) {
+      showError(err.message || 'Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const tabs = [
     { id: 'general', name: 'General', icon: CogIcon },
     { id: 'notifications', name: 'Notifications', icon: BellIcon },
@@ -28,6 +159,19 @@ export default function SettingsPage() {
         <h1 className="text-3xl font-bold gradient-text">Settings</h1>
         <p className="text-gray-400 mt-1">Manage your admin panel preferences</p>
       </div>
+
+      {/* Status Messages */}
+      {message && (
+        <div className="bg-green-900/30 border border-green-800/50 text-green-400 px-4 py-3 rounded-lg">
+          {message}
+        </div>
+      )}
+      
+      {error && (
+        <div className="bg-red-900/30 border border-red-800/50 text-red-400 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="border-b border-[#2A2A2A]">
@@ -63,7 +207,8 @@ export default function SettingsPage() {
                   </label>
                   <input
                     type="text"
-                    defaultValue="Void Esports"
+                    value={siteName}
+                    onChange={(e) => setSiteName(e.target.value)}
                     className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
                   />
                 </div>
@@ -74,7 +219,8 @@ export default function SettingsPage() {
                   </label>
                   <input
                     type="email"
-                    defaultValue="admin@voidesports.org"
+                    value={adminEmail}
+                    onChange={(e) => setAdminEmail(e.target.value)}
                     className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
                   />
                 </div>
@@ -83,7 +229,11 @@ export default function SettingsPage() {
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Timezone
                   </label>
-                  <select className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300">
+                  <select 
+                    value={timezone}
+                    onChange={(e) => setTimezone(e.target.value)}
+                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
+                  >
                     <option>(GMT-12:00) International Date Line West</option>
                     <option>(GMT-11:00) Midway Island, Samoa</option>
                     <option>(GMT-10:00) Hawaii</option>
@@ -91,7 +241,7 @@ export default function SettingsPage() {
                     <option>(GMT-08:00) Pacific Time (US & Canada)</option>
                     <option>(GMT-07:00) Mountain Time (US & Canada)</option>
                     <option>(GMT-06:00) Central Time (US & Canada)</option>
-                    <option selected>(GMT-05:00) Eastern Time (US & Canada)</option>
+                    <option>(GMT-05:00) Eastern Time (US & Canada)</option>
                     <option>(GMT-04:00) Atlantic Time (Canada)</option>
                     <option>(GMT-03:30) Newfoundland</option>
                   </select>
@@ -101,7 +251,11 @@ export default function SettingsPage() {
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Date Format
                   </label>
-                  <select className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300">
+                  <select 
+                    value={dateFormat}
+                    onChange={(e) => setDateFormat(e.target.value)}
+                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
+                  >
                     <option>MM/DD/YYYY</option>
                     <option>DD/MM/YYYY</option>
                     <option>YYYY-MM-DD</option>
@@ -114,8 +268,25 @@ export default function SettingsPage() {
                   <h3 className="text-lg font-medium text-white">Dark Mode</h3>
                   <p className="text-gray-400 text-sm">Enable dark mode for the admin panel</p>
                 </div>
-                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-[#2A2A2A] transition-colors focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]">
-                  <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6"></span>
+                <button 
+                  onClick={() => setDarkMode(!darkMode)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] ${
+                    darkMode ? 'bg-[#FFFFFF]' : 'bg-[#2A2A2A]'
+                  }`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    darkMode ? 'translate-x-6' : 'translate-x-1'
+                  }`}></span>
+                </button>
+              </div>
+              
+              <div className="pt-4">
+                <button
+                  onClick={handleSaveGeneralSettings}
+                  disabled={loading}
+                  className="bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-medium py-2 px-4 rounded-lg transition-all duration-300 disabled:opacity-50"
+                >
+                  {loading ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </div>
@@ -131,8 +302,15 @@ export default function SettingsPage() {
                     <h3 className="text-lg font-medium text-white">Email Notifications</h3>
                     <p className="text-gray-400 text-sm">Receive email notifications for important events</p>
                   </div>
-                  <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-[#2A2A2A] transition-colors focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]">
-                    <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6"></span>
+                  <button 
+                    onClick={() => setEmailNotifications(!emailNotifications)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] ${
+                      emailNotifications ? 'bg-[#FFFFFF]' : 'bg-[#2A2A2A]'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      emailNotifications ? 'translate-x-6' : 'translate-x-1'
+                    }`}></span>
                   </button>
                 </div>
                 
@@ -141,8 +319,15 @@ export default function SettingsPage() {
                     <h3 className="text-lg font-medium text-white">Order Updates</h3>
                     <p className="text-gray-400 text-sm">Get notified when orders are placed or updated</p>
                   </div>
-                  <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-[#FFFFFF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]">
-                    <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"></span>
+                  <button 
+                    onClick={() => setOrderUpdates(!orderUpdates)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] ${
+                      orderUpdates ? 'bg-[#FFFFFF]' : 'bg-[#2A2A2A]'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      orderUpdates ? 'translate-x-6' : 'translate-x-1'
+                    }`}></span>
                   </button>
                 </div>
                 
@@ -151,8 +336,15 @@ export default function SettingsPage() {
                     <h3 className="text-lg font-medium text-white">Review Notifications</h3>
                     <p className="text-gray-400 text-sm">Receive alerts when new reviews are posted</p>
                   </div>
-                  <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-[#2A2A2A] transition-colors focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]">
-                    <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6"></span>
+                  <button 
+                    onClick={() => setReviewNotifications(!reviewNotifications)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] ${
+                      reviewNotifications ? 'bg-[#FFFFFF]' : 'bg-[#2A2A2A]'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      reviewNotifications ? 'translate-x-6' : 'translate-x-1'
+                    }`}></span>
                   </button>
                 </div>
                 
@@ -161,10 +353,27 @@ export default function SettingsPage() {
                     <h3 className="text-lg font-medium text-white">Security Alerts</h3>
                     <p className="text-gray-400 text-sm">Get notified of security-related events</p>
                   </div>
-                  <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-[#FFFFFF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]">
-                    <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"></span>
+                  <button 
+                    onClick={() => setSecurityAlerts(!securityAlerts)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] ${
+                      securityAlerts ? 'bg-[#FFFFFF]' : 'bg-[#2A2A2A]'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      securityAlerts ? 'translate-x-6' : 'translate-x-1'
+                    }`}></span>
                   </button>
                 </div>
+              </div>
+              
+              <div className="pt-4">
+                <button
+                  onClick={handleSaveNotificationSettings}
+                  disabled={loading}
+                  className="bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-medium py-2 px-4 rounded-lg transition-all duration-300 disabled:opacity-50"
+                >
+                  {loading ? 'Saving...' : 'Save Changes'}
+                </button>
               </div>
             </div>
           )}
@@ -191,6 +400,8 @@ export default function SettingsPage() {
                       </label>
                       <input
                         type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
                         className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
                       />
                     </div>
@@ -200,6 +411,8 @@ export default function SettingsPage() {
                       </label>
                       <input
                         type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
                         className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
                       />
                     </div>
@@ -209,12 +422,18 @@ export default function SettingsPage() {
                       </label>
                       <input
                         type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
                         className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
                       />
                     </div>
                   </div>
-                  <button className="mt-4 bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-medium py-2 px-4 rounded-lg transition-all duration-300">
-                    Update Password
+                  <button 
+                    onClick={handleUpdatePassword}
+                    disabled={loading}
+                    className="mt-4 bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-medium py-2 px-4 rounded-lg transition-all duration-300 disabled:opacity-50"
+                  >
+                    {loading ? 'Updating...' : 'Update Password'}
                   </button>
                 </div>
               </div>
@@ -327,7 +546,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-white">Admin User</h3>
-                  <p className="text-gray-400">admin@voidesports.org</p>
+                  <p className="text-gray-400">{user?.email || 'admin@voidesports.org'}</p>
                   <button className="text-sm text-[#FFFFFF] hover:text-[#dedede] mt-1">
                     Change profile photo
                   </button>
@@ -341,7 +560,8 @@ export default function SettingsPage() {
                   </label>
                   <input
                     type="text"
-                    defaultValue="Admin"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
                     className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
                   />
                 </div>
@@ -352,7 +572,8 @@ export default function SettingsPage() {
                   </label>
                   <input
                     type="text"
-                    defaultValue="User"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
                     className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
                   />
                 </div>
@@ -363,14 +584,19 @@ export default function SettingsPage() {
                   </label>
                   <input
                     type="email"
-                    defaultValue="admin@voidesports.org"
+                    value={emailAddress}
+                    onChange={(e) => setEmailAddress(e.target.value)}
                     className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
                   />
                 </div>
               </div>
               
-              <button className="bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-medium py-2 px-4 rounded-lg transition-all duration-300">
-                Update Profile
+              <button 
+                onClick={handleUpdateProfile}
+                disabled={loading}
+                className="bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-medium py-2 px-4 rounded-lg transition-all duration-300 disabled:opacity-50"
+              >
+                {loading ? 'Updating...' : 'Update Profile'}
               </button>
             </div>
           )}
@@ -381,9 +607,6 @@ export default function SettingsPage() {
             <p className="text-gray-400 text-sm">
               Last updated: {new Date().toLocaleDateString()}
             </p>
-            <button className="bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-medium py-2 px-4 rounded-lg transition-all duration-300">
-              Save Changes
-            </button>
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged, updateEmail, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import Link from 'next/link';
 import { 
@@ -136,30 +136,8 @@ export default function AdminLayout({
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Main Content - Removed the top bar */}
       <div className="flex-1 flex flex-col">
-        {/* Top Bar */}
-        <div className="bg-[#1A1A1A] border-b border-[#2A2A2A] p-4">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 rounded-lg hover:bg-[#2A2A2A] text-gray-400 hover:text-white transition-colors duration-300"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">A</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Page Content */}
         <main className="flex-1 p-6 overflow-y-auto">
           {children}
