@@ -99,7 +99,7 @@ export default function ProductsPage() {
       )
     : products;
 
-  const productRequiredMissing = !productForm.name || !productForm.category || productForm.price <= 0;
+  const productRequiredMissing = !productForm.name || !productForm.category || productForm.price < 0;
 
   return (
     <div className="space-y-6 animate-fadeIn">

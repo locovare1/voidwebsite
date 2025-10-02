@@ -58,7 +58,8 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
 
   const isFormValid = Object.values(customerInfo).every(value => value.trim() !== '');
   const subtotal = total;
-  const tax = total > 0 ? total * 0.08 : 0;
+  // For free products, we don't apply tax
+  const tax = (total > 0) ? total * 0.08 : 0;
   const finalTotal = subtotal + tax + shippingCost;
 
   useEffect(() => {
@@ -151,8 +152,8 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
     setIsLoading(true);
     
     try {
-      // If total is $0, skip payment processing and create order directly
-      if (finalTotal === 0) {
+      // If total is $0 or less, skip payment processing and create order directly
+      if (finalTotal <= 0) {
         // Create order directly for free items
         const newOrder = {
           id: generateOrderNumber(),
@@ -383,7 +384,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between text-gray-400">
                     <span>Subtotal</span>
-                    <span>{subtotal === 0 ? 'FREE' : `$${subtotal.toFixed(2)}`}</span>
+                    <span>{subtotal <= 0 ? 'FREE' : `$${subtotal.toFixed(2)}`}</span>
                   </div>
                   {subtotal > 0 && (
                     <div className="flex justify-between text-gray-400">
@@ -406,7 +407,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                   <div className="border-t border-[#2A2A2A] pt-2 mt-2">
                     <div className="flex justify-between text-white font-bold">
                       <span>Total</span>
-                      <span>{finalTotal === 0 ? 'FREE' : `$${finalTotal.toFixed(2)}`}</span>
+                      <span>{finalTotal <= 0 ? 'FREE' : `$${finalTotal.toFixed(2)}`}</span>
                     </div>
                   </div>
                 </div>
@@ -423,7 +424,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                     <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
                     Processing...
                   </div>
-                ) : finalTotal === 0 ? (
+                ) : finalTotal <= 0 ? (
                   'Place Free Order'
                 ) : (
                   `Pay with Stripe - $${finalTotal.toFixed(2)}`
