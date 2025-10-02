@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image'; // Add Image import
 import { Timestamp } from 'firebase/firestore'; // Import Timestamp
 import { newsService } from '@/lib/newsService';
 import { uploadService } from '@/lib/uploadService';
@@ -282,9 +283,11 @@ export default function NewsPage() {
               {newsForm.image && (
                 <div className="md:col-span-2">
                   <div className="bg-gray-700 w-full h-32 rounded-lg flex items-center justify-center">
-                    <img 
+                    <Image 
                       src={newsForm.image} 
                       alt="News preview" 
+                      width={200}
+                      height={128}
                       className="max-h-32 max-w-full object-contain rounded" 
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;

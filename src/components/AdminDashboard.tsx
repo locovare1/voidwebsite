@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { updateDoc, doc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { TrashIcon, UserIcon, StarIcon, FolderIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
@@ -714,7 +714,7 @@ export default function AdminDashboard() {
               </div>
               {teamForm.image && (
                 <div className="md:col-span-2">
-                  <img src={teamForm.image} alt="Team preview" className="h-20 w-full max-w-xs object-cover rounded border border-[#2A2A2A]" />
+                  <Image src={teamForm.image} alt="Team preview" width={80} height={80} className="h-20 w-full max-w-xs object-cover rounded border border-[#2A2A2A]" />
                 </div>
               )}
               <input value={teamForm.description} onChange={e=>setTeamForm(p=>({...p,description:e.target.value}))} placeholder="Description" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm md:col-span-2" />
@@ -746,7 +746,7 @@ export default function AdminDashboard() {
                     </label>
                   </div>
                   {playerDraft.image && (
-                    <img src={playerDraft.image} alt="Player preview" className="h-16 w-16 object-cover rounded border border-[#2A2A2A] mt-2" />
+                    <Image src={playerDraft.image} alt="Player preview" width={64} height={64} className="h-16 w-16 object-cover rounded border border-[#2A2A2A] mt-2" />
                   )}
                 </div>
                 <input value={(playerDraft.achievements||[]).join(', ')} onChange={e=>setPlayerDraft(p=>({...p,achievements:e.target.value.split(',').map(s=>s.trim()).filter(Boolean)}))} placeholder="Achievements (comma)" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm md:col-span-2" />
@@ -855,7 +855,7 @@ export default function AdminDashboard() {
               </div>
               {newsForm.image && (
                 <div className="md:col-span-2">
-                  <img src={newsForm.image} alt="News preview" className="h-20 w-full max-w-xs object-cover rounded border border-[#2A2A2A]" />
+                  <Image src={newsForm.image} alt="News preview" width={80} height={80} className="h-20 w-full max-w-xs object-cover rounded border border-[#2A2A2A]" />
                 </div>
               )}
               <textarea value={newsForm.description} onChange={e=>setNewsForm(p=>({...p,description:e.target.value}))} placeholder="Description" rows={5} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm md:col-span-2" />
@@ -942,7 +942,7 @@ export default function AdminDashboard() {
               </div>
               {productForm.image && (
                 <div className="md:col-span-2">
-                  <img src={productForm.image} alt="Product preview" className="h-20 w-full max-w-xs object-cover rounded border border-[#2A2A2A]" />
+                  <Image src={productForm.image} alt="Product preview" width={80} height={80} className="h-20 w-full max-w-xs object-cover rounded border border-[#2A2A2A]" />
                 </div>
               )}
               <input value={productForm.link} onChange={e=>setProductForm(p=>({...p,link:e.target.value}))} placeholder="Purchase link" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm md:col-span-2" />

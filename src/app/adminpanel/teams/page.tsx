@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { teamService } from '@/lib/teamService';
 import { uploadService } from '@/lib/uploadService';
 import { 
@@ -176,7 +177,7 @@ export default function TeamsPage() {
                       <div className="flex items-start gap-3">
                         <div className="bg-gray-700 w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
                           {team.image ? (
-                            <img src={team.image} alt={team.name} className="w-full h-full object-cover rounded-lg" />
+                            <Image src={team.image} alt={team.name} width={48} height={48} className="w-full h-full object-cover rounded-lg" />
                           ) : (
                             <UserGroupIcon className="w-6 h-6 text-gray-300" />
                           )}
@@ -275,9 +276,11 @@ export default function TeamsPage() {
               {teamForm.image && (
                 <div className="md:col-span-2">
                   <div className="bg-gray-700 w-full h-32 rounded-lg flex items-center justify-center">
-                    <img 
+                    <Image 
                       src={teamForm.image} 
                       alt="Team preview" 
+                      width={200}
+                      height={128}
                       className="max-h-32 max-w-full object-contain rounded" 
                     />
                   </div>
@@ -367,9 +370,11 @@ export default function TeamsPage() {
                 {playerDraft.image && (
                   <div className="md:col-span-2">
                     <div className="bg-gray-700 w-16 h-16 rounded-lg flex items-center justify-center">
-                      <img 
+                      <Image 
                         src={playerDraft.image} 
                         alt="Player preview" 
+                        width={64}
+                        height={64}
                         className="max-h-16 max-w-full object-contain rounded" 
                       />
                     </div>

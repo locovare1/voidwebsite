@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { productService } from '@/lib/productService';
 import { uploadService } from '@/lib/uploadService';
 import { 
@@ -262,9 +263,11 @@ export default function ProductsPage() {
               {productForm.image && (
                 <div className="md:col-span-2">
                   <div className="bg-gray-700 w-full h-32 rounded-lg flex items-center justify-center">
-                    <img 
+                    <Image 
                       src={productForm.image} 
                       alt="Product preview" 
+                      width={200}
+                      height={128}
                       className="max-h-32 max-w-full object-contain rounded" 
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;

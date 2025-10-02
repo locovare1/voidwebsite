@@ -127,7 +127,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [customerInfo.zipCode, customerInfo.country]);
+  }, [customerInfo.zipCode, customerInfo.country, customerInfo]);
 
   /**
    * Calculate the total weight of items in the cart

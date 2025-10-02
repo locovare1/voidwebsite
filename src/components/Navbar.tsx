@@ -28,11 +28,6 @@ export default function Navbar() {
   const { itemCount } = useCart();
   const pathname = usePathname();
 
-  // Hide navbar in admin panel
-  if (pathname && pathname.startsWith('/adminpanel')) {
-    return null;
-  }
-
   useEffect(() => {
     // Trigger navbar animation after a short delay
     const timer = setTimeout(() => {
@@ -41,6 +36,11 @@ export default function Navbar() {
 
     return () => clearTimeout(timer);
   }, []);
+
+  // Hide navbar in admin panel - moved this after all hooks
+  if (pathname && pathname.startsWith('/adminpanel')) {
+    return null;
+  }
 
   return (
     <header className={`fixed top-0 left-0 right-0 bg-[#0F0F0F]/95 backdrop-blur-sm z-[100] transition-all duration-800 ${isVisible ? 'navbar-animate' : ''}`}>
