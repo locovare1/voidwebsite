@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import PlacementGrid from '@/components/PlacementGrid';
 import { ParallaxText, AnimatedCard, ScrollProgress, FadeInSection } from '@/components/FramerAnimations';
+import { placementService } from '@/lib/placementService';
 
 interface Placement {
   game: string;
@@ -14,87 +15,125 @@ interface Placement {
   logo: string;
 }
 
-const recentPlacements: Placement[] = [
-  {
-    game: "Fortnite",
-    tournament: "FNCS Grand Finals",
-    team: "Void Fortnite",
-    position: "24th Place",
-    players: ["Void Blu, Powerxfn, 2AM Zandaa"],
-    prize: "$850",
-    logo: "/logos/fortnite.jpg"
-  },
-  {
-    game: "Fortnite",
-    tournament: "FNCS Grand Finals",
-    team: "Void Fortnite",
-    position: "33rd Place",
-    players: ["Void Drvzy, EXE Liam, Maddenv_"],
-    prize: "$0",
-    logo: "/logos/fortnite.jpg"
-  },
-  {
-    game: "Fortnite",
-    tournament: "Ranked Cup",
-    team: "Void Fortnite",
-    position: "10th Place",
-    players: ["Void Dixuez"],
-    prize: "$0",
-    logo: "/logos/fortnite.jpg"
-  },
-  {
-    game: "Fortnite",
-    tournament: "FNCS Group 3",
-    team: "Void Fortnite",
-    position: "7th Place",
-    players: ["Void Blu, EXE Zanda, PowerFN"],
-    prize: "$0",
-    logo: "/logos/fortnite.jpg"
-  },
-
-  {
-    game: "Fortnite",
-    tournament: "FNCS Group 3",
-    team: "Void Fortnite",
-    position: "10th Place",
-    players: ["Void Drvzy, Maddenv_, Liam"],
-    prize: "$0",
-    logo: "/logos/fortnite.jpg"
-  },
-  {
-    game: "Fortnite",
-    tournament: "Platinum & Diamond Ranked Cup (Solos)",
-    team: "Void Fortnite",
-    position: "11th Place",
-    players: ["Void Cronus"],
-    prize: "$0",
-    logo: "/logos/fortnite.jpg"
-  },
-  {
-    game: "Fortnite",
-    tournament: "OG Cup Builds",
-    team: "Void Fortnite",
-    position: "12-15th Place",
-    players: ["Void Frankenstein ", "Void Bob ", "Void Pistol ", "Void Iced "],
-    prize: "$0",
-    logo: "/logos/fortnite.jpg"
-  },
-];
-
 export default function Placements() {
+  const [placements, setPlacements] = useState<Placement[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedGame, setSelectedGame] = useState<string>('All');
 
-  const games = useMemo(() => {
-    const unique = Array.from(new Set(recentPlacements.map(p => p.game)));
-    return ['All', ...unique];
+  const loadPlacements = async () => {
+    try {
+      setLoading(true);
+      const items = await placementService.getAll();
+      // Convert Firebase data to the format expected by the PlacementGrid
+      const formattedPlacements = items.map(item => ({
+        game: item.game,
+        tournament: item.tournament,
+        team: item.team,
+        position: item.position,
+        players: item.players,
+        prize: item.prize,
+        logo: item.logo
+      }));
+      setPlacements(formattedPlacements);
+    } catch (e) {
+      console.error('Error loading placements:', e);
+      // Fallback to hardcoded data if Firebase fails
+      setPlacements([
+        {
+          game: "Fortnite",
+          tournament: "FNCS Grand Finals",
+          team: "Void Fortnite",
+          position: "24th Place",
+          players: ["Void Blu, Powerxfn, 2AM Zandaa"],
+          prize: "$850",
+          logo: "/logos/fortnite.jpg"
+        },
+        {
+          game: "Fortnite",
+          tournament: "FNCS Grand Finals",
+          team: "Void Fortnite",
+          position: "33rd Place",
+          players: ["Void Drvzy, EXE Liam, Maddenv_"],
+          prize: "$0",
+          logo: "/logos/fortnite.jpg"
+        },
+        {
+          game: "Fortnite",
+          tournament: "Ranked Cup",
+          team: "Void Fortnite",
+          position: "10th Place",
+          players: ["Void Dixuez"],
+          prize: "$0",
+          logo: "/logos/fortnite.jpg"
+        },
+        {
+          game: "Fortnite",
+          tournament: "FNCS Group 3",
+          team: "Void Fortnite",
+          position: "7th Place",
+          players: ["Void Blu, EXE Zanda, PowerFN"],
+          prize: "$0",
+          logo: "/logos/fortnite.jpg"
+        },
+        {
+          game: "Fortnite",
+          tournament: "FNCS Group 3",
+          team: "Void Fortnite",
+          position: "10th Place",
+          players: ["Void Drvzy, Maddenv_, Liam"],
+          prize: "$0",
+          logo: "/logos/fortnite.jpg"
+        },
+        {
+          game: "Fortnite",
+          tournament: "Platinum & Diamond Ranked Cup (Solos)",
+          team: "Void Fortnite",
+          position: "11th Place",
+          players: ["Void Cronus"],
+          prize: "$0",
+          logo: "/logos/fortnite.jpg"
+        },
+        {
+          game: "Fortnite",
+          tournament: "OG Cup Builds",
+          team: "Void Fortnite",
+          position: "12-15th Place",
+          players: ["Void Frankenstein ", "Void Bob ", "Void Pistol ", "Void Iced "],
+          prize: "$0",
+          logo: "/logos/fortnite.jpg"
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPlacements();
   }, []);
 
+  const games = useMemo(() => {
+    const unique = Array.from(new Set(placements.map(p => p.game)));
+    return ['All', ...unique];
+  }, [placements]);
+
   const filteredPlacements = useMemo(() => {
-    if (selectedGame === 'All') return recentPlacements;
-    return recentPlacements.filter(p => p.game === selectedGame);
-  }, [selectedGame]);
+    if (selectedGame === 'All') return placements;
+    return placements.filter(p => p.game === selectedGame);
+  }, [selectedGame, placements]);
 
   // Removed fade/observer logic to ensure the container doesn't disappear
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0F0F0F] pt-24 pb-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FFFFFF] mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading placements...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0F0F0F] pt-24 pb-20">

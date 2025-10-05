@@ -14,7 +14,8 @@ import {
   StarIcon,
   ChartBarIcon,
   CogIcon,
-  ArrowLeftOnRectangleIcon
+  ArrowLeftOnRectangleIcon,
+  TrophyIcon
 } from '@heroicons/react/24/outline';
 
 export default function AdminLayout({
@@ -69,6 +70,7 @@ export default function AdminLayout({
     { name: 'Teams', href: '/adminpanel/teams', icon: UserGroupIcon },
     { name: 'News', href: '/adminpanel/news', icon: NewspaperIcon },
     { name: 'Schedule', href: '/adminpanel/schedule', icon: CalendarIcon },
+    { name: 'Placements', href: '/adminpanel/placements', icon: TrophyIcon },
     { name: 'Reviews', href: '/adminpanel/reviews', icon: StarIcon },
     { name: 'Analytics', href: '/adminpanel/analytics', icon: ChartBarIcon },
     { name: 'Settings', href: '/adminpanel/settings', icon: CogIcon },
