@@ -12,8 +12,6 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-const isBrowser = typeof window !== 'undefined';
-
 export interface Placement {
   id?: string;
   game: string;
@@ -30,14 +28,14 @@ const PLACEMENTS_COLLECTION = 'placements';
 
 export const placementService = {
   async getAll(): Promise<Placement[]> {
-    if (!isBrowser || !db) return [];
+    if (!db) return [];
     const q = query(collection(db, PLACEMENTS_COLLECTION), orderBy('createdAt', 'desc'));
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ id: d.id, ...(d.data() as Omit<Placement, 'id'>) }));
   },
 
   async getById(id: string): Promise<Placement | null> {
-    if (!isBrowser || !db) return null;
+    if (!db) return null;
     const ref = doc(db, PLACEMENTS_COLLECTION, id);
     const snap = await getDoc(ref);
     if (!snap.exists()) return null;
@@ -45,7 +43,7 @@ export const placementService = {
   },
 
   async create(input: Omit<Placement, 'id' | 'createdAt'>): Promise<string> {
-    if (!isBrowser || !db) return 'mock-id';
+    if (!db) return 'mock-id';
     const payload: Omit<Placement, 'id'> = {
       ...input,
       createdAt: Timestamp.now(),
@@ -55,13 +53,13 @@ export const placementService = {
   },
 
   async update(id: string, updates: Partial<Omit<Placement, 'id'>>): Promise<void> {
-    if (!isBrowser || !db) return;
+    if (!db) return;
     const ref = doc(db, PLACEMENTS_COLLECTION, id);
     await updateDoc(ref, updates);
   },
 
   async remove(id: string): Promise<void> {
-    if (!isBrowser || !db) return;
+    if (!db) return;
     await deleteDoc(doc(db, PLACEMENTS_COLLECTION, id));
   }
 };
