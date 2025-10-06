@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function UPSCallbackPage() {
+export default function EasyAPICallbackPage() {
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    // Parse URL parameters from UPS callback
+    // Parse URL parameters from Easy API callback
     const urlParams = new URLSearchParams(window.location.search);
     const statusCode = urlParams.get('status');
     const transactionId = urlParams.get('transactionId');
@@ -43,7 +43,7 @@ export default function UPSCallbackPage() {
           {status === 'loading' && (
             <div className="flex flex-col items-center justify-center gap-4">
               <div className="w-12 h-12 border-4 border-[#FFFFFF] border-t-transparent rounded-full animate-spin"></div>
-              <h2 className="text-xl font-bold text-white">Processing UPS Callback</h2>
+              <h2 className="text-xl font-bold text-white">Processing Easy API Callback</h2>
               <p className="text-gray-400">Please wait while we process your shipping information...</p>
             </div>
           )}
