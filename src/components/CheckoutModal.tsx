@@ -93,15 +93,21 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
         setIsCalculatingShipping(true);
         try {
           // In a real implementation, you would get the origin ZIP and country from your business location
-          // For this example, we'll use a mock origin (New York ZIP code)
+          // For this example, we'll use a mock origin (New York address)
           const response = await fetch('/api/calculate-shipping', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              originZip: '10001', // New York ZIP code as example origin
+              originAddress: '123 Main St',
+              originCity: 'New York',
+              originState: 'NY',
+              originZip: '10001',
               originCountry: 'US',
+              destinationAddress: customerInfo.address,
+              destinationCity: '', // We don't collect city separately, but could parse from address
+              destinationState: '', // We don't collect state separately, but could parse from address
               destinationZip: customerInfo.zipCode,
               destinationCountry: customerInfo.country,
               weight: calculateOrderWeight(), // Calculate total weight of items

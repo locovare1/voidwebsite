@@ -6,10 +6,16 @@ const EASY_API_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3OTEyNTI1N
 
 interface EasyShippingRateRequest {
   origin: {
+    address: string;
+    city: string;
+    state: string;
     zip: string;
     country: string;
   };
   destination: {
+    address: string;
+    city: string;
+    state: string;
     zip: string;
     country: string;
   };
@@ -28,16 +34,28 @@ interface EasyShippingRateResponse {
 
 /**
  * Calculate shipping cost using The Easy API
+ * @param originAddress - Origin street address
+ * @param originCity - Origin city
+ * @param originState - Origin state
  * @param originZip - Origin ZIP code
  * @param originCountry - Origin country code
+ * @param destinationAddress - Destination street address
+ * @param destinationCity - Destination city
+ * @param destinationState - Destination state
  * @param destinationZip - Destination ZIP code
  * @param destinationCountry - Destination country code
  * @param weight - Package weight in pounds
  * @returns Shipping cost in USD
  */
 export async function calculateEasyShippingCost(
+  originAddress: string,
+  originCity: string,
+  originState: string,
   originZip: string,
   originCountry: string,
+  destinationAddress: string,
+  destinationCity: string,
+  destinationState: string,
   destinationZip: string,
   destinationCountry: string,
   weight: number
@@ -52,10 +70,16 @@ export async function calculateEasyShippingCost(
       },
       body: JSON.stringify({
         origin: {
+          address: originAddress,
+          city: originCity,
+          state: originState,
           zip: originZip,
           country: originCountry
         },
         destination: {
+          address: destinationAddress,
+          city: destinationCity,
+          state: destinationState,
           zip: destinationZip,
           country: destinationCountry
         },
