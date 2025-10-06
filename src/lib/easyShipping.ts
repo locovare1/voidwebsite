@@ -42,17 +42,47 @@ export async function calculateEasyShippingCost(
   destinationCountry: string,
   weight: number
 ): Promise<number> {
-  // For now, we'll return a mock value since we don't have The Easy API endpoint
-  // In a real implementation, you would:
-  // 1. Make a request to The Easy API endpoint
-  // 2. Parse the response and return the shipping cost
-  
-  // Mock calculation based on distance and weight
-  const baseRate = 5.00;
-  const weightFactor = weight * 0.5;
-  const distanceFactor = calculateDistanceFactor(originZip, destinationZip);
-  
-  return Math.max(5.00, baseRate + weightFactor + distanceFactor);
+  try {
+    // Make a request to The Easy API endpoint
+    const response = await fetch('https://api.theeasyapi.com/shipping/rates', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${EASY_API_KEY}`
+      },
+      body: JSON.stringify({
+        origin: {
+          zip: originZip,
+          country: originCountry
+        },
+        destination: {
+          zip: destinationZip,
+          country: destinationCountry
+        },
+        package: {
+          weight: weight
+        }
+      })
+    });
+
+    // Check if the response is successful
+    if (!response.ok) {
+      throw new Error(`The Easy API request failed with status ${response.status}`);
+    }
+
+    // Parse the response
+    const data: EasyShippingRateResponse = await response.json();
+    
+    // Return the shipping cost
+    return data.rate.total;
+  } catch (error) {
+    console.error('Error calculating shipping cost with The Easy API:', error);
+    // Fallback to mock calculation if API call fails
+    const baseRate = 5.00;
+    const weightFactor = weight * 0.5;
+    const distanceFactor = calculateDistanceFactor(originZip, destinationZip);
+    return Math.max(5.00, baseRate + weightFactor + distanceFactor);
+  }
 }
 
 /**

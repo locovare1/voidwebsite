@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getEasyAPIKey } from '@/lib/easyShipping';
+import { getEasyAPIKey, calculateEasyShippingCost } from '@/lib/easyShipping';
 
 interface ShippingRequest {
   originZip: string;
@@ -33,9 +33,8 @@ export async function POST(request: NextRequest) {
     const apiKey = getEasyAPIKey();
     console.log('Using The Easy API key:', apiKey);
 
-    // Calculate shipping cost
-    // In a real implementation, this would call The Easy API
-    const shippingCost = calculateShippingCost(originZip, originCountry, destinationZip, destinationCountry, weight);
+    // Calculate shipping cost using the real API
+    const shippingCost = await calculateEasyShippingCost(originZip, originCountry, destinationZip, destinationCountry, weight);
 
     return NextResponse.json({
       shippingCost: parseFloat(shippingCost.toFixed(2)),
