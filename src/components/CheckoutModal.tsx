@@ -82,15 +82,16 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
   // Calculate shipping cost when address/zip/country changes
   useEffect(() => {
     const calculateShipping = async () => {
-      // If subtotal is $0 or less, shipping is free
-      if (subtotal <= 0) {
-        setShippingCost(0);
-        return;
-      }
-      
       // Only calculate if we have the required fields
       if (customerInfo.zipCode && customerInfo.country) {
         setIsCalculatingShipping(true);
+        console.log('Calculating shipping for:', {
+          destinationAddress: customerInfo.address,
+          destinationZip: customerInfo.zipCode,
+          destinationCountry: customerInfo.country,
+          weight: calculateOrderWeight()
+        });
+        
         try {
           // In a real implementation, you would get the origin ZIP and country from your business location
           // For this example, we'll use a mock origin (New York address)
@@ -116,8 +117,10 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
 
           if (response.ok) {
             const data = await response.json();
+            console.log('Shipping calculation result:', data);
             setShippingCost(data.shippingCost);
           } else {
+            console.log('Shipping API returned error status:', response.status);
             // If there's an error, default to free shipping
             setShippingCost(0);
           }
@@ -133,7 +136,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
 
     // Debounce the shipping calculation
     const timer = setTimeout(() => {
-      // Always run the calculation to handle free products case
+      // Always run the calculation
       calculateShipping();
     }, 500);
 
@@ -408,8 +411,6 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                     <span>
                       {isCalculatingShipping ? (
                         <span className="text-gray-400">Calculating...</span>
-                      ) : subtotal <= 0 ? (
-                        'FREE (Free product)'
                       ) : shippingCost > 0 ? (
                         `$${shippingCost.toFixed(2)}`
                       ) : (

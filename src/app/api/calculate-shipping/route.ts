@@ -31,6 +31,13 @@ export async function POST(request: NextRequest) {
       weight 
     }: ShippingRequest = await request.json();
 
+    // Log the incoming request for debugging
+    console.log('Shipping calculation request:', {
+      origin: { originAddress, originCity, originState, originZip, originCountry },
+      destination: { destinationAddress, destinationCity, destinationState, destinationZip, destinationCountry },
+      weight
+    });
+
     // Validate required fields
     if (!originAddress || !originCity || !originState || !originZip || !originCountry || 
         !destinationAddress || !destinationCity || !destinationState || !destinationZip || !destinationCountry || 
@@ -67,6 +74,8 @@ export async function POST(request: NextRequest) {
       destinationCountry, 
       weight
     );
+
+    console.log('Calculated shipping cost:', shippingCost);
 
     return NextResponse.json({
       shippingCost: parseFloat(shippingCost.toFixed(2)),

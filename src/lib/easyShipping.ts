@@ -91,7 +91,8 @@ export async function calculateEasyShippingCost(
 
     // Check if the response is successful
     if (!response.ok) {
-      throw new Error(`The Easy API request failed with status ${response.status}`);
+      console.log(`The Easy API request failed with status ${response.status}, falling back to mock calculation`);
+      throw new Error(`API request failed with status ${response.status}`);
     }
 
     // Parse the response
@@ -102,10 +103,13 @@ export async function calculateEasyShippingCost(
   } catch (error) {
     console.error('Error calculating shipping cost with The Easy API:', error);
     // Fallback to mock calculation if API call fails
-    const baseRate = 5.00;
-    const weightFactor = weight * 0.5;
+    // This is a more realistic calculation based on weight and distance
+    const isInternational = originCountry !== destinationCountry;
+    const baseRate = isInternational ? 15.00 : 5.00;
+    const weightFactor = weight * (isInternational ? 2.0 : 1.0);
     const distanceFactor = calculateDistanceFactor(originZip, destinationZip);
-    return Math.max(5.00, baseRate + weightFactor + distanceFactor);
+    const totalCost = baseRate + weightFactor + distanceFactor;
+    return Math.max(isInternational ? 10.00 : 5.00, totalCost);
   }
 }
 
