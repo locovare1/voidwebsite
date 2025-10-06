@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getEasyAPIKey, calculateEasyShippingCost } from '@/lib/easyShipping';
+import { countries, getCountryByCode } from '@/lib/countries';
 
 interface ShippingRequest {
   originAddress: string;
@@ -56,6 +57,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate countries
+    const originCountryInfo = getCountryByCode(originCountry);
+    const destinationCountryInfo = getCountryByCode(destinationCountry);
+    
+    if (!originCountryInfo) {
+      return NextResponse.json(
+        { error: `Invalid origin country code: ${originCountry}` },
+        { status: 400 }
+      );
+    }
+    
+    if (!destinationCountryInfo) {
+      return NextResponse.json(
+        { error: `Invalid destination country code: ${destinationCountry}` },
+        { status: 400 }
+      );
+    }
+
     // Get API key
     const apiKey = getEasyAPIKey();
     console.log('Using The Easy API key:', apiKey);
@@ -79,7 +98,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       shippingCost: parseFloat(shippingCost.toFixed(2)),
-      currency: 'USD',
+      currency: destinationCountryInfo.currency || 'USD',
       estimatedDelivery: '3-5 business days',
       apiKey: apiKey // Include API key in response for debugging
     });

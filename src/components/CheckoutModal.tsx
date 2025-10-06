@@ -11,6 +11,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import OrderSuccessModal from './OrderSuccessModal';
 import { generateOrderNumber } from '@/lib/orderUtils';
+import { countries, Country, getCountryByCode } from '@/lib/countries';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -121,13 +122,15 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
             setShippingCost(data.shippingCost);
           } else {
             console.log('Shipping API returned error status:', response.status);
-            // If there's an error, default to free shipping
-            setShippingCost(0);
+            // If there's an error, use a default shipping cost based on country
+            const isInternational = customerInfo.country !== 'US';
+            setShippingCost(isInternational ? 25.00 : 5.00);
           }
         } catch (error) {
           console.error('Error calculating shipping:', error);
-          // If there's an error, default to free shipping
-          setShippingCost(0);
+          // If there's an error, use a default shipping cost based on country
+          const isInternational = customerInfo.country !== 'US';
+          setShippingCost(isInternational ? 25.00 : 5.00);
         } finally {
           setIsCalculatingShipping(false);
         }
@@ -382,13 +385,18 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Country *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={customerInfo.country}
                     onChange={(e) => handleInputChange('country', e.target.value)}
                     className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
-                    placeholder="Enter your country"
-                  />
+                  >
+                    <option value="">Select your country</option>
+                    {countries.map((country) => (
+                      <option key={country.code} value={country.code}>
+                        {country.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

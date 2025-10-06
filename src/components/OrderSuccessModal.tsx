@@ -5,6 +5,7 @@ import { XMarkIcon, CheckCircleIcon, ClipboardDocumentIcon } from '@heroicons/re
 import { Order } from '@/contexts/OrderContext';
 import Image from 'next/image';
 import { formatOrderNumber } from '@/lib/orderUtils';
+import { getCountryByCode } from '@/lib/countries';
 
 interface OrderSuccessModalProps {
   isOpen: boolean;
@@ -161,8 +162,12 @@ export default function OrderSuccessModal({ isOpen, onClose, order }: OrderSucce
             <h3 className="text-lg font-semibold text-white mb-3">Shipping Information</h3>
             <div className="space-y-1 text-sm">
               <p className="text-white font-medium">{order.customerInfo.name}</p>
-              <p className="text-gray-400">{order.customerInfo.address}</p>
-              <p className="text-gray-400">{order.customerInfo.zipCode}</p>
+              <div>
+                <h4 className="text-sm font-medium text-gray-300 mb-2">Shipping Address</h4>
+                <p className="text-white">{order.customerInfo.address}</p>
+                <p className="text-gray-400">{order.customerInfo.zipCode}</p>
+                <p className="text-gray-400">{getCountryByCode(order.customerInfo.country)?.name || order.customerInfo.country}</p>
+              </div>
               <p className="text-gray-400">{order.customerInfo.phone}</p>
               <p className="text-gray-400">{order.customerInfo.country}</p>
             </div>
