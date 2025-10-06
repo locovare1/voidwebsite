@@ -122,15 +122,21 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
             setShippingCost(data.shippingCost);
           } else {
             console.log('Shipping API returned error status:', response.status);
-            // If there's an error, use a default shipping cost based on country
-            const isInternational = customerInfo.country !== 'US';
-            setShippingCost(isInternational ? 25.00 : 5.00);
+            // If there's an error, use a default shipping cost based on distance calculation
+            const distanceFactor = calculateDistanceFactor('10001', customerInfo.zipCode, 'US', customerInfo.country);
+            const weightFactor = calculateOrderWeight() * 0.5;
+            const baseRate = 5.00;
+            const fallbackCost = Math.max(2.00, baseRate + weightFactor + distanceFactor);
+            setShippingCost(fallbackCost);
           }
         } catch (error) {
           console.error('Error calculating shipping:', error);
-          // If there's an error, use a default shipping cost based on country
-          const isInternational = customerInfo.country !== 'US';
-          setShippingCost(isInternational ? 25.00 : 5.00);
+          // If there's an error, use a default shipping cost based on distance calculation
+          const distanceFactor = calculateDistanceFactor('10001', customerInfo.zipCode, 'US', customerInfo.country);
+          const weightFactor = calculateOrderWeight() * 0.5;
+          const baseRate = 5.00;
+          const fallbackCost = Math.max(2.00, baseRate + weightFactor + distanceFactor);
+          setShippingCost(fallbackCost);
         } finally {
           setIsCalculatingShipping(false);
         }
@@ -145,6 +151,103 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
 
     return () => clearTimeout(timer);
   }, [customerInfo.zipCode, customerInfo.country, customerInfo, subtotal]);
+
+  /**
+   * Calculate a distance factor based on postal codes (simplified)
+   * @param originZip - Origin postal code
+   * @param destinationZip - Destination postal code
+   * @param originCountry - Origin country code
+   * @param destinationCountry - Destination country code
+   * @returns Distance factor for shipping cost calculation
+   */
+  const calculateDistanceFactor = (
+    originZip: string, 
+    destinationZip: string, 
+    originCountry: string, 
+    destinationCountry: string
+  ): number => {
+    // For international shipments, calculate based on continent distance
+    const isInternational = originCountry !== destinationCountry;
+    
+    // If it's an international shipment, use continent-based distance calculation
+    if (isInternational) {
+      // Simple approach: assign distance factors based on continent groups
+      const continentGroups: Record<string, number[]> = {
+        // North America
+        'NA': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        // Europe
+        'EU': [11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+        // Asia
+        'AS': [21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+        // Africa
+        'AF': [31, 32, 33, 34, 35, 36, 37, 38, 39, 40],
+        // South America
+        'SA': [41, 42, 43, 44, 45, 46, 47, 48, 49, 50],
+        // Oceania
+        'OC': [51, 52, 53, 54, 55, 56, 57, 58, 59, 60]
+      };
+      
+      // Assign countries to continent groups (simplified)
+      const countryToContinent: Record<string, string> = {
+        'US': 'NA', 'CA': 'NA', 'MX': 'NA',
+        'GB': 'EU', 'DE': 'EU', 'FR': 'EU', 'IT': 'EU', 'ES': 'EU', 'NL': 'EU', 'SE': 'EU', 'CH': 'EU', 'AT': 'EU', 'BE': 'EU', 'DK': 'EU', 'FI': 'EU', 'NO': 'EU', 'IE': 'EU', 'PT': 'EU', 'GR': 'EU', 'CZ': 'EU', 'HU': 'EU', 'PL': 'EU', 'RO': 'EU',
+        'SA': 'AS', 'JP': 'AS', 'CN': 'AS', 'IN': 'AS', 'KR': 'AS', 'AE': 'AS', 'SG': 'AS', 'MY': 'AS', 'TH': 'AS', 'IL': 'AS', 'ID': 'AS', 'PH': 'AS', 'VN': 'AS', 'BD': 'AS', 'PK': 'AS', 'TW': 'AS', 'HK': 'AS',
+        'EG': 'AF', 'ZA': 'AF', 'NG': 'AF', 'KE': 'AF', 'MA': 'AF',
+        'BR': 'SA', 'AR': 'SA', 'CL': 'SA', 'CO': 'SA',
+        'AU': 'OC', 'NZ': 'OC'
+      };
+      
+      const originContinent = countryToContinent[originCountry] || 'NA';
+      const destinationContinent = countryToContinent[destinationCountry] || 'NA';
+      
+      // Calculate distance based on continent groups
+      const originGroup = continentGroups[originContinent] || [1];
+      const destinationGroup = continentGroups[destinationContinent] || [1];
+      
+      // Use the first value in each group to calculate distance
+      const distance = Math.abs(originGroup[0] - destinationGroup[0]);
+      
+      // Convert distance to cost (higher distance = higher cost)
+      // Scale factor: 0.5 per group distance unit, with minimum of $5 and maximum of $50
+      return Math.min(50, Math.max(5, distance * 0.5));
+    }
+    
+    // For domestic shipments (US only), calculate based on ZIP code difference
+    if (originCountry === 'US' && destinationCountry === 'US') {
+      // Extract numeric parts of ZIP codes
+      const originNumeric = parseInt(originZip.replace(/\D/g, ''), 10) || 0;
+      const destinationNumeric = parseInt(destinationZip.replace(/\D/g, ''), 10) || 0;
+      
+      // Calculate absolute difference
+      const zipDifference = Math.abs(originNumeric - destinationNumeric);
+      
+      // Convert difference to cost (higher difference = higher cost)
+      // Scale factor: $1 per 10000 ZIP code units, with minimum of $2 and maximum of $20
+      return Math.min(20, Math.max(2, zipDifference / 10000));
+    }
+    
+    // For other domestic shipments, use a default calculation based on postal code similarity
+    // Extract alphanumeric characters and take the first 3 characters for comparison
+    const originCode = originZip.replace(/[^a-zA-Z0-9]/g, '').substring(0, 3).toUpperCase();
+    const destinationCode = destinationZip.replace(/[^a-zA-Z0-9]/g, '').substring(0, 3).toUpperCase();
+    
+    // If either code is empty, return a default distance factor
+    if (!originCode || !destinationCode) {
+      return 5.00;
+    }
+    
+    // Calculate a rough "distance" based on character differences
+    let difference = 0;
+    for (let i = 0; i < Math.min(originCode.length, destinationCode.length); i++) {
+      // Compare ASCII values of characters
+      difference += Math.abs(originCode.charCodeAt(i) - destinationCode.charCodeAt(i));
+    }
+    
+    // Normalize the difference to a cost factor (simplified)
+    // Scale factor: 0.1 per character difference, with minimum of $2 and maximum of $25
+    const normalizedDifference = difference * 0.1;
+    return Math.min(25.00, Math.max(2.00, normalizedDifference));
+  };
 
   /**
    * Calculate the total weight of items in the cart

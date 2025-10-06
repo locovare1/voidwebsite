@@ -114,14 +114,13 @@ export async function calculateEasyShippingCost(
     console.error('Error calculating shipping cost with The Easy API:', error);
     // Fallback to mock calculation if API call fails
     // This is a more realistic calculation based on weight and distance
-    const isInternational = originCountry !== destinationCountry;
-    console.log('Using fallback calculation. International:', isInternational, 'Origin:', originCountry, 'Destination:', destinationCountry);
-    const baseRate = isInternational ? 25.00 : 5.00; // Higher base rate for international
-    const weightFactor = weight * (isInternational ? 3.0 : 1.0); // Higher weight factor for international
     const distanceFactor = calculateDistanceFactor(originZip, destinationZip, originCountry, destinationCountry);
-    console.log('Calculation factors - Base:', baseRate, 'Weight:', weightFactor, 'Distance:', distanceFactor);
+    const weightFactor = weight * 0.5; // $0.50 per pound
+    const baseRate = 5.00; // Base handling fee
+    
+    console.log('Calculation factors - Distance:', distanceFactor, 'Weight:', weightFactor, 'Base:', baseRate);
     const totalCost = baseRate + weightFactor + distanceFactor;
-    const minCost = isInternational ? 15.00 : 5.00; // Higher minimum for international
+    const minCost = 2.00; // Minimum shipping cost
     const finalCost = Math.max(minCost, totalCost);
     console.log('Final calculated cost:', finalCost);
     return finalCost;
@@ -146,10 +145,10 @@ function calculateDistanceFactor(
   // In a real implementation, you would use a geocoding service
   // to calculate the actual distance between locations
   
-  // For international shipments, use a higher distance factor
+  // For international shipments, calculate based on continent distance
   const isInternational = originCountry !== destinationCountry;
   
-  // If it's an international shipment, use a base distance factor
+  // If it's an international shipment, use continent-based distance calculation
   if (isInternational) {
     // Simple approach: assign distance factors based on continent groups
     const continentGroups: Record<string, number[]> = {
@@ -180,23 +179,40 @@ function calculateDistanceFactor(
     const originContinent = countryToContinent[originCountry] || 'NA';
     const destinationContinent = countryToContinent[destinationCountry] || 'NA';
     
-    // If both countries are in the same continent group, use a lower distance factor
-    if (originContinent === destinationContinent) {
-      return 15.00;
-    }
+    // Calculate distance based on continent groups
+    const originGroup = continentGroups[originContinent] || [1];
+    const destinationGroup = continentGroups[destinationContinent] || [1];
     
-    // Otherwise, use a higher distance factor for intercontinental shipping
-    return 25.00;
+    // Use the first value in each group to calculate distance
+    const distance = Math.abs(originGroup[0] - destinationGroup[0]);
+    
+    // Convert distance to cost (higher distance = higher cost)
+    // Scale factor: 0.5 per group distance unit, with minimum of $5 and maximum of $50
+    return Math.min(50, Math.max(5, distance * 0.5));
   }
   
-  // For domestic shipments, use the original ZIP code-based calculation
+  // For domestic shipments (US only), calculate based on ZIP code difference
+  if (originCountry === 'US' && destinationCountry === 'US') {
+    // Extract numeric parts of ZIP codes
+    const originNumeric = parseInt(originZip.replace(/\D/g, ''), 10) || 0;
+    const destinationNumeric = parseInt(destinationZip.replace(/\D/g, ''), 10) || 0;
+    
+    // Calculate absolute difference
+    const zipDifference = Math.abs(originNumeric - destinationNumeric);
+    
+    // Convert difference to cost (higher difference = higher cost)
+    // Scale factor: $1 per 10000 ZIP code units, with minimum of $2 and maximum of $20
+    return Math.min(20, Math.max(2, zipDifference / 10000));
+  }
+  
+  // For other domestic shipments, use a default calculation based on postal code similarity
   // Extract alphanumeric characters and take the first 3 characters for comparison
   const originCode = originZip.replace(/[^a-zA-Z0-9]/g, '').substring(0, 3).toUpperCase();
   const destinationCode = destinationZip.replace(/[^a-zA-Z0-9]/g, '').substring(0, 3).toUpperCase();
   
   // If either code is empty, return a default distance factor
   if (!originCode || !destinationCode) {
-    return 10.00;
+    return 5.00;
   }
   
   // Calculate a rough "distance" based on character differences
@@ -207,8 +223,9 @@ function calculateDistanceFactor(
   }
   
   // Normalize the difference to a cost factor (simplified)
-  const normalizedDifference = difference / 10;
-  return Math.min(20.00, normalizedDifference);
+  // Scale factor: 0.1 per character difference, with minimum of $2 and maximum of $25
+  const normalizedDifference = difference * 0.1;
+  return Math.min(25.00, Math.max(2.00, normalizedDifference));
 }
 
 /**
