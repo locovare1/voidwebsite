@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export interface OrderItem {
@@ -195,11 +195,12 @@ function orderReducer(state: OrderState, action: OrderAction): OrderState {
 
 interface OrderContextType extends OrderState {
   addOrder: (order: Order) => void;
-  updateOrderStatus: (id: string, status: Order['status']) => void;
-  deleteOrder: (id: string) => void;
+  updateOrderStatus: (id: string, status: Order['status']) => Promise<void>;
+  deleteOrder: (id: string) => Promise<void>;
   toggleSet: (setId: string) => void;
   deleteSet: (setId: string) => void;
   getUnsetOrders: () => Order[];
+  loadOrdersFromFirebase: () => Promise<void>;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
@@ -332,15 +333,111 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('void-sets', JSON.stringify(state.sets));
   }, [state.sets]);
 
+  const loadOrdersFromFirebase = async () => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+    
+    // Check if db is available
+    if (!db) {
+      console.log('Firebase not initialized, skipping Firebase load');
+      return;
+    }
+    
+    try {
+      console.log('Attempting to load orders from Firebase...');
+      
+      const ordersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(ordersQuery);
+      
+      const firebaseOrders: Order[] = [];
+      querySnapshot.forEach((doc) => {
+        try {
+          const data = doc.data();
+          
+          // Validate required fields
+          if (!data.items || !Array.isArray(data.items) || !data.customerInfo) {
+            console.warn(`Skipping invalid order ${doc.id}:`, data);
+            return;
+          }
+
+          const order: Order = {
+            id: doc.id,
+            items: data.items.map((item: {
+              id: number;
+              name: string;
+              price: number;
+              quantity: number;
+              image?: string;
+            }) => ({
+              id: item.id || 0,
+              name: item.name || 'Unknown Item',
+              price: item.price || 0,
+              quantity: item.quantity || 1,
+              image: item.image || '/placeholder-product.jpg',
+            })),
+            total: data.total || data.finalTotal || 0,
+            customerInfo: {
+              name: data.customerInfo?.name || 'Unknown',
+              email: data.customerInfo?.email || '',
+              address: data.customerInfo?.address || '',
+              zipCode: data.customerInfo?.zipCode || '',
+              phone: data.customerInfo?.phone || '',
+              country: data.customerInfo?.country || '',
+            },
+            status: data.status || 'pending',
+            createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            paymentIntentId: data.paymentIntentId,
+          };
+          firebaseOrders.push(order);
+        } catch (itemError) {
+          console.error(`Error processing order ${doc.id}:`, itemError);
+        }
+      });
+      
+      console.log(`Loaded ${firebaseOrders.length} orders from Firebase`);
+      
+      if (firebaseOrders.length > 0) {
+        dispatch({ type: 'LOAD_ORDERS', payload: firebaseOrders });
+      }
+    } catch (error) {
+      console.error('Error loading orders from Firebase:', error);
+      // Don't throw the error, just log it and continue with localStorage data
+    }
+  };
+
   const addOrder = (order: Order) => {
     dispatch({ type: 'ADD_ORDER', payload: order });
   };
 
-  const updateOrderStatus = (id: string, status: Order['status']) => {
+  const updateOrderStatus = async (id: string, status: Order['status']) => {
+    // Update in Firebase first
+    if (db) {
+      try {
+        await updateDoc(doc(db, 'orders', id), {
+          status: status
+        });
+        console.log('Order status updated in Firebase:', id, status);
+      } catch (error) {
+        console.error('Error updating order status in Firebase:', error);
+      }
+    }
+    
+    // Then update local state
     dispatch({ type: 'UPDATE_ORDER_STATUS', payload: { id, status } });
   };
 
-  const deleteOrder = (id: string) => {
+  const deleteOrder = async (id: string) => {
+    // Delete from Firebase first
+    if (db) {
+      try {
+        await deleteDoc(doc(db, 'orders', id));
+        console.log('Order deleted from Firebase:', id);
+      } catch (error) {
+        console.error('Error deleting order from Firebase:', error);
+      }
+    }
+    
+    // Then update local state
     dispatch({ type: 'DELETE_ORDER', payload: id });
   };
 
@@ -366,6 +463,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
         toggleSet,
         deleteSet,
         getUnsetOrders,
+        loadOrdersFromFirebase
       }}
     >
       {children}

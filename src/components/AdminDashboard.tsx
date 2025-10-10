@@ -1,16 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { updateDoc, doc, deleteDoc, Timestamp } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
+import { updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { TrashIcon, UserIcon, StarIcon, FolderIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { useOrders, Order, OrderSet } from '@/contexts/OrderContext';
 import { reviewService, Review } from '@/lib/reviewService';
-import { newsService, type NewsArticle } from '@/lib/newsService';
-import { teamService, type Team, type Player } from '@/lib/teamService';
-import { productService, type Product } from '@/lib/productService';
-import { scheduleService, type Match, type Event } from '@/lib/scheduleService';
-import { uploadService } from '@/lib/uploadService';
 import { formatOrderNumber } from '@/lib/orderUtils';
 import Image from 'next/image';
 
@@ -38,7 +33,7 @@ const statusColors = {
 const statusOptions: Order['status'][] = ['pending', 'accepted', 'processing', 'delivered', 'declined', 'canceled'];
 
 export default function AdminDashboard() {
-  const { orders, sets, updateOrderStatus, deleteOrder, toggleSet, deleteSet, getUnsetOrders } = useOrders();
+  const { orders, sets, updateOrderStatus, deleteOrder, toggleSet, deleteSet, getUnsetOrders, loadOrdersFromFirebase } = useOrders();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [filterStatus, setFilterStatus] = useState<Order['status'] | 'all'>('all');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
@@ -141,25 +136,13 @@ export default function AdminDashboard() {
 
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
     try {
-      // Update in Firebase
-      if (db) {
-        await updateDoc(doc(db, 'orders', orderId), {
-          status: newStatus
-        });
-      }
-      
-      // Update local state
-      updateOrderStatus(orderId, newStatus);
+      // Update in Firebase FIRST using the context function which already handles Firebase operations
+      await updateOrderStatus(orderId, newStatus);
       if (selectedOrder && selectedOrder.id === orderId) {
         setSelectedOrder({ ...selectedOrder, status: newStatus });
       }
     } catch (error) {
-      console.error('Error updating order status in Firebase:', error);
-      // Still update locally as fallback
-      updateOrderStatus(orderId, newStatus);
-      if (selectedOrder && selectedOrder.id === orderId) {
-        setSelectedOrder({ ...selectedOrder, status: newStatus });
-      }
+      console.error('Error updating order status:', error);
     }
   };
 
@@ -468,20 +451,15 @@ export default function AdminDashboard() {
 
   const handleDeleteOrder = async (orderId: string) => {
     try {
-      // Delete from Firebase
-      if (db) {
-        await deleteDoc(doc(db, 'orders', orderId));
+      // Delete using the context function which already handles Firebase operations
+      await deleteOrder(orderId);
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder(null);
       }
+      setShowDeleteConfirm(null);
     } catch (error) {
-      console.error('Error deleting order from Firebase:', error);
+      console.error('Error deleting order:', error);
     }
-    
-    // Delete from local state
-    deleteOrder(orderId);
-    if (selectedOrder && selectedOrder.id === orderId) {
-      setSelectedOrder(null);
-    }
-    setShowDeleteConfirm(null);
   };
 
   const confirmDelete = (orderId: string) => {
@@ -512,25 +490,18 @@ export default function AdminDashboard() {
   };
 
   const handleBulkDelete = async () => {
-    // Delete from Firebase
-    const deletePromises = Array.from(selectedOrders).map(async (orderId) => {
-      try {
-        if (db) {
-          await deleteDoc(doc(db, 'orders', orderId));
-        }
-      } catch (error) {
-        console.error(`Error deleting order ${orderId} from Firebase:`, error);
+    try {
+      // Delete using the context function which already handles Firebase operations
+      for (const orderId of selectedOrders) {
+        await deleteOrder(orderId);
       }
-    });
-    
-    await Promise.all(deletePromises);
-    
-    // Delete from local state
-    selectedOrders.forEach(orderId => deleteOrder(orderId));
-    setSelectedOrders(new Set());
-    setShowBulkDelete(false);
-    if (selectedOrder && selectedOrders.has(selectedOrder.id)) {
-      setSelectedOrder(null);
+      setSelectedOrders(new Set());
+      setShowBulkDelete(false);
+      if (selectedOrder && selectedOrders.has(selectedOrder.id)) {
+        setSelectedOrder(null);
+      }
+    } catch (error) {
+      console.error('Error bulk deleting orders:', error);
     }
   };
 
@@ -1786,6 +1757,130 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="text-red-400 mb-4">
+                <StarIcon className="w-16 h-16 mx-auto" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Delete Review</h3>
+              <p className="text-gray-400 mb-6">
+                Are you sure you want to delete this review? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(null)}
+                  className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteReview(showDeleteConfirm)}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
+                >
+                  Delete Review
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation Modal */}
+      {showBulkDelete && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="text-red-400 mb-4">
+                <StarIcon className="w-16 h-16 mx-auto" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Delete Multiple Reviews</h3>
+              <p className="text-gray-400 mb-6">
+                Are you sure you want to delete {selectedReviews.size} selected reviews? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowBulkDelete(false)}
+                  className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBulkDeleteReviews}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
+                >
+                  Delete {selectedReviews.size} Reviews
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Set Confirmation Modal */}
+      {showDeleteSetConfirm && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="text-red-400 mb-4">
+                <StarIcon className="w-16 h-16 mx-auto" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Delete Review</h3>
+              <p className="text-gray-400 mb-6">
+                Are you sure you want to delete this review? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteSetConfirm(null)}
+                  className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteReview(showDeleteSetConfirm)}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
+                >
+                  Delete Review
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Details Modal */}
+      {showReviewDetails && selectedReview && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="text-red-400 mb-4">
+                <StarIcon className="w-16 h-16 mx-auto" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Delete Review</h3>
+              <p className="text-gray-400 mb-6">
+                Are you sure you want to delete this review? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowReviewDetails(false)}
+                  className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteReview(showDeleteReviewConfirm)}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
+                >
+                  Delete Review
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Review Delete Confirmation Modal */}
       {showDeleteReviewConfirm && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
@@ -1928,6 +2023,23 @@ export default function AdminDashboard() {
       {showDeleteEventConfirm && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
           <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="text-red-400 mb-4">
+                <StarIcon className="w-16 h-16 mx-auto" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Delete Article</h3>
+              <p className="text-gray-400 mb-6">Are you sure you want to delete this article? This action cannot be undone.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setShowDeleteEventConfirm(null)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg">Cancel</button>
+                <button onClick={() => { if (showDeleteEventConfirm) deleteEvent(showDeleteEventConfirm); }} className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
             <div className="text-center">
               <div className="text-red-400 mb-4">
                 <TrashIcon className="w-16 h-16 mx-auto" />
