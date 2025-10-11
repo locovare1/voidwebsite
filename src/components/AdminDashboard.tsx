@@ -802,8 +802,13 @@ export default function AdminDashboard() {
                             <div key={index} className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-4">
                               {editingPlayer?.teamId === team.id && editingPlayer?.playerIndex === index ? (
                                 // Edit Mode
-                                <div className="space-y-3">
-                                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <div className="space-y-4">
+                                  <div className="text-sm font-medium text-gray-300 mb-2">
+                                    Editing: {editingPlayer.player.name}
+                                  </div>
+                                  
+                                  {/* Basic Info */}
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                     <input
                                       type="text"
                                       value={editingPlayer.player.name}
@@ -835,16 +840,103 @@ export default function AdminDashboard() {
                                       placeholder="Game"
                                     />
                                   </div>
-                                  <div className="flex gap-2">
+
+                                  {/* Image URL */}
+                                  <div>
+                                    <input
+                                      type="text"
+                                      value={editingPlayer.player.image}
+                                      onChange={(e) => setEditingPlayer({
+                                        ...editingPlayer,
+                                        player: { ...editingPlayer.player, image: e.target.value }
+                                      })}
+                                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                      placeholder="Player Image URL"
+                                    />
+                                  </div>
+
+                                  {/* Achievements */}
+                                  <div>
+                                    <input
+                                      type="text"
+                                      value={editingPlayer.player.achievements?.join(', ') || ''}
+                                      onChange={(e) => setEditingPlayer({
+                                        ...editingPlayer,
+                                        player: { 
+                                          ...editingPlayer.player, 
+                                          achievements: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                                        }
+                                      })}
+                                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                      placeholder="Achievements (comma separated) - e.g. Champion 2023, MVP Award, Top Fragger"
+                                    />
+                                  </div>
+
+                                  {/* Social Links */}
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <input
+                                      type="text"
+                                      value={editingPlayer.player.socialLinks?.twitter || ''}
+                                      onChange={(e) => setEditingPlayer({
+                                        ...editingPlayer,
+                                        player: { 
+                                          ...editingPlayer.player, 
+                                          socialLinks: {
+                                            ...editingPlayer.player.socialLinks,
+                                            twitter: e.target.value
+                                          }
+                                        }
+                                      })}
+                                      className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                      placeholder="Twitter URL"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={editingPlayer.player.socialLinks?.twitch || ''}
+                                      onChange={(e) => setEditingPlayer({
+                                        ...editingPlayer,
+                                        player: { 
+                                          ...editingPlayer.player, 
+                                          socialLinks: {
+                                            ...editingPlayer.player.socialLinks,
+                                            twitch: e.target.value
+                                          }
+                                        }
+                                      })}
+                                      className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                      placeholder="Twitch URL"
+                                    />
+                                  </div>
+
+                                  {/* Instagram Link */}
+                                  <div>
+                                    <input
+                                      type="text"
+                                      value={editingPlayer.player.socialLinks?.instagram || ''}
+                                      onChange={(e) => setEditingPlayer({
+                                        ...editingPlayer,
+                                        player: { 
+                                          ...editingPlayer.player, 
+                                          socialLinks: {
+                                            ...editingPlayer.player.socialLinks,
+                                            instagram: e.target.value
+                                          }
+                                        }
+                                      })}
+                                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                      placeholder="Instagram URL"
+                                    />
+                                  </div>
+                                  <div className="flex gap-3 pt-2 border-t border-[#2A2A2A]">
                                     <button
                                       onClick={() => handleEditPlayer(team.id!, index, editingPlayer.player)}
-                                      className="bg-green-600/20 hover:bg-green-600/30 border border-green-600/30 text-green-400 px-3 py-1 rounded text-sm"
+                                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium"
                                     >
-                                      Save
+                                      Save Changes
                                     </button>
                                     <button
                                       onClick={() => setEditingPlayer(null)}
-                                      className="bg-red-600/20 hover:bg-red-600/30 border border-red-600/30 text-red-400 px-3 py-1 rounded text-sm"
+                                      className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm font-medium"
                                     >
                                       Cancel
                                     </button>
@@ -868,7 +960,7 @@ export default function AdminDashboard() {
                                       {player.achievements && player.achievements.length > 0 && (
                                         <div>Achievements: {player.achievements.slice(0, 2).join(', ')}{player.achievements.length > 2 ? '...' : ''}</div>
                                       )}
-                                      {(player.socialLinks?.twitter || player.socialLinks?.twitch) && (
+                                      {(player.socialLinks?.twitter || player.socialLinks?.twitch || player.socialLinks?.instagram) && (
                                         <div className="flex gap-2 mt-1">
                                           {player.socialLinks?.twitter && (
                                             <a href={player.socialLinks.twitter} target="_blank" rel="noopener noreferrer" 
@@ -877,6 +969,10 @@ export default function AdminDashboard() {
                                           {player.socialLinks?.twitch && (
                                             <a href={player.socialLinks.twitch} target="_blank" rel="noopener noreferrer" 
                                                className="text-purple-400 hover:text-purple-300 text-xs">Twitch</a>
+                                          )}
+                                          {player.socialLinks?.instagram && (
+                                            <a href={player.socialLinks.instagram} target="_blank" rel="noopener noreferrer" 
+                                               className="text-pink-400 hover:text-pink-300 text-xs">Instagram</a>
                                           )}
                                         </div>
                                       )}
@@ -1070,6 +1166,22 @@ export default function AdminDashboard() {
                       placeholder="Twitch channel URL"
                     />
                   </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Instagram URL
+                  </label>
+                  <input
+                    type="text"
+                    value={newPlayer.socialLinks?.instagram || ''}
+                    onChange={(e) => setNewPlayer({
+                      ...newPlayer, 
+                      socialLinks: {...newPlayer.socialLinks, instagram: e.target.value}
+                    })}
+                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                    placeholder="Instagram profile URL"
+                  />
                 </div>
 
                 <div className="flex gap-3 pt-4">
