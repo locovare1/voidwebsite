@@ -36,7 +36,7 @@ export default function EnhancedDebugPanel() {
     return () => {
       debugContext.stopMonitoring();
     };
-  }, []);
+  }, [debugContext]);
 
   // Auto-refresh logs - only update when there are new logs
   useEffect(() => {

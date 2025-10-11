@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Elements } from '@stripe/react-stripe-js';
 import stripePromise from '@/lib/stripe';
@@ -80,6 +80,16 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
     };
   }, [isOpen, orderProcessed]);
 
+  /**
+   * Calculate the total weight of items in the cart
+   * This is a simplified implementation - in a real app, you would have actual product weights
+   * @returns Total weight in pounds
+   */
+  const calculateOrderWeight = useCallback((): number => {
+    // Simplified: assume each item weighs 1 pound
+    return items.reduce((total, item) => total + item.quantity, 0);
+  }, [items]);
+
   // Calculate shipping cost when address/zip/country changes
   useEffect(() => {
     const calculateShipping = async () => {
@@ -149,7 +159,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [customerInfo.zipCode, customerInfo.country, customerInfo, subtotal]);
+  }, [customerInfo.zipCode, customerInfo.country, customerInfo, subtotal, calculateOrderWeight]);
 
   /**
    * Calculate a distance factor based on postal codes with enhanced accuracy
@@ -268,16 +278,6 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
     // Scale factor: 0.05 per weighted character difference, with minimum of $5 and maximum of $100
     const normalizedDifference = difference * 0.05;
     return Math.min(100, Math.max(5, normalizedDifference));
-  };
-
-  /**
-   * Calculate the total weight of items in the cart
-   * This is a simplified implementation - in a real app, you would have actual product weights
-   * @returns Total weight in pounds
-   */
-  const calculateOrderWeight = (): number => {
-    // Simplified: assume each item weighs 1 pound
-    return items.reduce((total, item) => total + item.quantity, 0);
   };
 
   const handleInputChange = (field: keyof CustomerInfo, value: string) => {
