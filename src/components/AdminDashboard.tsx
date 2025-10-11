@@ -51,6 +51,14 @@ export default function AdminDashboard() {
     achievements: [],
     socialLinks: {}
   });
+  const [showCreateTeam, setShowCreateTeam] = useState(false);
+  const [newTeam, setNewTeam] = useState<Omit<Team, 'id' | 'createdAt'>>({
+    name: '',
+    image: '',
+    description: '',
+    achievements: [],
+    players: []
+  });
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [filterStatus, setFilterStatus] = useState<Order['status'] | 'all'>('all');
@@ -202,6 +210,59 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error removing player:', error);
       alert('Failed to remove player');
+    } finally {
+      setLoadingTeams(false);
+    }
+  };
+
+  const handleCreateTeam = async () => {
+    if (!newTeam.name.trim() || !newTeam.description.trim()) {
+      alert('Please fill in team name and description');
+      return;
+    }
+
+    try {
+      setLoadingTeams(true);
+      await teamService.create(newTeam);
+      
+      // Reload teams
+      const updatedTeams = await teamService.getAll();
+      setTeams(updatedTeams);
+      
+      // Reset form
+      setNewTeam({
+        name: '',
+        image: '',
+        description: '',
+        achievements: [],
+        players: []
+      });
+      setShowCreateTeam(false);
+      
+      alert('Team created successfully!');
+    } catch (error) {
+      console.error('Error creating team:', error);
+      alert('Failed to create team');
+    } finally {
+      setLoadingTeams(false);
+    }
+  };
+
+  const handleDeleteTeam = async (teamId: string, teamName: string) => {
+    if (!confirm(`Are you sure you want to delete the team "${teamName}"? This will remove all players and cannot be undone.`)) return;
+
+    try {
+      setLoadingTeams(true);
+      await teamService.remove(teamId);
+      
+      // Reload teams
+      const updatedTeams = await teamService.getAll();
+      setTeams(updatedTeams);
+      
+      alert('Team deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting team:', error);
+      alert('Failed to delete team');
     } finally {
       setLoadingTeams(false);
     }
@@ -575,10 +636,18 @@ export default function AdminDashboard() {
       {activeTab === 'teams' && (
         <div className="space-y-6">
           <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <UserIcon className="w-6 h-6" />
-              Teams Management
-            </h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <UserIcon className="w-6 h-6" />
+                Teams Management
+              </h2>
+              <button
+                onClick={() => setShowCreateTeam(true)}
+                className="bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/30 text-blue-400 px-4 py-2 rounded-lg text-sm font-medium"
+              >
+                Create Team
+              </button>
+            </div>
 
             {loadingTeams ? (
               <div className="text-center py-8">
@@ -599,15 +668,24 @@ export default function AdminDashboard() {
                             Players: {team.players?.length || 0}
                           </div>
                         </div>
-                        <button
-                          onClick={() => {
-                            setSelectedTeam(team);
-                            setShowAddPlayer(true);
-                          }}
-                          className="bg-green-600/20 hover:bg-green-600/30 border border-green-600/30 text-green-400 px-3 py-2 rounded-lg text-sm font-medium"
-                        >
-                          Add Player
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedTeam(team);
+                              setShowAddPlayer(true);
+                            }}
+                            className="bg-green-600/20 hover:bg-green-600/30 border border-green-600/30 text-green-400 px-3 py-2 rounded-lg text-sm font-medium"
+                          >
+                            Add Player
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTeam(team.id!, team.name)}
+                            className="bg-red-600/20 hover:bg-red-600/30 border border-red-600/30 text-red-400 px-3 py-2 rounded-lg text-sm font-medium"
+                            title="Delete Team"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
 
                       {/* Players List */}
@@ -678,10 +756,22 @@ export default function AdminDashboard() {
                                         {player.role}
                                       </span>
                                     </div>
-                                    <div className="text-sm text-gray-400">
-                                      <span>Game: {player.game}</span>
+                                    <div className="text-sm text-gray-400 space-y-1">
+                                      <div>Game: {player.game}</div>
                                       {player.achievements && player.achievements.length > 0 && (
-                                        <span className="ml-4">Achievements: {player.achievements.length}</span>
+                                        <div>Achievements: {player.achievements.slice(0, 2).join(', ')}{player.achievements.length > 2 ? '...' : ''}</div>
+                                      )}
+                                      {(player.socialLinks?.twitter || player.socialLinks?.twitch) && (
+                                        <div className="flex gap-2 mt-1">
+                                          {player.socialLinks?.twitter && (
+                                            <a href={player.socialLinks.twitter} target="_blank" rel="noopener noreferrer" 
+                                               className="text-blue-400 hover:text-blue-300 text-xs">Twitter</a>
+                                          )}
+                                          {player.socialLinks?.twitch && (
+                                            <a href={player.socialLinks.twitch} target="_blank" rel="noopener noreferrer" 
+                                               className="text-purple-400 hover:text-purple-300 text-xs">Twitch</a>
+                                          )}
+                                        </div>
                                       )}
                                     </div>
                                   </div>
@@ -800,6 +890,56 @@ export default function AdminDashboard() {
                     placeholder="Player image URL"
                   />
                 </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Achievements (comma separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={newPlayer.achievements?.join(', ') || ''}
+                    onChange={(e) => setNewPlayer({
+                      ...newPlayer, 
+                      achievements: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                    })}
+                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                    placeholder="e.g. Champion 2023, MVP Award, Top Fragger"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Twitter URL
+                    </label>
+                    <input
+                      type="text"
+                      value={newPlayer.socialLinks?.twitter || ''}
+                      onChange={(e) => setNewPlayer({
+                        ...newPlayer, 
+                        socialLinks: {...newPlayer.socialLinks, twitter: e.target.value}
+                      })}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                      placeholder="Twitter profile URL"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Twitch URL
+                    </label>
+                    <input
+                      type="text"
+                      value={newPlayer.socialLinks?.twitch || ''}
+                      onChange={(e) => setNewPlayer({
+                        ...newPlayer, 
+                        socialLinks: {...newPlayer.socialLinks, twitch: e.target.value}
+                      })}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                      placeholder="Twitch channel URL"
+                    />
+                  </div>
+                </div>
 
                 <div className="flex gap-3 pt-4">
                   <button
@@ -825,6 +965,99 @@ export default function AdminDashboard() {
                     className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50"
                   >
                     {loadingTeams ? 'Adding...' : 'Add Player'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Team Modal */}
+      {showCreateTeam && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-white">Create New Team</h3>
+                <button
+                  onClick={() => {
+                    setShowCreateTeam(false);
+                    setNewTeam({
+                      name: '',
+                      image: '',
+                      description: '',
+                      achievements: [],
+                      players: []
+                    });
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <XMarkIcon className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Team Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={newTeam.name}
+                    onChange={(e) => setNewTeam({...newTeam, name: e.target.value})}
+                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                    placeholder="Enter team name"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Description *
+                  </label>
+                  <textarea
+                    value={newTeam.description}
+                    onChange={(e) => setNewTeam({...newTeam, description: e.target.value})}
+                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white h-20 resize-none"
+                    placeholder="Enter team description"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Team Logo URL
+                  </label>
+                  <input
+                    type="text"
+                    value={newTeam.image}
+                    onChange={(e) => setNewTeam({...newTeam, image: e.target.value})}
+                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                    placeholder="Team logo image URL"
+                  />
+                </div>
+                
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => {
+                      setShowCreateTeam(false);
+                      setNewTeam({
+                        name: '',
+                        image: '',
+                        description: '',
+                        achievements: [],
+                        players: []
+                      });
+                    }}
+                    className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateTeam}
+                    disabled={loadingTeams}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50"
+                  >
+                    {loadingTeams ? 'Creating...' : 'Create Team'}
                   </button>
                 </div>
               </div>
