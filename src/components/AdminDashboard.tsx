@@ -18,7 +18,8 @@ import {
   CheckIcon,
   XMarkIcon,
   ChevronDownIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  ChevronUpIcon
 } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 
@@ -52,6 +53,8 @@ export default function AdminDashboard() {
     socialLinks: {}
   });
   const [showCreateTeam, setShowCreateTeam] = useState(false);
+  const [showEditTeam, setShowEditTeam] = useState(false);
+  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [newTeam, setNewTeam] = useState<Omit<Team, 'id' | 'createdAt'>>({
     name: '',
     image: '',
@@ -266,6 +269,68 @@ export default function AdminDashboard() {
     } finally {
       setLoadingTeams(false);
     }
+  };
+
+  const handleEditTeam = (team: Team) => {
+    setEditingTeam(team);
+    setShowEditTeam(true);
+  };
+
+  const handleUpdateTeam = async () => {
+    if (!editingTeam || !editingTeam.name.trim() || !editingTeam.description.trim()) {
+      alert('Please fill in team name and description');
+      return;
+    }
+
+    try {
+      setLoadingTeams(true);
+      await teamService.update(editingTeam.id!, {
+        name: editingTeam.name,
+        image: editingTeam.image,
+        description: editingTeam.description,
+        achievements: editingTeam.achievements,
+        players: editingTeam.players
+      });
+      
+      // Reload teams
+      const updatedTeams = await teamService.getAll();
+      setTeams(updatedTeams);
+      
+      setShowEditTeam(false);
+      setEditingTeam(null);
+      
+      alert('Team updated successfully!');
+    } catch (error) {
+      console.error('Error updating team:', error);
+      alert('Failed to update team');
+    } finally {
+      setLoadingTeams(false);
+    }
+  };
+
+  const movePlayer = (direction: 'up' | 'down', playerIndex: number) => {
+    if (!editingTeam) return;
+    
+    const newIndex = direction === 'up' ? playerIndex - 1 : playerIndex + 1;
+    if (newIndex < 0 || newIndex >= editingTeam.players.length) return;
+    
+    const updatedPlayers = [...editingTeam.players];
+    [updatedPlayers[playerIndex], updatedPlayers[newIndex]] = [updatedPlayers[newIndex], updatedPlayers[playerIndex]];
+    
+    setEditingTeam({
+      ...editingTeam,
+      players: updatedPlayers
+    });
+  };
+
+  const removePlayerFromTeam = (playerIndex: number) => {
+    if (!editingTeam) return;
+    
+    const updatedPlayers = editingTeam.players.filter((_, index) => index !== playerIndex);
+    setEditingTeam({
+      ...editingTeam,
+      players: updatedPlayers
+    });
   };
 
   // Statistics calculations
@@ -679,6 +744,13 @@ export default function AdminDashboard() {
                             Add Player
                           </button>
                           <button
+                            onClick={() => handleEditTeam(team)}
+                            className="bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/30 text-blue-400 px-3 py-2 rounded-lg text-sm font-medium"
+                            title="Edit Team"
+                          >
+                            <PencilIcon className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={() => handleDeleteTeam(team.id!, team.name)}
                             className="bg-red-600/20 hover:bg-red-600/30 border border-red-600/30 text-red-400 px-3 py-2 rounded-lg text-sm font-medium"
                             title="Delete Team"
@@ -775,24 +847,24 @@ export default function AdminDashboard() {
                                       )}
                                     </div>
                                   </div>
-                                  <div className="flex gap-2">
+                                  <div className="flex gap-1">
                                     <button
                                       onClick={() => setEditingPlayer({
                                         teamId: team.id!,
                                         playerIndex: index,
                                         player: { ...player }
                                       })}
-                                      className="text-blue-400 hover:text-blue-300 p-1"
+                                      className="bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/30 text-blue-400 px-2 py-1 rounded text-xs"
                                       title="Edit Player"
                                     >
-                                      <PencilIcon className="w-4 h-4" />
+                                      Edit
                                     </button>
                                     <button
                                       onClick={() => handleDeletePlayer(team.id!, index)}
-                                      className="text-red-400 hover:text-red-300 p-1"
+                                      className="bg-red-600/20 hover:bg-red-600/30 border border-red-600/30 text-red-400 px-2 py-1 rounded text-xs"
                                       title="Remove Player"
                                     >
-                                      <TrashIcon className="w-4 h-4" />
+                                      Remove
                                     </button>
                                   </div>
                                 </div>
@@ -1060,6 +1132,153 @@ export default function AdminDashboard() {
                     {loadingTeams ? 'Creating...' : 'Create Team'}
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Team Modal */}
+      {showEditTeam && editingTeam && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-white">Edit Team: {editingTeam.name}</h3>
+                <button
+                  onClick={() => {
+                    setShowEditTeam(false);
+                    setEditingTeam(null);
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <XMarkIcon className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Team Details */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-medium text-white">Team Details</h4>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Team Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={editingTeam.name}
+                      onChange={(e) => setEditingTeam({...editingTeam, name: e.target.value})}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Description *
+                    </label>
+                    <textarea
+                      value={editingTeam.description}
+                      onChange={(e) => setEditingTeam({...editingTeam, description: e.target.value})}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white h-20 resize-none"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Team Logo URL
+                    </label>
+                    <input
+                      type="text"
+                      value={editingTeam.image}
+                      onChange={(e) => setEditingTeam({...editingTeam, image: e.target.value})}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Players Management */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-medium text-white">Players Management</h4>
+                  
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {editingTeam.players.length === 0 ? (
+                      <p className="text-gray-400 text-sm">No players in this team yet.</p>
+                    ) : (
+                      editingTeam.players.map((player, index) => (
+                        <div key={index} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-white font-medium">{player.name}</span>
+                                <span className="bg-blue-600/20 text-blue-400 px-2 py-1 rounded text-xs">
+                                  {player.role}
+                                </span>
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                Game: {player.game}
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-1">
+                              {/* Move Up */}
+                              <button
+                                onClick={() => movePlayer('up', index)}
+                                disabled={index === 0}
+                                className="text-gray-400 hover:text-white p-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="Move Up"
+                              >
+                                <ChevronUpIcon className="w-4 h-4" />
+                              </button>
+                              
+                              {/* Move Down */}
+                              <button
+                                onClick={() => movePlayer('down', index)}
+                                disabled={index === editingTeam.players.length - 1}
+                                className="text-gray-400 hover:text-white p-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="Move Down"
+                              >
+                                <ChevronDownIcon className="w-4 h-4" />
+                              </button>
+                              
+                              {/* Remove Player */}
+                              <button
+                                onClick={() => removePlayerFromTeam(index)}
+                                className="text-red-400 hover:text-red-300 p-1 ml-2"
+                                title="Remove Player"
+                              >
+                                <TrashIcon className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  
+                  <div className="text-xs text-gray-500">
+                    Use the up/down arrows to reorder players. The first player will appear first on the team page.
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex gap-3 pt-6 border-t border-[#2A2A2A] mt-6">
+                <button
+                  onClick={() => {
+                    setShowEditTeam(false);
+                    setEditingTeam(null);
+                  }}
+                  className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdateTeam}
+                  disabled={loadingTeams}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50"
+                >
+                  {loadingTeams ? 'Updating...' : 'Update Team'}
+                </button>
               </div>
             </div>
           </div>
