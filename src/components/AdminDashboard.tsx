@@ -5,10 +5,11 @@ import { useOrders, Order } from '@/contexts/OrderContext';
 import { reviewService, Review } from '@/lib/reviewService';
 import { formatOrderNumber } from '@/lib/orderUtils';
 import { products, Product } from '@/data/products';
-import { 
-  TrashIcon, 
-  UserIcon, 
-  StarIcon, 
+import { teamService, Team, Player } from '@/lib/teamService';
+import {
+  TrashIcon,
+  UserIcon,
+  StarIcon,
   ShoppingBagIcon,
   ChartBarIcon,
   CurrencyDollarIcon,
@@ -34,7 +35,22 @@ export default function AdminDashboard() {
   const { orders, updateOrderStatus, deleteOrder } = useOrders();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'reviews' | 'products'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'reviews' | 'products' | 'teams'>('overview');
+
+  // Team management state
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loadingTeams, setLoadingTeams] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [showAddPlayer, setShowAddPlayer] = useState(false);
+  const [editingPlayer, setEditingPlayer] = useState<{ teamId: string; playerIndex: number; player: Player } | null>(null);
+  const [newPlayer, setNewPlayer] = useState<Omit<Player, 'id'>>({
+    name: '',
+    role: '',
+    image: '',
+    game: '',
+    achievements: [],
+    socialLinks: {}
+  });
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [filterStatus, setFilterStatus] = useState<Order['status'] | 'all'>('all');
@@ -42,18 +58,22 @@ export default function AdminDashboard() {
   const [showBulkActions, setShowBulkActions] = useState(false);
 
   useEffect(() => {
-    const loadReviews = async () => {
+    const loadData = async () => {
       try {
-        const reviewsData = await reviewService.getAllReviews();
+        const [reviewsData, teamsData] = await Promise.all([
+          reviewService.getAllReviews(),
+          teamService.getAll()
+        ]);
         setReviews(reviewsData);
+        setTeams(teamsData);
       } catch (error) {
-        console.error('Error loading reviews:', error);
+        console.error('Error loading data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadReviews();
+    loadData();
   }, []);
 
   const handleStatusChange = async (orderId: string, newStatus: any) => {
@@ -88,7 +108,7 @@ export default function AdminDashboard() {
   const handleBulkDeleteReviews = async () => {
     if (confirm(`Are you sure you want to delete ${selectedReviews.size} reviews?`)) {
       try {
-        const deletePromises = Array.from(selectedReviews).map(reviewId => 
+        const deletePromises = Array.from(selectedReviews).map(reviewId =>
           reviewService.deleteReview(reviewId)
         );
         await Promise.all(deletePromises);
@@ -112,18 +132,93 @@ export default function AdminDashboard() {
     setShowBulkActions(newSelection.size > 0);
   };
 
+  // Team management functions
+  const handleAddPlayer = async (teamId: string) => {
+    if (!newPlayer.name.trim() || !newPlayer.role.trim() || !newPlayer.game.trim()) {
+      alert('Please fill in name, role, and game fields');
+      return;
+    }
+
+    try {
+      setLoadingTeams(true);
+      await teamService.addPlayer(teamId, newPlayer as Player);
+
+      // Reload teams
+      const updatedTeams = await teamService.getAll();
+      setTeams(updatedTeams);
+
+      // Reset form
+      setNewPlayer({
+        name: '',
+        role: '',
+        image: '',
+        game: '',
+        achievements: [],
+        socialLinks: {}
+      });
+      setShowAddPlayer(false);
+      setSelectedTeam(null);
+
+      alert('Player added successfully!');
+    } catch (error) {
+      console.error('Error adding player:', error);
+      alert('Failed to add player');
+    } finally {
+      setLoadingTeams(false);
+    }
+  };
+
+  const handleEditPlayer = async (teamId: string, playerIndex: number, updatedPlayer: Player) => {
+    try {
+      setLoadingTeams(true);
+      await teamService.updatePlayer(teamId, playerIndex, updatedPlayer);
+
+      // Reload teams
+      const updatedTeams = await teamService.getAll();
+      setTeams(updatedTeams);
+
+      setEditingPlayer(null);
+      alert('Player updated successfully!');
+    } catch (error) {
+      console.error('Error updating player:', error);
+      alert('Failed to update player');
+    } finally {
+      setLoadingTeams(false);
+    }
+  };
+
+  const handleDeletePlayer = async (teamId: string, playerIndex: number) => {
+    if (!confirm('Are you sure you want to remove this player?')) return;
+
+    try {
+      setLoadingTeams(true);
+      await teamService.removePlayer(teamId, playerIndex);
+
+      // Reload teams
+      const updatedTeams = await teamService.getAll();
+      setTeams(updatedTeams);
+
+      alert('Player removed successfully!');
+    } catch (error) {
+      console.error('Error removing player:', error);
+      alert('Failed to remove player');
+    } finally {
+      setLoadingTeams(false);
+    }
+  };
+
   // Statistics calculations
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
   const totalOrders = orders.length;
   const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
   const pendingOrders = orders.filter(order => order.status === 'pending').length;
   const completedOrders = orders.filter(order => order.status === 'delivered').length;
-  const averageRating = reviews.length > 0 
-    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
     : 0;
 
-  const filteredOrders = filterStatus === 'all' 
-    ? orders 
+  const filteredOrders = filterStatus === 'all'
+    ? orders
     : orders.filter(order => order.status === filterStatus);
 
   const getStatusColor = (status: Order['status']) => {
@@ -148,15 +243,15 @@ export default function AdminDashboard() {
             { id: 'orders', label: 'Orders', icon: ShoppingBagIcon },
             { id: 'reviews', label: 'Reviews', icon: StarIcon },
             { id: 'products', label: 'Products', icon: UserIcon },
+            { id: 'teams', label: 'Teams', icon: UserIcon },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-                activeTab === tab.id
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${activeTab === tab.id
                   ? 'bg-[#FFFFFF] text-black'
                   : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]'
-              }`}
+                }`}
             >
               <tab.icon className="w-4 h-4" />
               {tab.label}
@@ -179,7 +274,7 @@ export default function AdminDashboard() {
                 <CurrencyDollarIcon className="w-8 h-8 text-green-400" />
               </div>
             </div>
-            
+
             <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -189,7 +284,7 @@ export default function AdminDashboard() {
                 <ShoppingBagIcon className="w-8 h-8 text-blue-400" />
               </div>
             </div>
-            
+
             <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -199,7 +294,7 @@ export default function AdminDashboard() {
                 <ChartBarIcon className="w-8 h-8 text-purple-400" />
               </div>
             </div>
-            
+
             <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -230,7 +325,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
               <h3 className="text-lg font-bold text-white mb-4">Recent Activity</h3>
               <div className="space-y-3">
@@ -274,7 +369,7 @@ export default function AdminDashboard() {
                 <option value="canceled">Canceled</option>
               </select>
             </div>
-            
+
             <div className="space-y-4">
               {filteredOrders.length === 0 ? (
                 <p className="text-gray-400">No orders found.</p>
@@ -330,7 +425,7 @@ export default function AdminDashboard() {
                         </button>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
                         <span className="text-gray-400">Total:</span>
@@ -380,7 +475,7 @@ export default function AdminDashboard() {
                 </div>
               )}
             </div>
-            
+
             <div className="space-y-4">
               {reviews.length === 0 ? (
                 <p className="text-gray-400">No reviews found.</p>
@@ -403,9 +498,8 @@ export default function AdminDashboard() {
                               {[...Array(5)].map((_, i) => (
                                 <StarIcon
                                   key={i}
-                                  className={`w-4 h-4 ${
-                                    i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-600'
-                                  }`}
+                                  className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-600'
+                                    }`}
                                 />
                               ))}
                               <span className="text-gray-400 text-sm ml-2">
@@ -420,7 +514,7 @@ export default function AdminDashboard() {
                             <TrashIcon className="w-4 h-4" />
                           </button>
                         </div>
-                        
+
                         <p className="text-gray-300 text-sm mb-2">{review.comment}</p>
                         <div className="flex justify-between items-center text-xs text-gray-500">
                           <span>Product ID: {review.productId}</span>
@@ -447,7 +541,7 @@ export default function AdminDashboard() {
               <UserIcon className="w-6 h-6" />
               Products Catalog
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map((product) => (
                 <div key={product.id} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-4">
@@ -477,6 +571,268 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* Teams Tab */}
+      {activeTab === 'teams' && (
+        <div className="space-y-6">
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <UserIcon className="w-6 h-6" />
+              Teams Management
+            </h2>
+
+            {loadingTeams ? (
+              <div className="text-center py-8">
+                <div className="text-white">Loading teams...</div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {teams.length === 0 ? (
+                  <p className="text-gray-400">No teams found.</p>
+                ) : (
+                  teams.map((team) => (
+                    <div key={team.id} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-xl font-bold text-white mb-2">{team.name}</h3>
+                          <p className="text-gray-400 text-sm mb-2">{team.description}</p>
+                          <div className="text-xs text-gray-500">
+                            Players: {team.players?.length || 0}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setSelectedTeam(team);
+                            setShowAddPlayer(true);
+                          }}
+                          className="bg-green-600/20 hover:bg-green-600/30 border border-green-600/30 text-green-400 px-3 py-2 rounded-lg text-sm font-medium"
+                        >
+                          Add Player
+                        </button>
+                      </div>
+
+                      {/* Players List */}
+                      <div className="space-y-3">
+                        <h4 className="text-lg font-medium text-white">Players</h4>
+                        {!team.players || team.players.length === 0 ? (
+                          <p className="text-gray-400 text-sm">No players in this team yet.</p>
+                        ) : (
+                          team.players.map((player, index) => (
+                            <div key={index} className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-4">
+                              {editingPlayer?.teamId === team.id && editingPlayer?.playerIndex === index ? (
+                                // Edit Mode
+                                <div className="space-y-3">
+                                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    <input
+                                      type="text"
+                                      value={editingPlayer.player.name}
+                                      onChange={(e) => setEditingPlayer({
+                                        ...editingPlayer,
+                                        player: { ...editingPlayer.player, name: e.target.value }
+                                      })}
+                                      className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                      placeholder="Player Name"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={editingPlayer.player.role}
+                                      onChange={(e) => setEditingPlayer({
+                                        ...editingPlayer,
+                                        player: { ...editingPlayer.player, role: e.target.value }
+                                      })}
+                                      className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                      placeholder="Role"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={editingPlayer.player.game}
+                                      onChange={(e) => setEditingPlayer({
+                                        ...editingPlayer,
+                                        player: { ...editingPlayer.player, game: e.target.value }
+                                      })}
+                                      className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                      placeholder="Game"
+                                    />
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleEditPlayer(team.id!, index, editingPlayer.player)}
+                                      className="bg-green-600/20 hover:bg-green-600/30 border border-green-600/30 text-green-400 px-3 py-1 rounded text-sm"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={() => setEditingPlayer(null)}
+                                      className="bg-red-600/20 hover:bg-red-600/30 border border-red-600/30 text-red-400 px-3 py-1 rounded text-sm"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                // View Mode
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-2">
+                                      <h5 className="text-white font-medium">{player.name}</h5>
+                                      <span className="bg-blue-600/20 text-blue-400 px-2 py-1 rounded text-xs">
+                                        {player.role}
+                                      </span>
+                                    </div>
+                                    <div className="text-sm text-gray-400">
+                                      <span>Game: {player.game}</span>
+                                      {player.achievements && player.achievements.length > 0 && (
+                                        <span className="ml-4">Achievements: {player.achievements.length}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => setEditingPlayer({
+                                        teamId: team.id!,
+                                        playerIndex: index,
+                                        player: { ...player }
+                                      })}
+                                      className="text-blue-400 hover:text-blue-300 p-1"
+                                      title="Edit Player"
+                                    >
+                                      <PencilIcon className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeletePlayer(team.id!, index)}
+                                      className="text-red-400 hover:text-red-300 p-1"
+                                      title="Remove Player"
+                                    >
+                                      <TrashIcon className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Add Player Modal */}
+      {showAddPlayer && selectedTeam && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-white">
+                  Add Player to {selectedTeam.name}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowAddPlayer(false);
+                    setSelectedTeam(null);
+                    setNewPlayer({
+                      name: '',
+                      role: '',
+                      image: '',
+                      game: '',
+                      achievements: [],
+                      socialLinks: {}
+                    });
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <XMarkIcon className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Player Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={newPlayer.name}
+                    onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
+                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                    placeholder="Enter player name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Role *
+                  </label>
+                  <input
+                    type="text"
+                    value={newPlayer.role}
+                    onChange={(e) => setNewPlayer({ ...newPlayer, role: e.target.value })}
+                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                    placeholder="e.g. Entry Fragger, IGL, AWPer"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Game *
+                  </label>
+                  <input
+                    type="text"
+                    value={newPlayer.game}
+                    onChange={(e) => setNewPlayer({ ...newPlayer, game: e.target.value })}
+                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                    placeholder="e.g. Fortnite, CS2, Valorant"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Image URL
+                  </label>
+                  <input
+                    type="text"
+                    value={newPlayer.image}
+                    onChange={(e) => setNewPlayer({ ...newPlayer, image: e.target.value })}
+                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                    placeholder="Player image URL"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => {
+                      setShowAddPlayer(false);
+                      setSelectedTeam(null);
+                      setNewPlayer({
+                        name: '',
+                        role: '',
+                        image: '',
+                        game: '',
+                        achievements: [],
+                        socialLinks: {}
+                      });
+                    }}
+                    className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleAddPlayer(selectedTeam.id!)}
+                    disabled={loadingTeams}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50"
+                  >
+                    {loadingTeams ? 'Adding...' : 'Add Player'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Order Details Modal */}
       {showOrderDetails && selectedOrder && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -493,7 +849,7 @@ export default function AdminDashboard() {
                   <XMarkIcon className="w-6 h-6" />
                 </button>
               </div>
-              
+
               <div className="space-y-6">
                 {/* Customer Info */}
                 <div>
@@ -507,7 +863,7 @@ export default function AdminDashboard() {
                     <p className="text-gray-300"><span className="text-gray-400">Country:</span> {selectedOrder.customerInfo.country}</p>
                   </div>
                 </div>
-                
+
                 {/* Order Items */}
                 <div>
                   <h4 className="text-lg font-medium text-white mb-3">Order Items</h4>
@@ -534,7 +890,7 @@ export default function AdminDashboard() {
                     ))}
                   </div>
                 </div>
-                
+
                 {/* Order Summary */}
                 <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-4">
                   <div className="flex justify-between items-center text-lg font-bold text-white">

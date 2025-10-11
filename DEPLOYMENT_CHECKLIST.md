@@ -30,10 +30,23 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_publishable_key_here
 
 STRIPE_SECRET_KEY=your_secret_key_here
 
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+
 NEXT_PUBLIC_SITE_URL=https://your-actual-domain.vercel.app
 
 NODE_ENV=production
 ```
+
+### 2. **Stripe Webhook Configuration**
+In your Stripe Dashboard (https://dashboard.stripe.com/webhooks):
+
+1. **Create New Endpoint:**
+   - URL: `https://your-domain.vercel.app/api/webhooks/stripe`
+   - Events: Select `payment_intent.succeeded` and `payment_intent.payment_failed`
+
+2. **Copy Webhook Secret:**
+   - After creating, copy the webhook signing secret
+   - Add it to Vercel as `STRIPE_WEBHOOK_SECRET`
 
 ### 2. **Firebase Security Rules**
 Update your Firestore rules in Firebase Console:

@@ -50,7 +50,9 @@ export default function CheckoutForm({ customerInfo, onSuccess, total }: Checkou
       ? `${process.env.NEXT_PUBLIC_SITE_URL}/payment-success`
       : `${window.location.origin}/payment-success`;
 
-    const { error } = await stripe.confirmPayment({
+    console.log('Processing payment with return URL:', returnUrl);
+
+    const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {
         return_url: returnUrl,
@@ -67,6 +69,8 @@ export default function CheckoutForm({ customerInfo, onSuccess, total }: Checkou
       },
       redirect: 'if_required',
     });
+
+    console.log('Payment confirmation result:', { error, paymentIntent });
 
     if (error) {
       if (error.type === 'card_error' || error.type === 'validation_error') {
