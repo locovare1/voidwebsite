@@ -333,6 +333,38 @@ export default function AdminDashboard() {
     });
   };
 
+  const handleMovePlayer = async (teamId: string, playerIndex: number, direction: 'up' | 'down') => {
+    try {
+      setLoadingTeams(true);
+      
+      // Get the current team
+      const team = teams.find(t => t.id === teamId);
+      if (!team || !team.players) return;
+      
+      const newIndex = direction === 'up' ? playerIndex - 1 : playerIndex + 1;
+      if (newIndex < 0 || newIndex >= team.players.length) return;
+      
+      // Create new players array with swapped positions
+      const updatedPlayers = [...team.players];
+      [updatedPlayers[playerIndex], updatedPlayers[newIndex]] = [updatedPlayers[newIndex], updatedPlayers[playerIndex]];
+      
+      // Update the team in Firebase
+      await teamService.update(teamId, {
+        players: updatedPlayers
+      });
+      
+      // Reload teams to reflect changes
+      const updatedTeams = await teamService.getAll();
+      setTeams(updatedTeams);
+      
+    } catch (error) {
+      console.error('Error moving player:', error);
+      alert('Failed to move player');
+    } finally {
+      setLoadingTeams(false);
+    }
+  };
+
   // Statistics calculations
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
   const totalOrders = orders.length;
@@ -745,10 +777,10 @@ export default function AdminDashboard() {
                           </button>
                           <button
                             onClick={() => handleEditTeam(team)}
-                            className="bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/30 text-blue-400 px-3 py-2 rounded-lg text-sm font-medium"
-                            title="Edit Team"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium"
+                            title="Edit Team & Reorder Players"
                           >
-                            <PencilIcon className="w-4 h-4" />
+                            Edit Team
                           </button>
                           <button
                             onClick={() => handleDeleteTeam(team.id!, team.name)}
@@ -823,6 +855,9 @@ export default function AdminDashboard() {
                                 <div className="flex justify-between items-start">
                                   <div className="flex-1">
                                     <div className="flex items-center gap-3 mb-2">
+                                      <span className="bg-gray-600/20 text-gray-400 px-2 py-1 rounded text-xs font-mono">
+                                        #{index + 1}
+                                      </span>
                                       <h5 className="text-white font-medium">{player.name}</h5>
                                       <span className="bg-blue-600/20 text-blue-400 px-2 py-1 rounded text-xs">
                                         {player.role}
@@ -847,21 +882,45 @@ export default function AdminDashboard() {
                                       )}
                                     </div>
                                   </div>
-                                  <div className="flex gap-1">
+                                  <div className="flex gap-1 items-center">
+                                    {/* Reorder buttons */}
+                                    <div className="flex flex-col">
+                                      <button
+                                        onClick={() => handleMovePlayer(team.id!, index, 'up')}
+                                        disabled={index === 0}
+                                        className="text-gray-400 hover:text-white p-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                                        title="Move Up"
+                                      >
+                                        <ChevronUpIcon className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        onClick={() => handleMovePlayer(team.id!, index, 'down')}
+                                        disabled={index === (team.players?.length || 0) - 1}
+                                        className="text-gray-400 hover:text-white p-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                                        title="Move Down"
+                                      >
+                                        <ChevronDownIcon className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                    
+                                    {/* Action buttons */}
                                     <button
-                                      onClick={() => setEditingPlayer({
-                                        teamId: team.id!,
-                                        playerIndex: index,
-                                        player: { ...player }
-                                      })}
-                                      className="bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/30 text-blue-400 px-2 py-1 rounded text-xs"
+                                      onClick={() => {
+                                        console.log('Edit button clicked for player:', player.name);
+                                        setEditingPlayer({
+                                          teamId: team.id!,
+                                          playerIndex: index,
+                                          player: { ...player }
+                                        });
+                                      }}
+                                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium"
                                       title="Edit Player"
                                     >
                                       Edit
                                     </button>
                                     <button
                                       onClick={() => handleDeletePlayer(team.id!, index)}
-                                      className="bg-red-600/20 hover:bg-red-600/30 border border-red-600/30 text-red-400 px-2 py-1 rounded text-xs"
+                                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm font-medium"
                                       title="Remove Player"
                                     >
                                       Remove
