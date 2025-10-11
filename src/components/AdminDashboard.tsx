@@ -392,7 +392,8 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#0A0A0A] via-[#1A1A1A] to-[#0F0F0F] p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
       {/* Navigation Tabs */}
       <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-1">
         <div className="flex space-x-1">
@@ -421,70 +422,106 @@ export default function AdminDashboard() {
       {/* Overview Tab */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          {/* Statistics Cards */}
+          {/* Enhanced Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
+            <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] border border-[#3A3A3A] rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 group">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-sm">Total Revenue</p>
-                  <p className="text-2xl font-bold text-white">${totalRevenue.toFixed(2)}</p>
+                  <p className="text-gray-400 text-sm font-medium">Total Revenue</p>
+                  <p className="text-3xl font-bold text-white mt-2">${totalRevenue.toFixed(2)}</p>
+                  <div className="flex items-center gap-1 mt-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-green-400 text-xs">Active</span>
+                  </div>
                 </div>
-                <CurrencyDollarIcon className="w-8 h-8 text-green-400" />
+                <div className="bg-green-500/20 p-3 rounded-xl group-hover:bg-green-500/30 transition-colors">
+                  <CurrencyDollarIcon className="w-8 h-8 text-green-400" />
+                </div>
               </div>
             </div>
 
-            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
+            <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] border border-[#3A3A3A] rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 group">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-sm">Total Orders</p>
-                  <p className="text-2xl font-bold text-white">{totalOrders}</p>
+                  <p className="text-gray-400 text-sm font-medium">Total Orders</p>
+                  <p className="text-3xl font-bold text-white mt-2">{totalOrders}</p>
+                  <div className="flex items-center gap-1 mt-2">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                    <span className="text-blue-400 text-xs">{pendingOrders} pending</span>
+                  </div>
                 </div>
-                <ShoppingBagIcon className="w-8 h-8 text-blue-400" />
+                <div className="bg-blue-500/20 p-3 rounded-xl group-hover:bg-blue-500/30 transition-colors">
+                  <ShoppingBagIcon className="w-8 h-8 text-blue-400" />
+                </div>
               </div>
             </div>
 
-            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
+            <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] border border-[#3A3A3A] rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 group">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-sm">Avg Order Value</p>
-                  <p className="text-2xl font-bold text-white">${averageOrderValue.toFixed(2)}</p>
+                  <p className="text-gray-400 text-sm font-medium">Avg Order Value</p>
+                  <p className="text-3xl font-bold text-white mt-2">${averageOrderValue.toFixed(2)}</p>
+                  <div className="flex items-center gap-1 mt-2">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                    <span className="text-purple-400 text-xs">Per order</span>
+                  </div>
                 </div>
-                <ChartBarIcon className="w-8 h-8 text-purple-400" />
+                <div className="bg-purple-500/20 p-3 rounded-xl group-hover:bg-purple-500/30 transition-colors">
+                  <ChartBarIcon className="w-8 h-8 text-purple-400" />
+                </div>
               </div>
             </div>
 
-            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
+            <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] border border-[#3A3A3A] rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 group">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-sm">Avg Rating</p>
-                  <p className="text-2xl font-bold text-white">{averageRating.toFixed(1)}/5</p>
+                  <p className="text-gray-400 text-sm font-medium">Avg Rating</p>
+                  <p className="text-3xl font-bold text-white mt-2">{averageRating.toFixed(1)}/5</p>
+                  <div className="flex items-center gap-1 mt-2">
+                    <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                    <span className="text-yellow-400 text-xs">{reviews.length} reviews</span>
+                  </div>
                 </div>
-                <StarIcon className="w-8 h-8 text-yellow-400" />
+                <div className="bg-yellow-500/20 p-3 rounded-xl group-hover:bg-yellow-500/30 transition-colors">
+                  <StarIcon className="w-8 h-8 text-yellow-400" />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Quick Stats */}
+          {/* Enhanced Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Order Status</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Pending</span>
-                  <span className="text-yellow-400 font-medium">{pendingOrders}</span>
+            <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] border border-[#3A3A3A] rounded-2xl p-6 hover:shadow-xl transition-all duration-300">
+              <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                Order Status
+              </h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-3 bg-[#0F0F0F]/50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                    <span className="text-gray-300">Pending</span>
+                  </div>
+                  <span className="text-yellow-400 font-bold text-lg">{pendingOrders}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Completed</span>
-                  <span className="text-green-400 font-medium">{completedOrders}</span>
+                <div className="flex justify-between items-center p-3 bg-[#0F0F0F]/50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                    <span className="text-gray-300">Completed</span>
+                  </div>
+                  <span className="text-green-400 font-bold text-lg">{completedOrders}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Total Reviews</span>
-                  <span className="text-blue-400 font-medium">{reviews.length}</span>
+                <div className="flex justify-between items-center p-3 bg-[#0F0F0F]/50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
+                    <span className="text-gray-300">Total Reviews</span>
+                  </div>
+                  <span className="text-blue-400 font-bold text-lg">{reviews.length}</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
+            <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] border border-[#3A3A3A] rounded-2xl p-6 hover:shadow-xl transition-all duration-300">
               <h3 className="text-lg font-bold text-white mb-4">Recent Activity</h3>
               <div className="space-y-3">
                 {orders.slice(0, 3).map((order) => (
@@ -507,12 +544,17 @@ export default function AdminDashboard() {
       {activeTab === 'orders' && (
         <div className="space-y-6">
           {/* Orders Header */}
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <ShoppingBagIcon className="w-6 h-6" />
-                Orders Management
-              </h2>
+          <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] border border-[#3A3A3A] rounded-2xl p-6 shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <div className="bg-green-500/20 p-2 rounded-xl">
+                    <ShoppingBagIcon className="w-6 h-6 text-green-400" />
+                  </div>
+                  Orders Management
+                </h2>
+                <p className="text-gray-400 text-sm mt-2">Manage and track all customer orders</p>
+              </div>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value as any)}
@@ -613,12 +655,17 @@ export default function AdminDashboard() {
       {/* Reviews Tab */}
       {activeTab === 'reviews' && (
         <div className="space-y-6">
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <StarIcon className="w-6 h-6" />
-                Reviews Management
-              </h2>
+          <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] border border-[#3A3A3A] rounded-2xl p-6 shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <div className="bg-yellow-500/20 p-2 rounded-xl">
+                    <StarIcon className="w-6 h-6 text-yellow-400" />
+                  </div>
+                  Reviews Management
+                </h2>
+                <p className="text-gray-400 text-sm mt-2">Monitor and manage customer feedback</p>
+              </div>
               {showBulkActions && (
                 <div className="flex items-center gap-2">
                   <span className="text-gray-400 text-sm">
@@ -1536,6 +1583,7 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
