@@ -34,9 +34,6 @@ export { default as Pagination } from './Pagination';
 
 // Utility Components
 export { default as GlobalErrorBoundary } from './GlobalErrorBoundary';
-export { default as FirebaseTest } from './FirebaseTest';
-export { default as ReviewTest } from './ReviewTest';
-export { default as AdvancedDebug } from './AdvancedDebug';
 
 // Hooks
 export { useIntersectionObserver } from './useIntersectionObserver';
