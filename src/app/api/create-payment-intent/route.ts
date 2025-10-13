@@ -8,10 +8,16 @@ export async function POST(request: NextRequest) {
     // Check if Stripe secret key is properly configured
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     
-    if (!stripeSecretKey || (!stripeSecretKey.startsWith('sk_test_') && !stripeSecretKey.startsWith('sk_live_'))) {
-      console.error('Invalid Stripe secret key. Make sure it starts with sk_test_ or sk_live_');
+    if (!stripeSecretKey) {
       return NextResponse.json(
-        { error: 'Stripe configuration error. Please check your secret key.' },
+        { error: 'Stripe configuration error. Please check your Vercel environment variables.' },
+        { status: 500 }
+      );
+    }
+
+    if (!stripeSecretKey.startsWith('sk_test_') && !stripeSecretKey.startsWith('sk_live_')) {
+      return NextResponse.json(
+        { error: 'Invalid Stripe secret key format.' },
         { status: 500 }
       );
     }
