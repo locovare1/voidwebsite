@@ -15,6 +15,7 @@ import {
   ScrollProgress,
   GestureImage 
 } from '@/components/FramerAnimations';
+import { TextType } from '@/components';
 
 const featuredTeams = [
     {
@@ -120,12 +121,31 @@ export default function Home() {
 
         <div className="text-center void-container relative z-10">
           <AnimatedHeroSection>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 gradient-text text-reveal">
-              WELCOME TO VOID
-            </h1>
-            <p className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto">
-              A professional esports organization dedicated to excellence in competitive gaming
-            </p>
+            <TextType
+              as="h1"
+              className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 gradient-text text-reveal"
+              text={["WELCOME TO VOID"]}
+              typingSpeed={40}
+              initialDelay={250}
+              pauseDuration={2000}
+              variableSpeed={{ min: 22, max: 55 }}
+              textColors={["#ffffff"]}
+              loop={false}
+              startOnVisible
+            />
+            <TextType
+              as="p"
+              className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto"
+              text={[
+                "A professional esports organization dedicated to excellence in competitive gaming"
+              ]}
+              typingSpeed={28}
+              pauseDuration={1800}
+              initialDelay={600}
+              variableSpeed={{ min: 18, max: 40 }}
+              loop={false}
+              startOnVisible
+            />
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/teams" className="void-button pulse-glow">
                 Our Teams
@@ -142,15 +162,21 @@ export default function Home() {
       <section ref={teamsRef} className="py-20 bg-[#0F0F0F]">
         <div className="void-container">
           <ParallaxText speed={0.3}>
-            <h2 className="text-3xl font-bold mb-12 text-center gradient-text">
-              Our Teams
-            </h2>
+            <TextType
+              as="h2"
+              className="text-3xl font-bold mb-12 text-center gradient-text"
+              text={["Our Teams"]}
+              typingSpeed={36}
+              pauseDuration={2000}
+              loop={false}
+              startOnVisible
+            />
           </ParallaxText>
           
           <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {translatedFeaturedTeams.map((team, index) => (
               <StaggeredItem key={team.name || index}>
-                <AnimatedCard delay={index * 0.2} className="void-card group">
+                <AnimatedCard enableTilt delay={index * 0.2} className="void-card group shine-hover">
                   <div className="relative h-48 mb-4 overflow-hidden rounded-lg">
                     <GestureImage
                       src={team.image}
@@ -172,15 +198,21 @@ export default function Home() {
       <section ref={newsRef} className="py-20 bg-[#1A1A1A]">
         <div className="void-container">
           <ParallaxText speed={0.3}>
-            <h2 className="text-3xl font-bold mb-12 text-center gradient-text">
-              Latest News
-            </h2>
+            <TextType
+              as="h2"
+              className="text-3xl font-bold mb-12 text-center gradient-text"
+              text={["Latest News"]}
+              typingSpeed={36}
+              pauseDuration={2000}
+              loop={false}
+              startOnVisible
+            />
           </ParallaxText>
           
           <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {translatedLatestNews.map((news, index) => (
               <StaggeredItem key={news.title}>
-                <AnimatedCard delay={index * 0.2} className="void-card group cursor-pointer">
+                <AnimatedCard enableTilt delay={index * 0.2} className="void-card group cursor-pointer shine-hover">
                   <div className="relative h-48 mb-4 overflow-hidden rounded-lg">
                     <GestureImage
                       src={news.image}

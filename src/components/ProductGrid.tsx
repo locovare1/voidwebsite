@@ -6,6 +6,7 @@ import Pagination from './Pagination';
 import { useCart } from '@/contexts/CartContext';
 import ReviewButton from './ReviewButton';
 import { Product } from '@/data/products';
+import { AnimatedCard } from '@/components/FramerAnimations';
 
 // Extend the Product interface to include optional Firestore ID
 interface ExtendedProduct extends Product {
@@ -114,10 +115,7 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 
 			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8">
 				{currentProducts.map((product) => (
-					<div
-						key={product.id}
-						className="bg-[#1A1A1A] rounded-xl overflow-hidden relative group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-[#2A2A2A] hover:border-[#3A3A3A]"
-					>
+					<AnimatedCard key={product.id} enableTilt className="void-card shine-hover overflow-hidden group">
 						<div className="relative h-64 w-full overflow-hidden">
 							<Image
 								src={product.image && product.image.trim() ? product.image : '/logo.png'}
@@ -163,7 +161,7 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 
 							<ReviewButton productId={product.id} productName={product.name} />
 						</div>
-					</div>
+					</AnimatedCard>
 				))}
 				{currentProducts.length === 0 && (
 					<div className="col-span-full text-center py-16">

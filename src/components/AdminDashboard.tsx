@@ -1,11 +1,18 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useOrders, Order } from '@/contexts/OrderContext';
 import { reviewService, Review } from '@/lib/reviewService';
 import { formatOrderNumber } from '@/lib/orderUtils';
-import { products, Product } from '@/data/products';
+import { products, Product as StaticProduct } from '@/data/products';
+import { productService, type Product } from '@/lib/productService';
+import { newsService, type NewsArticle } from '@/lib/newsService';
+import { placementService, type Placement } from '@/lib/placementService';
+import { scheduleService, type Match } from '@/lib/scheduleService';
 import { teamService, Team, Player } from '@/lib/teamService';
+import { AnimatedCard } from '@/components/FramerAnimations';
+
 import {
   TrashIcon,
   UserIcon,
@@ -19,7 +26,11 @@ import {
   XMarkIcon,
   ChevronDownIcon,
   ChevronRightIcon,
-  ChevronUpIcon
+  ChevronUpIcon,
+  NewspaperIcon,
+  TrophyIcon,
+  CalendarIcon,
+  ChartPieIcon
 } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 
@@ -33,10 +44,11 @@ const statusColors = {
 };
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const { orders, updateOrderStatus, deleteOrder } = useOrders();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'reviews' | 'products' | 'teams'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'reviews' | 'products' | 'teams' | 'news' | 'placements' | 'schedule' | 'advanced'>('overview');
 
   // Team management state
   const [teams, setTeams] = useState<Team[]>([]);
@@ -68,6 +80,40 @@ export default function AdminDashboard() {
   const [selectedReviews, setSelectedReviews] = useState<Set<string>>(new Set());
   const [showBulkActions, setShowBulkActions] = useState(false);
 
+  // Products modal state
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [productMode, setProductMode] = useState<'create' | 'edit'>('create');
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [productForm, setProductForm] = useState<Omit<Product, 'id' | 'createdAt'>>({
+    name: '', price: 0, image: '', category: '', description: '', link: ''
+  });
+
+  // News modal state
+  const [showNewsModal, setShowNewsModal] = useState(false);
+  const [newsMode, setNewsMode] = useState<'create' | 'edit'>('create');
+  const [editingNewsId, setEditingNewsId] = useState<string | null>(null);
+  const [newsForm, setNewsForm] = useState<Omit<NewsArticle, 'id' | 'date'>>({
+    title: '', image: '', description: '', category: ''
+  });
+  const [newsDate, setNewsDate] = useState<string>('');
+
+  // Placement modal state
+  const [showPlacementModal, setShowPlacementModal] = useState(false);
+  const [placementMode, setPlacementMode] = useState<'create' | 'edit'>('create');
+  const [editingPlacementId, setEditingPlacementId] = useState<string | null>(null);
+  const [placementForm, setPlacementForm] = useState<Omit<Placement, 'id' | 'createdAt'>>({
+    game: '', tournament: '', team: '', position: '', players: [], prize: '', logo: ''
+  });
+  const [placementPlayersText, setPlacementPlayersText] = useState<string>('');
+
+  // Schedule (Match) modal state
+  const [showMatchModal, setShowMatchModal] = useState(false);
+  const [matchMode, setMatchMode] = useState<'create' | 'edit'>('create');
+  const [editingMatchId, setEditingMatchId] = useState<string | null>(null);
+  const [matchForm, setMatchForm] = useState<Omit<Match, 'id' | 'createdAt'>>({
+    game: '', event: '', opponent: '', date: '', time: '', streamLink: ''
+  });
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -86,6 +132,107 @@ export default function AdminDashboard() {
 
     loadData();
   }, []);
+
+  // Helpers: reset and open modals
+  const openCreateProduct = () => {
+    setProductMode('create');
+    setEditingProductId(null);
+    setProductForm({ name: '', price: 0, image: '', category: '', description: '', link: '' });
+    setShowProductModal(true);
+  };
+  const openEditProduct = (p: Product) => {
+    setProductMode('edit');
+    setEditingProductId(p.id!);
+    setProductForm({ name: p.name, price: p.price, image: p.image, category: p.category, description: p.description, link: p.link });
+    setShowProductModal(true);
+  };
+
+  const openCreateNews = () => {
+    setNewsMode('create');
+    setEditingNewsId(null);
+    setNewsForm({ title: '', image: '', description: '', category: '' });
+    setNewsDate('');
+    setShowNewsModal(true);
+  };
+  const openEditNews = (n: NewsArticle) => {
+    setNewsMode('edit');
+    setEditingNewsId(n.id!);
+    setNewsForm({ title: n.title, image: n.image, description: n.description, category: n.category });
+    setNewsDate(new Date(n.date.toDate()).toISOString().slice(0, 16));
+    setShowNewsModal(true);
+  };
+
+  const openCreatePlacement = () => {
+    setPlacementMode('create');
+    setEditingPlacementId(null);
+    setPlacementForm({ game: '', tournament: '', team: '', position: '', players: [], prize: '', logo: '' });
+    setPlacementPlayersText('');
+    setShowPlacementModal(true);
+  };
+  const openEditPlacement = (pl: Placement) => {
+    setPlacementMode('edit');
+    setEditingPlacementId(pl.id!);
+    setPlacementForm({ game: pl.game, tournament: pl.tournament, team: pl.team, position: pl.position, players: pl.players, prize: pl.prize, logo: pl.logo });
+    setPlacementPlayersText(pl.players.join(', '));
+    setShowPlacementModal(true);
+  };
+
+  const openCreateMatch = () => {
+    setMatchMode('create');
+    setEditingMatchId(null);
+    setMatchForm({ game: '', event: '', opponent: '', date: '', time: '', streamLink: '' });
+    setShowMatchModal(true);
+  };
+  const openEditMatch = (m: Match) => {
+    setMatchMode('edit');
+    setEditingMatchId(m.id!);
+    setMatchForm({ game: m.game, event: m.event, opponent: m.opponent, date: m.date, time: m.time, streamLink: m.streamLink });
+    setShowMatchModal(true);
+  };
+
+  // Submit handlers
+  const submitProduct = async () => {
+    try {
+      if (productMode === 'create') {
+        await productService.create(productForm);
+      } else if (editingProductId) {
+        await productService.update(editingProductId, productForm);
+      }
+      setShowProductModal(false);
+    } catch (e) { console.error(e); }
+  };
+  const submitNews = async () => {
+    try {
+      if (newsMode === 'create') {
+        await newsService.create({ ...newsForm, date: newsDate || undefined });
+      } else if (editingNewsId) {
+        // Cast to satisfy union type (service converts string to Timestamp internally)
+        await newsService.update(editingNewsId, { ...newsForm, date: (newsDate as unknown) as any });
+      }
+      setShowNewsModal(false);
+    } catch (e) { console.error(e); }
+  };
+  const submitPlacement = async () => {
+    try {
+      const payload = { ...placementForm, players: placementPlayersText.split(',').map(s => s.trim()).filter(Boolean) };
+      if (placementMode === 'create') {
+        await placementService.create(payload);
+      } else if (editingPlacementId) {
+        await placementService.update(editingPlacementId, payload);
+      }
+      setShowPlacementModal(false);
+    } catch (e) { console.error(e); }
+  };
+  const submitMatch = async () => {
+    try {
+      if (matchMode === 'create') {
+        await scheduleService.createMatch(matchForm);
+      } else if (editingMatchId) {
+        await scheduleService.updateMatch(editingMatchId, matchForm);
+      }
+      setShowMatchModal(false);
+    } catch (e) { console.error(e); }
+  };
 
   const handleStatusChange = async (orderId: string, newStatus: any) => {
     try {
@@ -403,6 +550,10 @@ export default function AdminDashboard() {
             { id: 'reviews', label: 'Reviews', icon: StarIcon },
             { id: 'products', label: 'Products', icon: UserIcon },
             { id: 'teams', label: 'Teams', icon: UserIcon },
+            { id: 'news', label: 'News', icon: NewspaperIcon },
+            { id: 'placements', label: 'Placements', icon: TrophyIcon },
+            { id: 'schedule', label: 'Schedule', icon: CalendarIcon },
+            { id: 'advanced', label: 'Advanced Analytics', icon: ChartPieIcon },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -424,7 +575,7 @@ export default function AdminDashboard() {
         <div className="space-y-6">
           {/* Enhanced Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] border border-[#3A3A3A] rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 group">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm font-medium">Total Revenue</p>
@@ -438,9 +589,9 @@ export default function AdminDashboard() {
                   <CurrencyDollarIcon className="w-8 h-8 text-green-400" />
                 </div>
               </div>
-            </div>
+            </AnimatedCard>
 
-            <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] border border-[#3A3A3A] rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 group">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm font-medium">Total Orders</p>
@@ -454,9 +605,9 @@ export default function AdminDashboard() {
                   <ShoppingBagIcon className="w-8 h-8 text-blue-400" />
                 </div>
               </div>
-            </div>
+            </AnimatedCard>
 
-            <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] border border-[#3A3A3A] rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 group">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm font-medium">Avg Order Value</p>
@@ -470,9 +621,9 @@ export default function AdminDashboard() {
                   <ChartBarIcon className="w-8 h-8 text-purple-400" />
                 </div>
               </div>
-            </div>
+            </AnimatedCard>
 
-            <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] border border-[#3A3A3A] rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 group">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm font-medium">Avg Rating</p>
@@ -486,12 +637,12 @@ export default function AdminDashboard() {
                   <StarIcon className="w-8 h-8 text-yellow-400" />
                 </div>
               </div>
-            </div>
+            </AnimatedCard>
           </div>
 
           {/* Enhanced Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] border border-[#3A3A3A] rounded-2xl p-6 hover:shadow-xl transition-all duration-300">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
               <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
                 <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                 Order Status
@@ -519,9 +670,9 @@ export default function AdminDashboard() {
                   <span className="text-blue-400 font-bold text-lg">{reviews.length}</span>
                 </div>
               </div>
-            </div>
+            </AnimatedCard>
 
-            <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] border border-[#3A3A3A] rounded-2xl p-6 hover:shadow-xl transition-all duration-300">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
               <h3 className="text-lg font-bold text-white mb-4">Recent Activity</h3>
               <div className="space-y-3">
                 {orders.slice(0, 3).map((order) => (
@@ -535,6 +686,140 @@ export default function AdminDashboard() {
                   </div>
                 ))}
               </div>
+            </AnimatedCard>
+          </div>
+        </div>
+      )}
+
+      {/* Advanced Analytics Tab */}
+      {activeTab === 'advanced' && (
+        <div className="space-y-6">
+          <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <ChartPieIcon className="w-6 h-6" />
+                Advanced Analytics
+              </h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => router.push('/adminpanel/advanced-analytics')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                >
+                  Open Advanced Analytics
+                </button>
+              </div>
+            </div>
+            <p className="text-gray-400 text-sm">Dive into deeper insights: moving averages, funnels, rating distributions, and more.</p>
+          </AnimatedCard>
+        </div>
+      )}
+
+      {/* Product Modal */}
+      {showProductModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-lg w-full">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-white">{productMode === 'create' ? 'Create' : 'Edit'} Product</h3>
+                <button onClick={() => setShowProductModal(false)} className="text-gray-400 hover:text-white">✕</button>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Name" value={productForm.name} onChange={e=>setProductForm({...productForm, name:e.target.value})} />
+                <input type="number" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Price" value={productForm.price} onChange={e=>setProductForm({...productForm, price: Number(e.target.value)})} />
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Category" value={productForm.category} onChange={e=>setProductForm({...productForm, category:e.target.value})} />
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Image URL" value={productForm.image} onChange={e=>setProductForm({...productForm, image:e.target.value})} />
+                {productForm.image?.trim() && (
+                  <div className="h-40 rounded border border-[#2A2A2A] overflow-hidden"><img src={productForm.image} className="object-contain w-full h-full" /></div>
+                )}
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Product Link" value={productForm.link} onChange={e=>setProductForm({...productForm, link:e.target.value})} />
+                <textarea className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white h-24" placeholder="Description" value={productForm.description} onChange={e=>setProductForm({...productForm, description:e.target.value})} />
+              </div>
+              <div className="flex gap-3 mt-4">
+                <button onClick={()=>setShowProductModal(false)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white py-2 rounded">Cancel</button>
+                <button onClick={submitProduct} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* News Modal */}
+      {showNewsModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-lg w-full">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-white">{newsMode === 'create' ? 'Create' : 'Edit'} News</h3>
+                <button onClick={() => setShowNewsModal(false)} className="text-gray-400 hover:text-white">✕</button>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Title" value={newsForm.title} onChange={e=>setNewsForm({...newsForm, title:e.target.value})} />
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Image URL" value={newsForm.image} onChange={e=>setNewsForm({...newsForm, image:e.target.value})} />
+                {newsForm.image?.trim() && (
+                  <div className="h-40 rounded border border-[#2A2A2A] overflow-hidden"><img src={newsForm.image} className="object-contain w-full h-full" /></div>
+                )}
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Category" value={newsForm.category} onChange={e=>setNewsForm({...newsForm, category:e.target.value})} />
+                <input type="datetime-local" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" value={newsDate} onChange={e=>setNewsDate(e.target.value)} />
+                <textarea className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white h-24" placeholder="Description" value={newsForm.description} onChange={e=>setNewsForm({...newsForm, description:e.target.value})} />
+              </div>
+              <div className="flex gap-3 mt-4">
+                <button onClick={()=>setShowNewsModal(false)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white py-2 rounded">Cancel</button>
+                <button onClick={submitNews} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Placement Modal */}
+      {showPlacementModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-lg w-full">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-white">{placementMode === 'create' ? 'Add' : 'Edit'} Placement</h3>
+                <button onClick={() => setShowPlacementModal(false)} className="text-gray-400 hover:text-white">✕</button>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Game" value={placementForm.game} onChange={e=>setPlacementForm({...placementForm, game:e.target.value})} />
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Tournament" value={placementForm.tournament} onChange={e=>setPlacementForm({...placementForm, tournament:e.target.value})} />
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Team" value={placementForm.team} onChange={e=>setPlacementForm({...placementForm, team:e.target.value})} />
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Position" value={placementForm.position} onChange={e=>setPlacementForm({...placementForm, position:e.target.value})} />
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Prize (optional)" value={placementForm.prize || ''} onChange={e=>setPlacementForm({...placementForm, prize:e.target.value})} />
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Logo URL" value={placementForm.logo} onChange={e=>setPlacementForm({...placementForm, logo:e.target.value})} />
+                {placementForm.logo?.trim() && (<div className="h-32 rounded border border-[#2A2A2A] overflow-hidden"><img src={placementForm.logo} className="object-contain w-full h-full" /></div>)}
+                <textarea className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white h-20" placeholder="Players (comma separated)" value={placementPlayersText} onChange={e=>setPlacementPlayersText(e.target.value)} />
+              </div>
+              <div className="flex gap-3 mt-4">
+                <button onClick={()=>setShowPlacementModal(false)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white py-2 rounded">Cancel</button>
+                <button onClick={submitPlacement} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Match Modal */}
+      {showMatchModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-lg w-full">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-white">{matchMode === 'create' ? 'Add' : 'Edit'} Match/Event</h3>
+                <button onClick={() => setShowMatchModal(false)} className="text-gray-400 hover:text-white">✕</button>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Game" value={matchForm.game} onChange={e=>setMatchForm({...matchForm, game:e.target.value})} />
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Event" value={matchForm.event} onChange={e=>setMatchForm({...matchForm, event:e.target.value})} />
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Opponent" value={matchForm.opponent} onChange={e=>setMatchForm({...matchForm, opponent:e.target.value})} />
+                <input type="date" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" value={matchForm.date} onChange={e=>setMatchForm({...matchForm, date:e.target.value})} />
+                <input type="time" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" value={matchForm.time} onChange={e=>setMatchForm({...matchForm, time:e.target.value})} />
+                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Stream Link" value={matchForm.streamLink} onChange={e=>setMatchForm({...matchForm, streamLink:e.target.value})} />
+              </div>
+              <div className="flex gap-3 mt-4">
+                <button onClick={()=>setShowMatchModal(false)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white py-2 rounded">Cancel</button>
+                <button onClick={submitMatch} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded">Save</button>
+              </div>
             </div>
           </div>
         </div>
@@ -544,7 +829,7 @@ export default function AdminDashboard() {
       {activeTab === 'orders' && (
         <div className="space-y-6">
           {/* Orders Header */}
-          <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] border border-[#3A3A3A] rounded-2xl p-6 shadow-2xl">
+          <AnimatedCard enableTilt className="admin-card shine-hover p-6">
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h2 className="text-2xl font-bold text-white flex items-center gap-3">
@@ -575,7 +860,7 @@ export default function AdminDashboard() {
                 <p className="text-gray-400">No orders found.</p>
               ) : (
                 filteredOrders.map((order) => (
-                  <div key={order.id} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-4">
+                  <div key={order.id} className="admin-card p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -648,14 +933,14 @@ export default function AdminDashboard() {
                 ))
               )}
             </div>
-          </div>
+          </AnimatedCard>
         </div>
       )}
 
       {/* Reviews Tab */}
       {activeTab === 'reviews' && (
         <div className="space-y-6">
-          <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] border border-[#3A3A3A] rounded-2xl p-6 shadow-2xl">
+          <AnimatedCard enableTilt className="admin-card shine-hover p-6">
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h2 className="text-2xl font-bold text-white flex items-center gap-3">
@@ -686,7 +971,7 @@ export default function AdminDashboard() {
                 <p className="text-gray-400">No reviews found.</p>
               ) : (
                 reviews.map((review) => (
-                  <div key={review.id} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-4">
+                  <div key={review.id} className="admin-card p-4">
                     <div className="flex items-start gap-3">
                       <input
                         type="checkbox"
@@ -721,10 +1006,14 @@ export default function AdminDashboard() {
                         </div>
 
                         <p className="text-gray-300 text-sm mb-2">{review.comment}</p>
-                        <div className="flex justify-between items-center text-xs text-gray-500">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-xs text-gray-500">
                           <span>Product ID: {review.productId}</span>
-                          <span>{review.createdAt.toDate().toLocaleDateString()}</span>
-                          <span className={`px-2 py-1 rounded ${review.verified ? 'bg-green-900/20 text-green-400' : 'bg-gray-900/20 text-gray-400'}`}>
+                          <span>ID: {review.id}</span>
+                          <span>Helpful: {review.helpful}</span>
+                          <span>{review.createdAt.toDate().toLocaleString()}</span>
+                        </div>
+                        <div className="mt-2">
+                          <span className={`px-2 py-1 rounded text-xs ${review.verified ? 'bg-green-900/20 text-green-400' : 'bg-gray-900/20 text-gray-400'}`}>
                             {review.verified ? 'Verified' : 'Unverified'}
                           </span>
                         </div>
@@ -734,22 +1023,112 @@ export default function AdminDashboard() {
                 ))
               )}
             </div>
-          </div>
+          </AnimatedCard>
+        </div>
+      )}
+
+      {/* News Tab */}
+      {activeTab === 'news' && (
+        <div className="space-y-6">
+          <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                Manage News
+              </h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => router.push('/adminpanel/news')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                >
+                  Open News Manager
+                </button>
+                <button
+                  onClick={() => openCreateNews()}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                >
+                  Create News
+                </button>
+              </div>
+            </div>
+            <p className="text-gray-400 text-sm">Create, edit, and delete news posts. Use the News Manager page for full controls.</p>
+          </AnimatedCard>
+        </div>
+      )}
+
+      {/* Placements Tab */}
+      {activeTab === 'placements' && (
+        <div className="space-y-6">
+          <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                Manage Placements
+              </h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => router.push('/adminpanel/placements')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                >
+                  Open Placements Manager
+                </button>
+                <button
+                  onClick={() => openCreatePlacement()}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                >
+                  Add Placement
+                </button>
+              </div>
+            </div>
+            <p className="text-gray-400 text-sm">Add new tournament placements or edit existing results and metadata.</p>
+          </AnimatedCard>
+        </div>
+      )}
+
+      {/* Schedule Tab */}
+      {activeTab === 'schedule' && (
+        <div className="space-y-6">
+          <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                Manage Schedule
+              </h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => router.push('/adminpanel/schedule')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                >
+                  Open Schedule Manager
+                </button>
+                <button
+                  onClick={() => openCreateMatch()}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                >
+                  Add Match/Event
+                </button>
+              </div>
+            </div>
+            <p className="text-gray-400 text-sm">Create or edit matches, dates, teams, and status from the Schedule Manager page.</p>
+          </AnimatedCard>
         </div>
       )}
 
       {/* Products Tab */}
       {activeTab === 'products' && (
         <div className="space-y-6">
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <UserIcon className="w-6 h-6" />
-              Products Catalog
-            </h2>
+          <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <UserIcon className="w-6 h-6" />
+                Products Catalog
+              </h2>
+              <div className="flex gap-2">
+                <button onClick={openCreateProduct} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Create Product</button>
+                <button onClick={() => router.push('/adminpanel/products')} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Open Products Manager</button>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map((product) => (
-                <div key={product.id} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-4">
+                <AnimatedCard key={product.id} enableTilt className="admin-card p-4">
                   <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
                     <Image
                       src={product.image}
@@ -769,10 +1148,18 @@ export default function AdminDashboard() {
                   <div className="mt-3 pt-3 border-t border-[#2A2A2A]">
                     <p className="text-gray-500 text-xs">Product ID: {product.id}</p>
                   </div>
-                </div>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() => openEditProduct({ id: String(product.id), name: product.name, price: product.price, image: product.image, category: product.category, description: product.description, link: product.link, createdAt: undefined as any })}
+                      className="bg-yellow-600/20 hover:bg-yellow-600/30 border border-yellow-600/30 text-yellow-400 px-3 py-1 rounded text-sm"
+                    >
+                      Edit (Modal)
+                    </button>
+                  </div>
+                </AnimatedCard>
               ))}
             </div>
-          </div>
+          </AnimatedCard>
         </div>
       )}
 
@@ -900,6 +1287,13 @@ export default function AdminDashboard() {
                                       className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
                                       placeholder="Player Image URL"
                                     />
+                                    {editingPlayer.player.image?.trim() && (
+                                      <div className="mt-2 rounded-lg overflow-hidden border border-[#2A2A2A] bg-black/40">
+                                        <div className="h-32 w-full">
+                                          <img src={editingPlayer.player.image} alt="Preview" className="object-contain w-full h-full" />
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
 
                                   {/* Achievements */}
@@ -1163,6 +1557,14 @@ export default function AdminDashboard() {
                     className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
                     placeholder="Player image URL"
                   />
+                  {newPlayer.image?.trim() && (
+                    <div className="mt-3 rounded-lg overflow-hidden border border-[#2A2A2A] bg-black/40">
+                      <div className="h-40 w-full">
+                        {/* Use img tag to avoid domain restrictions in admin */}
+                        <img src={newPlayer.image} alt="Preview" className="object-contain w-full h-full" />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div>

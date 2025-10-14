@@ -28,6 +28,51 @@ function MotionErrorBoundary({ children, fallback }: { children: React.ReactNode
 // Check if Framer Motion is available
 const isMotionAvailable = typeof motion !== 'undefined';
 
+// Mouse tilt wrapper for subtle 3D parallax on hover
+export function MouseTilt({
+  children,
+  className = "",
+  maxTilt = 10,
+  scaleOnHover = 1.015,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  maxTilt?: number;
+  scaleOnHover?: number;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  if (!isMotionAvailable) {
+    return <div className={className}>{children}</div>;
+  }
+
+  return (
+    <MotionErrorBoundary>
+      <motion.div
+        ref={ref}
+        className={className}
+        onMouseMove={(e) => {
+          if (!ref.current) return;
+          const rect = ref.current.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const midX = rect.width / 2;
+          const midY = rect.height / 2;
+          const rotY = ((x - midX) / midX) * maxTilt;
+          const rotX = -((y - midY) / midY) * maxTilt;
+          ref.current.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${scaleOnHover})`;
+        }}
+        onMouseLeave={() => {
+          if (ref.current) ref.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+        }}
+        style={{ transition: 'transform 200ms ease-out', willChange: 'transform' }}
+      >
+        {children}
+      </motion.div>
+    </MotionErrorBoundary>
+  );
+}
+
 // Advanced motion variants for different animation types
 export const motionVariants = {
   // Hero section animations
@@ -41,6 +86,34 @@ export const motionVariants = {
         ease: easeOut,
         delay: 0.15
       }
+    }
+  },
+  // Subtle blur-in for content
+  blurIn: {
+    hidden: { opacity: 0, filter: 'blur(8px)', y: 12 },
+    visible: {
+      opacity: 1,
+      filter: 'blur(0px)',
+      y: 0,
+      transition: { duration: 0.5, ease: easeOut }
+    }
+  },
+  // Scale and fade for hero cards/sections
+  scaleIn: {
+    hidden: { opacity: 0, scale: 0.96 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.5, ease: easeOut }
+    }
+  },
+  // Mask-like text/content reveal
+  maskReveal: {
+    hidden: { opacity: 0, clipPath: 'inset(0 100% 0 0)' },
+    visible: {
+      opacity: 1,
+      clipPath: 'inset(0 0% 0 0)',
+      transition: { duration: 0.7, ease: easeOut }
     }
   },
   heroSubtitle: {
@@ -201,11 +274,13 @@ export function AnimatedHeroSection({ children }: { children: React.ReactNode })
 export function AnimatedCard({ 
   children, 
   className = "",
-  delay = 0 
+  delay = 0,
+  enableTilt = false,
 }: { 
   children: React.ReactNode;
   className?: string;
   delay?: number;
+  enableTilt?: boolean;
 }) {
   if (!isMotionAvailable) {
     return <div className={className}>{children}</div>;
@@ -213,16 +288,30 @@ export function AnimatedCard({
 
   return (
     <MotionErrorBoundary>
-      <motion.div
-        variants={motionVariants.card}
-        initial="hidden"
-        animate="visible"
-        whileHover="hover"
-        transition={{ delay }}
-        className={className}
-      >
-        {children}
-      </motion.div>
+      {enableTilt ? (
+        <MouseTilt className={className}>
+          <motion.div
+            variants={motionVariants.card}
+            initial="hidden"
+            animate="visible"
+            whileHover="hover"
+            transition={{ delay }}
+          >
+            {children}
+          </motion.div>
+        </MouseTilt>
+      ) : (
+        <motion.div
+          variants={motionVariants.card}
+          initial="hidden"
+          animate="visible"
+          whileHover="hover"
+          transition={{ delay }}
+          className={className}
+        >
+          {children}
+        </motion.div>
+      )}
     </MotionErrorBoundary>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { Viewport } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
@@ -11,6 +12,8 @@ import { CartProvider } from "@/contexts/CartContext";
 import { OrderProvider } from "@/contexts/OrderContext";
 import { ReviewProvider } from "@/contexts/ReviewContext";
 import { DebugProvider } from "@/contexts/DebugContext";
+import GlobalTextTypewriter from "@/components/GlobalTextTypewriter";
+
 // Removed LanguageProvider import
 
 const inter = Inter({ subsets: ["latin"] });
@@ -43,10 +46,11 @@ export const metadata: Metadata = {
     images: ["/logos/icon-512.png"],
   },
   manifest: "/manifest.webmanifest",
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-  },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
   themeColor: '#000000',
 };
 
@@ -74,6 +78,8 @@ export default function RootLayout({
               <ReviewProvider>
                 <GlobalErrorBoundary>
                   <AdvancedPageTransition>
+                    {/* Global typewriter for non-admin routes (component self-excludes admin) */}
+                    <GlobalTextTypewriter />
                     <ScrollToTop />
                     {/* We'll handle navbar visibility in the client-side components */}
                     <Navbar />

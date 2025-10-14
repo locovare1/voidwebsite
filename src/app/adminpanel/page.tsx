@@ -80,7 +80,7 @@ export default function AdminPanelPage() {
   if (!isAuthenticated) {
     return (
       <div className="pt-20 min-h-screen bg-[#0F0F0F] flex items-center justify-center">
-        <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-8 max-w-md w-full mx-4">
+        <div className="admin-card glass shine-hover rounded-xl p-8 max-w-md w-full mx-4">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold gradient-text mb-2">Admin Panel</h1>
             <p className="text-gray-400">Sign in with your admin account</p>
@@ -95,7 +95,7 @@ export default function AdminPanelPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
+                className="w-full bg-[#0F0F0F] border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
                 placeholder="admin@example.com"
                 required
               />
@@ -109,7 +109,7 @@ export default function AdminPanelPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
+                className="w-full bg-[#0F0F0F] border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
                 placeholder="Enter your password"
                 required
               />
@@ -121,13 +121,13 @@ export default function AdminPanelPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-bold py-2 px-4 rounded-lg transition-all duration-300 glow-on-hover disabled:opacity-50"
+              className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-bold py-2 px-4 rounded-lg transition-all duration-300 glow-on-hover shine-hover disabled:opacity-50"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
-          <div className="mt-6 p-3 bg-[#0F0F0F] rounded-lg border border-[#2A2A2A]">
+          <div className="mt-6 p-3 bg-[#0F0F0F] rounded-lg border border-white/10">
             <p className="text-xs text-gray-500 text-center">
               Use your Firebase Authentication credentials
             </p>
