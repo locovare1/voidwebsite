@@ -12,6 +12,7 @@ import { placementService, type Placement } from '@/lib/placementService';
 import { scheduleService, type Match } from '@/lib/scheduleService';
 import { teamService, Team, Player } from '@/lib/teamService';
 import { AnimatedCard } from '@/components/FramerAnimations';
+import { processDiscordImageUrl } from '@/lib/imageUtils';
 
 import {
   TrashIcon,
@@ -1291,7 +1292,7 @@ export default function AdminDashboard() {
                                       <div className="mt-2 rounded-lg overflow-hidden border border-[#2A2A2A] bg-black/40">
                                         <div className="h-32 w-full flex items-center justify-center">
                                           <img 
-                                            src={editingPlayer.player.image} 
+                                            src={processDiscordImageUrl(editingPlayer.player.image)} 
                                             alt="Preview" 
                                             className="object-contain w-full h-full" 
                                             onError={(e) => {
@@ -1579,13 +1580,16 @@ export default function AdminDashboard() {
                     value={newPlayer.image}
                     onChange={(e) => setNewPlayer({ ...newPlayer, image: e.target.value })}
                     className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
-                    placeholder="Player image URL"
+                    placeholder="Player image URL (Discord, Imgur, etc.)"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    💡 Tip: For Discord images, right-click → "Copy image address" for best results
+                  </p>
                   {newPlayer.image?.trim() && (
                     <div className="mt-3 rounded-lg overflow-hidden border border-[#2A2A2A] bg-black/40">
                       <div className="h-40 w-full flex items-center justify-center">
                         <img 
-                          src={newPlayer.image} 
+                          src={processDiscordImageUrl(newPlayer.image)} 
                           alt="Preview" 
                           className="object-contain w-full h-full" 
                           onError={(e) => {
@@ -1595,7 +1599,9 @@ export default function AdminDashboard() {
                             if (parent && !parent.querySelector('.error-message')) {
                               const errorDiv = document.createElement('div');
                               errorDiv.className = 'error-message text-red-400 text-sm text-center';
-                              errorDiv.textContent = 'Failed to load image. Please check the URL.';
+                              errorDiv.textContent = newPlayer.image?.includes('discord') 
+                                ? 'Discord image failed to load. Try uploading to Imgur or use a direct image link.'
+                                : 'Failed to load image. Please check the URL.';
                               parent.appendChild(errorDiv);
                             }
                           }}

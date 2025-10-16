@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Elements } from '@stripe/react-stripe-js';
-import stripePromise from '@/lib/stripe';
+import getStripe from '@/lib/stripe';
 import CheckoutForm from './CheckoutForm';
 import { useOrders, Order } from '@/contexts/OrderContext';
 import { useCart } from '@/contexts/CartContext';
@@ -581,7 +581,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
             <>
               {/* Payment Form */}
               {clientSecret && (
-                <Elements options={options} stripe={stripePromise}>
+                <Elements options={options} stripe={getStripe()}>
                   <CheckoutForm 
                     clientSecret={clientSecret}
                     customerInfo={customerInfo}

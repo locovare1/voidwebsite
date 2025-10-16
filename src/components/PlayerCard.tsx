@@ -1,6 +1,7 @@
 "use client";
 
 import Image from 'next/image';
+import { processDiscordImageUrl, getFallbackImageUrl, isOptimizableImageUrl } from '@/lib/imageUtils';
 
 interface PlayerCardProps {
   name: string;
@@ -23,29 +24,24 @@ export default function PlayerCard({
   achievements = [], 
   socialLinks = {} 
 }: PlayerCardProps) {
+  const processedImage = image ? processDiscordImageUrl(image) : getFallbackImageUrl();
+  const shouldOptimize = isOptimizableImageUrl(processedImage);
+
   return (
     <div 
       className="player-card group cursor-pointer transition-transform duration-300 hover:-translate-y-1"
     >
       <div className="relative h-64 mb-4 overflow-hidden rounded-lg">
-        {image && image.startsWith('http') ? (
-          <img
-            src={image}
-            alt={name}
-            className="player-card-image object-cover w-full h-full"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = '/logo.png'; // Fallback image
-            }}
-          />
-        ) : (
-          <Image
-            src={image || '/logo.png'}
-            alt={name}
-            fill
-            className="player-card-image object-cover"
-          />
-        )}
+        <Image
+          src={processedImage}
+          alt={name}
+          fill
+          className="player-card-image object-cover"
+          unoptimized={!shouldOptimize}
+          onError={() => {
+            console.warn(`Failed to load image for ${name}: ${image}`);
+          }}
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
         {/* Game Badge */}
