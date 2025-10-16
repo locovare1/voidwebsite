@@ -12,7 +12,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { OrderProvider } from "@/contexts/OrderContext";
 import { ReviewProvider } from "@/contexts/ReviewContext";
 import { DebugProvider } from "@/contexts/DebugContext";
-import GlobalTextTypewriter from "@/components/GlobalTextTypewriter";
+
 
 // Removed LanguageProvider import
 
@@ -78,8 +78,7 @@ export default function RootLayout({
               <ReviewProvider>
                 <GlobalErrorBoundary>
                   <AdvancedPageTransition>
-                    {/* Global typewriter for non-admin routes (component self-excludes admin) */}
-                    <GlobalTextTypewriter />
+
                     <ScrollToTop />
                     {/* We'll handle navbar visibility in the client-side components */}
                     <Navbar />

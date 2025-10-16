@@ -28,12 +28,24 @@ export default function PlayerCard({
       className="player-card group cursor-pointer transition-transform duration-300 hover:-translate-y-1"
     >
       <div className="relative h-64 mb-4 overflow-hidden rounded-lg">
-        <Image
-          src={image}
-          alt={name}
-          fill
-          className="player-card-image object-cover"
-        />
+        {image && image.startsWith('http') ? (
+          <img
+            src={image}
+            alt={name}
+            className="player-card-image object-cover w-full h-full"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = '/logo.png'; // Fallback image
+            }}
+          />
+        ) : (
+          <Image
+            src={image || '/logo.png'}
+            alt={name}
+            fill
+            className="player-card-image object-cover"
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
         {/* Game Badge */}

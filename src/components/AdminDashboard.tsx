@@ -1289,8 +1289,32 @@ export default function AdminDashboard() {
                                     />
                                     {editingPlayer.player.image?.trim() && (
                                       <div className="mt-2 rounded-lg overflow-hidden border border-[#2A2A2A] bg-black/40">
-                                        <div className="h-32 w-full">
-                                          <img src={editingPlayer.player.image} alt="Preview" className="object-contain w-full h-full" />
+                                        <div className="h-32 w-full flex items-center justify-center">
+                                          <img 
+                                            src={editingPlayer.player.image} 
+                                            alt="Preview" 
+                                            className="object-contain w-full h-full" 
+                                            onError={(e) => {
+                                              const target = e.target as HTMLImageElement;
+                                              target.style.display = 'none';
+                                              const parent = target.parentElement;
+                                              if (parent && !parent.querySelector('.error-message')) {
+                                                const errorDiv = document.createElement('div');
+                                                errorDiv.className = 'error-message text-red-400 text-sm text-center';
+                                                errorDiv.textContent = 'Failed to load image';
+                                                parent.appendChild(errorDiv);
+                                              }
+                                            }}
+                                            onLoad={(e) => {
+                                              const target = e.target as HTMLImageElement;
+                                              const parent = target.parentElement;
+                                              const errorMsg = parent?.querySelector('.error-message');
+                                              if (errorMsg) {
+                                                errorMsg.remove();
+                                              }
+                                              target.style.display = 'block';
+                                            }}
+                                          />
                                         </div>
                                       </div>
                                     )}
@@ -1309,7 +1333,7 @@ export default function AdminDashboard() {
                                         }
                                       })}
                                       className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
-                                      placeholder="Achievements (comma separated) - e.g. Champion 2023, MVP Award, Top Fragger"
+                                      placeholder="Achievements (comma separated) - e.g. FNCS Grand Finals, 2500+ Earnings, Top 10 Placement"
                                     />
                                   </div>
 
@@ -1559,9 +1583,32 @@ export default function AdminDashboard() {
                   />
                   {newPlayer.image?.trim() && (
                     <div className="mt-3 rounded-lg overflow-hidden border border-[#2A2A2A] bg-black/40">
-                      <div className="h-40 w-full">
-                        {/* Use img tag to avoid domain restrictions in admin */}
-                        <img src={newPlayer.image} alt="Preview" className="object-contain w-full h-full" />
+                      <div className="h-40 w-full flex items-center justify-center">
+                        <img 
+                          src={newPlayer.image} 
+                          alt="Preview" 
+                          className="object-contain w-full h-full" 
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent && !parent.querySelector('.error-message')) {
+                              const errorDiv = document.createElement('div');
+                              errorDiv.className = 'error-message text-red-400 text-sm text-center';
+                              errorDiv.textContent = 'Failed to load image. Please check the URL.';
+                              parent.appendChild(errorDiv);
+                            }
+                          }}
+                          onLoad={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            const parent = target.parentElement;
+                            const errorMsg = parent?.querySelector('.error-message');
+                            if (errorMsg) {
+                              errorMsg.remove();
+                            }
+                            target.style.display = 'block';
+                          }}
+                        />
                       </div>
                     </div>
                   )}
@@ -1579,7 +1626,7 @@ export default function AdminDashboard() {
                       achievements: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
                     })}
                     className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
-                    placeholder="e.g. Champion 2023, MVP Award, Top Fragger"
+                    placeholder="e.g. FNCS Grand Finals, 2500+ Earnings, Top 10 Placement"
                   />
                 </div>
                 

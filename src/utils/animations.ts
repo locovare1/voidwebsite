@@ -49,7 +49,7 @@ export const ANIMATION_CLASSES = {
   // Special effects
   FLOATING: 'floating',
   GLOW_ON_HOVER: 'glow-on-hover',
-  TEXT_REVEAL: 'text-reveal',
+
   PULSE_GLOW: 'pulse-glow',
   NAVBAR_ANIMATE: 'navbar-animate',
   

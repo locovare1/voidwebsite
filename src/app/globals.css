@@ -232,29 +232,7 @@ body {
   opacity: 1;
 }
 
-/* Text Reveal Animation */
-.text-reveal {
-  overflow: hidden;
-  position: relative;
-}
 
-.text-reveal::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #0F0F0F;
-  transform: translateX(-100%);
-  animation: textReveal 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-
-@keyframes textReveal {
-  to {
-    transform: translateX(100%);
-  }
-}
 
 /* Smooth Scroll Behavior */
 html {
