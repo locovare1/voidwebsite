@@ -1603,16 +1603,26 @@ export default function AdminDashboard() {
                           src={processDiscordImageUrl(newPlayer.image)} 
                           alt="Preview" 
                           className="object-contain w-full h-full" 
+                          crossOrigin="anonymous"
+                          referrerPolicy="no-referrer"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
                             const parent = target.parentElement;
                             if (parent && !parent.querySelector('.error-message')) {
                               const errorDiv = document.createElement('div');
-                              errorDiv.className = 'error-message text-red-400 text-sm text-center';
-                              errorDiv.textContent = newPlayer.image?.includes('discord') 
-                                ? 'Discord image failed to load. Try uploading to Imgur or use a direct image link.'
-                                : 'Failed to load image. Please check the URL.';
+                              errorDiv.className = 'error-message text-red-400 text-sm text-center p-4';
+                              if (newPlayer.image?.includes('discord')) {
+                                errorDiv.innerHTML = `
+                                  <div>❌ Discord image failed to load</div>
+                                  <div class="text-xs mt-2">Try these alternatives:</div>
+                                  <div class="text-xs">• Upload to <a href="https://imgur.com" target="_blank" class="text-blue-400 underline">Imgur</a></div>
+                                  <div class="text-xs">• Use a different image host</div>
+                                  <div class="text-xs">• Right-click → "Copy image address" in Discord</div>
+                                `;
+                              } else {
+                                errorDiv.textContent = 'Failed to load image. Please check the URL.';
+                              }
                               parent.appendChild(errorDiv);
                             }
                           }}

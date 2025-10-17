@@ -7,7 +7,7 @@
  * Discord URLs often have expiration tokens and parameters that can cause issues
  */
 export function processDiscordImageUrl(url: string): string {
-  if (!url.includes('discord')) {
+  if (!url || !url.includes('discord')) {
     return url;
   }
 
@@ -19,9 +19,25 @@ export function processDiscordImageUrl(url: string): string {
     urlObj.searchParams.delete('is');
     urlObj.searchParams.delete('hm');
     
-    // Keep format and quality parameters as they're useful
-    // urlObj.searchParams.delete('format');
-    // urlObj.searchParams.delete('quality');
+    // For Discord, sometimes removing all parameters helps with CORS
+    // Keep only essential ones
+    const format = urlObj.searchParams.get('format');
+    const width = urlObj.searchParams.get('width');
+    const height = urlObj.searchParams.get('height');
+    
+    // Clear all parameters
+    urlObj.search = '';
+    
+    // Add back only the safe ones
+    if (format && ['webp', 'png', 'jpg', 'jpeg'].includes(format)) {
+      urlObj.searchParams.set('format', format);
+    }
+    if (width && parseInt(width) > 0) {
+      urlObj.searchParams.set('width', Math.min(parseInt(width), 1024).toString());
+    }
+    if (height && parseInt(height) > 0) {
+      urlObj.searchParams.set('height', Math.min(parseInt(height), 1024).toString());
+    }
     
     return urlObj.toString();
   } catch (error) {

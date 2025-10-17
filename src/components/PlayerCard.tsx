@@ -1,7 +1,6 @@
 "use client";
 
-import Image from 'next/image';
-import { processDiscordImageUrl, getFallbackImageUrl, isOptimizableImageUrl } from '@/lib/imageUtils';
+import SafeImage from './SafeImage';
 
 interface PlayerCardProps {
   name: string;
@@ -24,20 +23,16 @@ export default function PlayerCard({
   achievements = [], 
   socialLinks = {} 
 }: PlayerCardProps) {
-  const processedImage = image ? processDiscordImageUrl(image) : getFallbackImageUrl();
-  const shouldOptimize = isOptimizableImageUrl(processedImage);
-
   return (
     <div 
       className="player-card group cursor-pointer transition-transform duration-300 hover:-translate-y-1"
     >
       <div className="relative h-64 mb-4 overflow-hidden rounded-lg">
-        <Image
-          src={processedImage}
+        <SafeImage
+          src={image || '/logo.png'}
           alt={name}
           fill
           className="player-card-image object-cover"
-          unoptimized={!shouldOptimize}
           onError={() => {
             console.warn(`Failed to load image for ${name}: ${image}`);
           }}

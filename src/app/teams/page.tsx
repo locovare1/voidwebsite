@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import AnimatedSection from '@/components/AnimatedSection';
 import PlayerCard from '@/components/PlayerCard';
 import { teamService, type Team as FSTeam } from '@/lib/teamService';
+import { db } from '@/lib/firebase';
 
 type DisplayTeam = {
   name: string;
@@ -140,11 +141,12 @@ export default function TeamsPage() {
   const [teams, setTeams] = useState<DisplayTeam[]>(fallbackTeams);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const loadTeams = async () => {
+  const loadTeams = useCallback(async () => {
     try {
-      console.log('Loading teams from Firebase...', new Date().toISOString());
+      console.log('🔄 Loading teams from Firebase...', new Date().toISOString());
       const items = await teamService.getAll();
-      console.log('Loaded teams:', items.length, 'teams found');
+      console.log('📊 Firebase response:', items);
+      console.log('✅ Loaded teams:', items.length, 'teams found');
       
       if (items && items.length > 0) {
         const mapped: DisplayTeam[] = items.map((t: FSTeam) => ({
@@ -162,20 +164,24 @@ export default function TeamsPage() {
           })),
         }));
         setTeams(mapped);
-        console.log('Teams updated:', mapped);
+        console.log('🎯 Teams state updated:', mapped);
       } else {
-        console.log('No teams found, using fallback');
+        console.log('⚠️ No teams found in Firebase, using fallback data');
         setTeams(fallbackTeams);
       }
     } catch (error) {
       console.error('Error loading teams:', error);
       setTeams(fallbackTeams);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    loadTeams();
-  }, [refreshKey]);
+    if (refreshKey === 0) {
+      loadTeams(); // Initial load
+    } else {
+      loadTeams(); // Refresh
+    }
+  }, [refreshKey, loadTeams]);
 
   // Add a refresh function that can be called manually
   useEffect(() => {
@@ -251,15 +257,27 @@ export default function TeamsPage() {
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold gradient-text">Our Teams</h1>
             {process.env.NODE_ENV === 'development' && (
-              <button 
-                onClick={() => {
-                  setRefreshKey(prev => prev + 1);
-                  loadTeams();
-                }}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-              >
-                🔄 Refresh Teams Data
-              </button>
+              <div className="mt-4 space-x-2">
+                <button 
+                  onClick={() => {
+                    setRefreshKey(prev => prev + 1);
+                    loadTeams();
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                >
+                  🔄 Refresh Teams Data
+                </button>
+                <button 
+                  onClick={() => {
+                    console.log('Current teams state:', teams);
+                    console.log('Teams count:', teams.length);
+                    console.log('Firebase available:', !!db);
+                  }}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700"
+                >
+                  🔍 Debug Info
+                </button>
+              </div>
             )}
           </div>
         </AnimatedSection>

@@ -16,6 +16,7 @@ export { default as LoadingSpinner } from './LoadingSpinner';
 export { default as ScrollToTop } from './ScrollToTop';
 export { default as SectionHeader } from './SectionHeader';
 export { default as PlayerCard } from './PlayerCard';
+export { default as SafeImage } from './SafeImage';
 export { default as ProductGrid } from './ProductGrid';
 export { default as PlacementGrid } from './PlacementGrid';
 export { default as ParallaxElement } from './ParallaxElement';
