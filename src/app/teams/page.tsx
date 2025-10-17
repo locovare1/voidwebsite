@@ -144,7 +144,11 @@ export default function TeamsPage() {
   const loadTeams = useCallback(async () => {
     try {
       console.log('🔄 Loading teams from Firebase...', new Date().toISOString());
-      const items = await teamService.getAll();
+      const items = await teamService.getAll().catch(error => {
+        console.error('Firebase getAll error:', error);
+        return [];
+      });
+      
       console.log('📊 Firebase response:', items);
       console.log('✅ Loaded teams:', items.length, 'teams found');
       
@@ -170,7 +174,8 @@ export default function TeamsPage() {
         setTeams(fallbackTeams);
       }
     } catch (error) {
-      console.error('Error loading teams:', error);
+      console.error('❌ Error loading teams:', error);
+      console.log('🔄 Using fallback teams due to error');
       setTeams(fallbackTeams);
     }
   }, []);
@@ -191,9 +196,19 @@ export default function TeamsPage() {
       }
     };
 
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('🚨 Unhandled promise rejection:', event.reason);
+      event.preventDefault(); // Prevent the default browser behavior
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, [loadTeams]);
 
   const handleOwnershipClick = () => {
     const newClickCount = ownershipClicks + 1;

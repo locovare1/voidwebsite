@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { processDiscordImageUrl, getFallbackImageUrl } from '@/lib/imageUtils';
+import { processExternalImageUrl, getFallbackImageUrl, isTrustedImageHost } from '@/lib/imageUtils';
 
 interface SafeImageProps {
   src: string;
@@ -32,11 +32,11 @@ export default function SafeImage({
     setHasError(true);
     setIsLoading(false);
     
-    if (currentSrc === src && src.includes('discord')) {
-      // Try processed Discord URL first
-      const processedUrl = processDiscordImageUrl(src);
+    if (currentSrc === src && src.startsWith('http')) {
+      // Try processed external URL first
+      const processedUrl = processExternalImageUrl(src);
       if (processedUrl !== src) {
-        console.log('Trying processed Discord URL:', processedUrl);
+        console.log('Trying processed external URL:', processedUrl);
         setCurrentSrc(processedUrl);
         setHasError(false);
         setIsLoading(true);
@@ -61,8 +61,8 @@ export default function SafeImage({
     setHasError(false);
   };
 
-  // For Discord URLs, use regular img tag to avoid Next.js domain restrictions
-  if (src.includes('discord')) {
+  // For external URLs that might have CORS issues, use regular img tag
+  if (src.startsWith('http') && !isTrustedImageHost(src)) {
     return (
       <div className={`relative ${className}`} style={fill ? { width: '100%', height: '100%' } : {}}>
         {isLoading && (
@@ -84,7 +84,9 @@ export default function SafeImage({
           <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
             <div className="text-gray-400 text-sm text-center">
               <div>Failed to load image</div>
-              <div className="text-xs mt-1">Discord image unavailable</div>
+              <div className="text-xs mt-1">
+                {src.includes('discord') ? 'Discord image unavailable' : 'External image unavailable'}
+              </div>
             </div>
           </div>
         )}

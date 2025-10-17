@@ -12,7 +12,7 @@ import { placementService, type Placement } from '@/lib/placementService';
 import { scheduleService, type Match } from '@/lib/scheduleService';
 import { teamService, Team, Player } from '@/lib/teamService';
 import { AnimatedCard } from '@/components/FramerAnimations';
-import { processDiscordImageUrl } from '@/lib/imageUtils';
+import { processExternalImageUrl } from '@/lib/imageUtils';
 
 import {
   TrashIcon,
@@ -324,7 +324,7 @@ export default function AdminDashboard() {
       alert('Player added successfully! Changes should appear on the teams page.');
     } catch (error) {
       console.error('Error adding player:', error);
-      alert('Failed to add player');
+      alert(`Failed to add player: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoadingTeams(false);
     }
@@ -346,7 +346,7 @@ export default function AdminDashboard() {
       alert('Player updated successfully! Changes should appear on the teams page.');
     } catch (error) {
       console.error('Error updating player:', error);
-      alert('Failed to update player');
+      alert(`Failed to update player: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoadingTeams(false);
     }
@@ -461,7 +461,7 @@ export default function AdminDashboard() {
       alert('Team updated successfully! Changes should appear on the teams page.');
     } catch (error) {
       console.error('Error updating team:', error);
-      alert('Failed to update team');
+      alert(`Failed to update team: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoadingTeams(false);
     }
@@ -1303,7 +1303,7 @@ export default function AdminDashboard() {
                                       <div className="mt-2 rounded-lg overflow-hidden border border-[#2A2A2A] bg-black/40">
                                         <div className="h-32 w-full flex items-center justify-center">
                                           <img 
-                                            src={processDiscordImageUrl(editingPlayer.player.image)} 
+                                            src={processExternalImageUrl(editingPlayer.player.image)} 
                                             alt="Preview" 
                                             className="object-contain w-full h-full" 
                                             onError={(e) => {
@@ -1600,7 +1600,7 @@ export default function AdminDashboard() {
                     <div className="mt-3 rounded-lg overflow-hidden border border-[#2A2A2A] bg-black/40">
                       <div className="h-40 w-full flex items-center justify-center">
                         <img 
-                          src={processDiscordImageUrl(newPlayer.image)} 
+                          src={processExternalImageUrl(newPlayer.image)} 
                           alt="Preview" 
                           className="object-contain w-full h-full" 
                           crossOrigin="anonymous"
@@ -1621,7 +1621,13 @@ export default function AdminDashboard() {
                                   <div class="text-xs">• Right-click → "Copy image address" in Discord</div>
                                 `;
                               } else {
-                                errorDiv.textContent = 'Failed to load image. Please check the URL.';
+                                errorDiv.innerHTML = `
+                                  <div>❌ External image failed to load</div>
+                                  <div class="text-xs mt-2">Suggestions:</div>
+                                  <div class="text-xs">• Check if URL is accessible</div>
+                                  <div class="text-xs">• Try uploading to <a href="https://imgur.com" target="_blank" class="text-blue-400 underline">Imgur</a></div>
+                                  <div class="text-xs">• Use a direct image link</div>
+                                `;
                               }
                               parent.appendChild(errorDiv);
                             }

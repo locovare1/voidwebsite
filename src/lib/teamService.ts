@@ -43,10 +43,15 @@ const TEAMS_COLLECTION = 'teams';
 
 export const teamService = {
   async getAll(): Promise<Team[]> {
-    if (!isBrowser || !db) return [];
-    const q = query(collection(db, TEAMS_COLLECTION), orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...(d.data() as Omit<Team, 'id'>) }));
+    try {
+      if (!isBrowser || !db) return [];
+      const q = query(collection(db, TEAMS_COLLECTION), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...(d.data() as Omit<Team, 'id'>) }));
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+      return [];
+    }
   },
 
   async getById(id: string): Promise<Team | null> {
@@ -68,11 +73,16 @@ export const teamService = {
   },
 
   async update(id: string, updates: Partial<Omit<Team, 'id'>> & { createdAt?: Timestamp | string }): Promise<void> {
-    if (!isBrowser || !db) return;
-    const ref = doc(db, TEAMS_COLLECTION, id);
-    const payload: any = { ...updates };
-    if (typeof updates.createdAt === 'string') payload.createdAt = Timestamp.fromDate(new Date(updates.createdAt));
-    await updateDoc(ref, payload);
+    try {
+      if (!isBrowser || !db) return;
+      const ref = doc(db, TEAMS_COLLECTION, id);
+      const payload: any = { ...updates };
+      if (typeof updates.createdAt === 'string') payload.createdAt = Timestamp.fromDate(new Date(updates.createdAt));
+      await updateDoc(ref, payload);
+    } catch (error) {
+      console.error('Error updating team:', error);
+      throw error; // Re-throw so the UI can handle it
+    }
   },
 
   async remove(id: string): Promise<void> {
@@ -82,20 +92,30 @@ export const teamService = {
 
   // Player-level helpers operate on the team's players array
   async addPlayer(teamId: string, player: Player): Promise<void> {
-    if (!isBrowser || !db) return;
-    const team = await this.getById(teamId);
-    if (!team) return;
-    const updated = [...(team.players || []), player];
-    await updateDoc(doc(db, TEAMS_COLLECTION, teamId), { players: updated });
+    try {
+      if (!isBrowser || !db) return;
+      const team = await this.getById(teamId);
+      if (!team) throw new Error('Team not found');
+      const updated = [...(team.players || []), player];
+      await updateDoc(doc(db, TEAMS_COLLECTION, teamId), { players: updated });
+    } catch (error) {
+      console.error('Error adding player:', error);
+      throw error;
+    }
   },
 
   async updatePlayer(teamId: string, index: number, player: Player): Promise<void> {
-    if (!isBrowser || !db) return;
-    const team = await this.getById(teamId);
-    if (!team) return;
-    const updated = [...(team.players || [])];
-    updated[index] = player;
-    await updateDoc(doc(db, TEAMS_COLLECTION, teamId), { players: updated });
+    try {
+      if (!isBrowser || !db) return;
+      const team = await this.getById(teamId);
+      if (!team) throw new Error('Team not found');
+      const updated = [...(team.players || [])];
+      updated[index] = player;
+      await updateDoc(doc(db, TEAMS_COLLECTION, teamId), { players: updated });
+    } catch (error) {
+      console.error('Error updating player:', error);
+      throw error;
+    }
   },
 
   async removePlayer(teamId: string, index: number): Promise<void> {
