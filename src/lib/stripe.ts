@@ -9,9 +9,9 @@ const getStripe = (): Promise<Stripe | null> => {
     const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
     
     if (!publishableKey) {
-      // Only show warning in development or when actually needed (not during build)
-      if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
-        console.warn('Stripe publishable key is not configured. Please set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in your environment variables.');
+      // Only show warning when actually trying to use Stripe (not during build)
+      if (typeof window !== 'undefined') {
+        console.warn('Stripe publishable key is not configured. Stripe functionality will be disabled.');
       }
       stripePromise = Promise.resolve(null);
     } else {

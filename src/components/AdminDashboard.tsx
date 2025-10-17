@@ -300,10 +300,13 @@ export default function AdminDashboard() {
 
     try {
       setLoadingTeams(true);
+      console.log('Adding player to team:', teamId, newPlayer);
+      
       await teamService.addPlayer(teamId, newPlayer as Player);
 
       // Reload teams
       const updatedTeams = await teamService.getAll();
+      console.log('Reloaded teams after adding player:', updatedTeams);
       setTeams(updatedTeams);
 
       // Reset form
@@ -318,7 +321,7 @@ export default function AdminDashboard() {
       setShowAddPlayer(false);
       setSelectedTeam(null);
 
-      alert('Player added successfully!');
+      alert('Player added successfully! Changes should appear on the teams page.');
     } catch (error) {
       console.error('Error adding player:', error);
       alert('Failed to add player');
@@ -330,14 +333,17 @@ export default function AdminDashboard() {
   const handleEditPlayer = async (teamId: string, playerIndex: number, updatedPlayer: Player) => {
     try {
       setLoadingTeams(true);
+      console.log('Updating player:', teamId, playerIndex, updatedPlayer);
+      
       await teamService.updatePlayer(teamId, playerIndex, updatedPlayer);
 
       // Reload teams
       const updatedTeams = await teamService.getAll();
+      console.log('Reloaded teams after player update:', updatedTeams);
       setTeams(updatedTeams);
 
       setEditingPlayer(null);
-      alert('Player updated successfully!');
+      alert('Player updated successfully! Changes should appear on the teams page.');
     } catch (error) {
       console.error('Error updating player:', error);
       alert('Failed to update player');
@@ -432,6 +438,8 @@ export default function AdminDashboard() {
 
     try {
       setLoadingTeams(true);
+      console.log('Updating team:', editingTeam.id, editingTeam);
+      
       await teamService.update(editingTeam.id!, {
         name: editingTeam.name,
         image: editingTeam.image,
@@ -440,14 +448,17 @@ export default function AdminDashboard() {
         players: editingTeam.players
       });
       
+      console.log('Team updated in Firebase, reloading...');
+      
       // Reload teams
       const updatedTeams = await teamService.getAll();
+      console.log('Reloaded teams:', updatedTeams);
       setTeams(updatedTeams);
       
       setShowEditTeam(false);
       setEditingTeam(null);
       
-      alert('Team updated successfully!');
+      alert('Team updated successfully! Changes should appear on the teams page.');
     } catch (error) {
       console.error('Error updating team:', error);
       alert('Failed to update team');

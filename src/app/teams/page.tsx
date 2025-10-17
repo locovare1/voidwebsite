@@ -138,37 +138,55 @@ export default function TeamsPage() {
   const [showEasterEgg, setShowEasterEgg] = useState(false);
   const [clickProgress, setClickProgress] = useState(0); // Track click progress for visual feedback
   const [teams, setTeams] = useState<DisplayTeam[]>(fallbackTeams);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const items = await teamService.getAll();
-        if (!mounted) return;
-        if (items && items.length > 0) {
-          const mapped: DisplayTeam[] = items.map((t: FSTeam) => ({
-            name: t.name,
-            image: t.image,
-            description: t.description,
-            achievements: t.achievements || [],
-            players: (t.players || []).map(p => ({
-              name: p.name,
-              role: p.role,
-              image: p.image,
-              game: p.game,
-              achievements: p.achievements || [],
-              socialLinks: p.socialLinks || {},
-            })),
-          }));
-          setTeams(mapped);
-        } else {
-          setTeams(fallbackTeams);
-        }
-      } catch {
+  const loadTeams = async () => {
+    try {
+      console.log('Loading teams from Firebase...', new Date().toISOString());
+      const items = await teamService.getAll();
+      console.log('Loaded teams:', items.length, 'teams found');
+      
+      if (items && items.length > 0) {
+        const mapped: DisplayTeam[] = items.map((t: FSTeam) => ({
+          name: t.name,
+          image: t.image,
+          description: t.description,
+          achievements: t.achievements || [],
+          players: (t.players || []).map(p => ({
+            name: p.name,
+            role: p.role,
+            image: p.image,
+            game: p.game,
+            achievements: p.achievements || [],
+            socialLinks: p.socialLinks || {},
+          })),
+        }));
+        setTeams(mapped);
+        console.log('Teams updated:', mapped);
+      } else {
+        console.log('No teams found, using fallback');
         setTeams(fallbackTeams);
       }
-    })();
-    return () => { mounted = false; };
+    } catch (error) {
+      console.error('Error loading teams:', error);
+      setTeams(fallbackTeams);
+    }
+  };
+
+  useEffect(() => {
+    loadTeams();
+  }, [refreshKey]);
+
+  // Add a refresh function that can be called manually
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadTeams(); // Refresh when page becomes visible
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
   const handleOwnershipClick = () => {
@@ -232,6 +250,17 @@ export default function TeamsPage() {
         <AnimatedSection animationType="fadeIn" delay={100}>
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold gradient-text">Our Teams</h1>
+            {process.env.NODE_ENV === 'development' && (
+              <button 
+                onClick={() => {
+                  setRefreshKey(prev => prev + 1);
+                  loadTeams();
+                }}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+              >
+                🔄 Refresh Teams Data
+              </button>
+            )}
           </div>
         </AnimatedSection>
 
