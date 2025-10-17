@@ -124,7 +124,7 @@ export default function AmbassadorsPage() {
                           Current Ambassadors:
                         </p>
                         <p className="text-gray-300">- Void Frankenstein</p>
-                        <p className="text-gray-300">- Void Gruun</p>
+                        
                       </div>
                     </AnimatedCard>
                   </StaggeredItem>
@@ -150,33 +150,7 @@ export default function AmbassadorsPage() {
                         <p className="text-gray-400 text-sm">
                           Current Ambassadors:
                         </p>
-                        <p className="text-gray-300">- Void Bxezy</p>
-                      </div>
-                    </AnimatedCard>
-                  </StaggeredItem>
-
-                  {/* Split Gate 2 */}
-                  <StaggeredItem>
-                    <AnimatedCard delay={0.3} className="bg-[#18181b] p-6 rounded-xl shadow-md border border-[#2A2A2A] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                      <h3 className="text-xl font-semibold mb-4 text-white">Split Gate 2</h3>
-                      <div className="space-y-2">
-                        <p className="text-gray-400 text-sm">
-                          Current Ambassadors:
-                        </p>
-                        <p className="text-gray-300">- Void Ego</p>
-                      </div>
-                    </AnimatedCard>
-                  </StaggeredItem>
-
-                  {/* Overwatch 2 */}
-                  <StaggeredItem>
-                    <AnimatedCard delay={0.4} className="bg-[#18181b] p-6 rounded-xl shadow-md border border-[#2A2A2A] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                      <h3 className="text-xl font-semibold mb-4 text-white">Overwatch 2</h3>
-                      <div className="space-y-2">
-                        <p className="text-gray-400 text-sm">
-                          Current Ambassadors:
-                        </p>
-                        <p className="text-gray-300">- Void Fuzzy</p>
+                        <p className="text-gray-300">- Void Frankenstein</p>
                       </div>
                     </AnimatedCard>
                   </StaggeredItem>
@@ -192,14 +166,14 @@ export default function AmbassadorsPage() {
             <div className="max-w-3xl mx-auto bg-[#18181b] text-white rounded-xl shadow-lg p-8 text-center">
               <h2 className="text-2xl font-bold mb-4 gradient-text">Ready to Join?</h2>
               <p className="mb-6">
-                If you want to become an official brand ambassador, open a support ticket today and we will discuss there!
+                If you want to become an official brand ambassador, click the button below to contact us!
               </p>
               <AnimatedCard className="inline-block">
                 <a
                   href="/contact"
                   className="inline-block bg-white text-black hover:bg-gray-100 font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
                 >
-                  Contact us on the contact page
+                  Contact us!
                 </a>
               </AnimatedCard>
             </div>
