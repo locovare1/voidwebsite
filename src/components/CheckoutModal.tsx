@@ -11,7 +11,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import OrderSuccessModal from './OrderSuccessModal';
 import { generateOrderNumber } from '@/lib/orderUtils';
-import { countries } from '@/lib/countries';
+
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -453,11 +453,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                     className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
                   >
                     <option value="">Select your country</option>
-                    {countries.map((country) => (
-                      <option key={country.code} value={country.code}>
-                        {country.name}
-                      </option>
-                    ))}
+                    <option value="US">United States</option>
                   </select>
                 </div>
               </div>

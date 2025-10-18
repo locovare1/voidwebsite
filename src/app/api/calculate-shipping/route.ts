@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate shipping cost using the mathematical formula
-    const result = await calculateShippingCost(destinationZip);
+    const result = calculateShippingCost(destinationZip);
 
     console.log('Calculated shipping cost:', result);
 
@@ -44,6 +44,8 @@ export async function POST(request: NextRequest) {
       zoneCost: result.zoneCost,
       distance: result.distance,
       zone: result.zone,
+      city: result.city,
+      state: result.state,
       currency: 'USD',
       estimatedDelivery: '3-5 business days',
       formula: {

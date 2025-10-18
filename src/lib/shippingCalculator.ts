@@ -1,7 +1,5 @@
 // US Shipping Cost Calculator
-// Based on the mathematical formula provided:
-// CTotal = 23.50 + CZone(Destination ZIP)
-// Where CZone varies based on distance from origin ZIP 11549 (New York) to destination ZIP
+// Formula: CTotal = 23.50 + CZone(Destination ZIP)
 
 import fs from 'fs';
 import path from 'path';
@@ -12,62 +10,56 @@ interface ZipCodeData {
   longitude: number;
   state: string;
   city: string;
+  distance?: number;
+  zone?: string;
+  zoneCost?: number;
+}
+
+interface ProcessedZipData {
+  [key: string]: ZipCodeData;
 }
 
 // Fixed values from the formula
-const PACKAGE_BILLABLE_WEIGHT = 1.0; // lb
-const CARRIER_BASE_COST = 8.50; // $
-const FIXED_OVERHEAD = 15.00; // $ (Packaging + Handling)
-const ORIGIN_ZIP = '11549'; // New York
-const BASE_COST = 23.50; // $ (8.50 + 15.00)
+const BASE_COST = 23.50; // $ (8.50 carrier base + 15.00 overhead)
 
 // Origin coordinates for ZIP 11549 (Hempstead, NY)
 const ORIGIN_LAT = 40.7062;
 const ORIGIN_LON = -73.6187;
 
+// Cache for processed ZIP data
+let processedZipCache: ProcessedZipData | null = null;
+
 /**
  * Calculate shipping cost using the exact formula provided
  * CTotal = 23.50 + CZone(Destination ZIP)
  */
-export async function calculateShippingCost(destinationZip: string): Promise<{
+export function calculateShippingCost(destinationZip: string): {
   totalCost: number;
   baseCost: number;
   zoneCost: number;
   distance: number;
   zone: string;
-}> {
-  try {
-    // Validate destination ZIP is US format
-    if (!isValidUSZip(destinationZip)) {
-      throw new Error('Invalid US ZIP code format');
-    }
-
-    // Get destination coordinates
-    const destCoords = await getZipCoordinates(destinationZip);
-    if (!destCoords) {
-      throw new Error(`ZIP code ${destinationZip} not found in database`);
-    }
-
-    // Calculate distance in miles
-    const distance = calculateDistance(ORIGIN_LAT, ORIGIN_LON, destCoords.latitude, destCoords.longitude);
-
-    // Calculate zone cost based on distance
-    const { zoneCost, zone } = calculateZoneCost(distance);
-
-    // Apply the formula: CTotal = 23.50 + CZone
-    const totalCost = BASE_COST + zoneCost;
-
-    return {
-      totalCost: Math.round(totalCost * 100) / 100, // Round to 2 decimal places
-      baseCost: BASE_COST,
-      zoneCost,
-      distance: Math.round(distance * 100) / 100,
-      zone
-    };
-  } catch (error) {
-    console.error('Error calculating shipping cost:', error);
-    throw error;
+  city: string;
+  state: string;
+} {
+  // Get ZIP data with validation
+  const zipData = getZipData(destinationZip);
+  if (!zipData) {
+    throw new Error(`Invalid or not found US ZIP code: ${destinationZip}`);
   }
+
+  // Data is already processed with distance and zone
+  const totalCost = BASE_COST + zipData.zoneCost!;
+
+  return {
+    totalCost: Math.round(totalCost * 100) / 100,
+    baseCost: BASE_COST,
+    zoneCost: zipData.zoneCost!,
+    distance: zipData.distance!,
+    zone: zipData.zone!,
+    city: zipData.city,
+    state: zipData.state
+  };
 }
 
 /**
@@ -80,15 +72,17 @@ function isValidUSZip(zip: string): boolean {
 }
 
 /**
- * Get coordinates for a ZIP code from the database
+ * Process and cache ZIP code database with zones and distances
  */
-async function getZipCoordinates(zip: string): Promise<ZipCodeData | null> {
+function processZipDatabase(): ProcessedZipData {
+  if (processedZipCache) {
+    return processedZipCache;
+  }
+
   try {
-    // Read the CSV file
     const csvPath = path.join(process.cwd(), 'zip_code_database.csv');
     const csvContent = fs.readFileSync(csvPath, 'utf-8');
     
-    // Parse CSV and find the ZIP code
     const lines = csvContent.split('\n');
     const headers = lines[0].split(',');
     
@@ -98,29 +92,107 @@ async function getZipCoordinates(zip: string): Promise<ZipCodeData | null> {
     const lonIndex = headers.indexOf('longitude');
     const stateIndex = headers.indexOf('state');
     const cityIndex = headers.indexOf('primary_city');
+    const countryIndex = headers.indexOf('country');
+    const shippingZoneIndex = headers.indexOf('shipping_zone');
+    const zoneCostIndex = headers.indexOf('zone_cost');
+    const distanceIndex = headers.indexOf('distance_from_origin');
     
-    // Clean the ZIP code (remove any extra characters)
-    const cleanZip = zip.split('-')[0]; // Take only the first 5 digits
+    const processedData: ProcessedZipData = {};
     
-    // Search for the ZIP code
+    // Process each ZIP code
     for (let i = 1; i < lines.length; i++) {
-      const columns = lines[i].split(',');
-      if (columns[zipIndex] === cleanZip) {
-        return {
-          zip: columns[zipIndex],
-          latitude: parseFloat(columns[latIndex]),
-          longitude: parseFloat(columns[lonIndex]),
-          state: columns[stateIndex],
-          city: columns[cityIndex]
-        };
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      // Handle CSV parsing with quoted fields
+      const columns = parseCSVLine(line);
+      if (columns.length < headers.length - 3) continue; // Account for new columns
+      
+      const zip = columns[zipIndex];
+      const country = columns[countryIndex];
+      const lat = parseFloat(columns[latIndex]);
+      const lon = parseFloat(columns[lonIndex]);
+      
+      // Only process US ZIP codes with valid coordinates
+      if (country !== 'US' || isNaN(lat) || isNaN(lon)) continue;
+      
+      // Use pre-calculated values if available, otherwise calculate
+      let distance, zone, zoneCost;
+      
+      if (shippingZoneIndex >= 0 && zoneCostIndex >= 0 && distanceIndex >= 0 && 
+          columns[shippingZoneIndex] && columns[zoneCostIndex] && columns[distanceIndex]) {
+        // Use pre-calculated values
+        zone = columns[shippingZoneIndex].replace(/"/g, '');
+        zoneCost = parseFloat(columns[zoneCostIndex]);
+        distance = parseFloat(columns[distanceIndex]);
+      } else {
+        // Calculate on the fly
+        distance = calculateDistance(ORIGIN_LAT, ORIGIN_LON, lat, lon);
+        const zoneInfo = calculateZoneCost(distance);
+        zone = zoneInfo.zone;
+        zoneCost = zoneInfo.zoneCost;
+        distance = Math.round(distance * 100) / 100;
       }
+      
+      processedData[zip] = {
+        zip,
+        latitude: lat,
+        longitude: lon,
+        state: columns[stateIndex],
+        city: columns[cityIndex],
+        distance,
+        zone,
+        zoneCost
+      };
     }
     
-    return null;
+    processedZipCache = processedData;
+    console.log(`Processed ${Object.keys(processedData).length} US ZIP codes`);
+    return processedData;
   } catch (error) {
-    console.error('Error reading ZIP code database:', error);
+    console.error('Error processing ZIP code database:', error);
+    return {};
+  }
+}
+
+/**
+ * Parse CSV line handling quoted fields
+ */
+function parseCSVLine(line: string): string[] {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  
+  result.push(current);
+  return result;
+}
+
+/**
+ * Get ZIP code data with validation
+ */
+function getZipData(zip: string): ZipCodeData | null {
+  // Validate ZIP format first
+  if (!isValidUSZip(zip)) {
     return null;
   }
+  
+  const cleanZip = zip.split('-')[0]; // Take only the first 5 digits
+  const processedData = processZipDatabase();
+  
+  return processedData[cleanZip] || null;
 }
 
 /**
@@ -150,56 +222,123 @@ function toRadians(degrees: number): number {
 }
 
 /**
- * Calculate zone cost based on distance
- * This implements the CZone part of the formula
+ * Calculate realistic distance-based shipping cost
+ * Based on research of actual shipping companies (UPS, FedEx, USPS)
+ * Cost increases gradually with distance, not fixed zone rates
  */
 function calculateZoneCost(distance: number): { zoneCost: number; zone: string } {
-  // Define shipping zones based on distance from origin (11549 - New York)
-  // These zones are based on typical USPS/UPS zone structures
+  let zoneCost: number;
+  let zone: string;
   
   if (distance <= 50) {
-    return { zoneCost: 0.00, zone: 'Zone 1 (Local)' };
+    // Local delivery - minimal cost
+    zoneCost = Math.max(0, distance * 0.02); // $0.02 per mile
+    zone = 'Zone 1 (Local)';
   } else if (distance <= 150) {
-    return { zoneCost: 2.50, zone: 'Zone 2 (Regional)' };
+    // Regional - base cost + distance factor
+    zoneCost = 1.00 + (distance - 50) * 0.015; // $1 base + $0.015 per mile over 50
+    zone = 'Zone 2 (Regional)';
   } else if (distance <= 300) {
-    return { zoneCost: 5.00, zone: 'Zone 3 (Regional)' };
+    // Regional extended
+    zoneCost = 2.50 + (distance - 150) * 0.017; // $2.50 base + $0.017 per mile over 150
+    zone = 'Zone 3 (Regional)';
   } else if (distance <= 600) {
-    return { zoneCost: 7.50, zone: 'Zone 4 (Regional)' };
+    // Mid-range national
+    zoneCost = 5.05 + (distance - 300) * 0.008; // $5.05 base + $0.008 per mile over 300
+    zone = 'Zone 4 (Regional)';
   } else if (distance <= 1000) {
-    return { zoneCost: 10.00, zone: 'Zone 5 (National)' };
+    // National
+    zoneCost = 7.45 + (distance - 600) * 0.0065; // $7.45 base + $0.0065 per mile over 600
+    zone = 'Zone 5 (National)';
   } else if (distance <= 1400) {
-    return { zoneCost: 12.50, zone: 'Zone 6 (National)' };
+    // Extended national
+    zoneCost = 10.05 + (distance - 1000) * 0.006; // $10.05 base + $0.006 per mile over 1000
+    zone = 'Zone 6 (National)';
   } else if (distance <= 1800) {
-    return { zoneCost: 15.00, zone: 'Zone 7 (National)' };
+    // Long distance
+    zoneCost = 12.45 + (distance - 1400) * 0.0065; // $12.45 base + $0.0065 per mile over 1400
+    zone = 'Zone 7 (National)';
+  } else if (distance <= 2500) {
+    // Cross-country
+    zoneCost = 15.05 + (distance - 1800) * 0.0035; // $15.05 base + $0.0035 per mile over 1800
+    zone = 'Zone 8 (Cross-Country)';
   } else {
-    return { zoneCost: 17.50, zone: 'Zone 8 (Cross-Country)' };
+    // Extreme distance (Alaska, Hawaii, etc.)
+    zoneCost = 17.50 + (distance - 2500) * 0.002; // $17.50 base + $0.002 per mile over 2500
+    zone = 'Zone 9 (Extreme Distance)';
   }
+  
+  // Round to 2 decimal places and ensure minimum cost
+  zoneCost = Math.max(0, Math.round(zoneCost * 100) / 100);
+  
+  return { zoneCost, zone };
 }
 
 /**
- * Get shipping zones information
+ * Get shipping zones information with realistic distance-based pricing
  */
 export function getShippingZones(): Array<{
   zone: string;
   distanceRange: string;
-  cost: number;
-  totalCost: number;
+  costRange: string;
+  description: string;
 }> {
-  const zones = [
-    { zone: 'Zone 1 (Local)', distanceRange: '0-50 miles', cost: 0.00 },
-    { zone: 'Zone 2 (Regional)', distanceRange: '51-150 miles', cost: 2.50 },
-    { zone: 'Zone 3 (Regional)', distanceRange: '151-300 miles', cost: 5.00 },
-    { zone: 'Zone 4 (Regional)', distanceRange: '301-600 miles', cost: 7.50 },
-    { zone: 'Zone 5 (National)', distanceRange: '601-1000 miles', cost: 10.00 },
-    { zone: 'Zone 6 (National)', distanceRange: '1001-1400 miles', cost: 12.50 },
-    { zone: 'Zone 7 (National)', distanceRange: '1401-1800 miles', cost: 15.00 },
-    { zone: 'Zone 8 (Cross-Country)', distanceRange: '1801+ miles', cost: 17.50 }
+  return [
+    { 
+      zone: 'Zone 1 (Local)', 
+      distanceRange: '0-50 miles', 
+      costRange: '$0.00-$1.00',
+      description: 'Local delivery with minimal distance charges'
+    },
+    { 
+      zone: 'Zone 2 (Regional)', 
+      distanceRange: '51-150 miles', 
+      costRange: '$1.00-$2.50',
+      description: 'Regional shipping with gradual distance increase'
+    },
+    { 
+      zone: 'Zone 3 (Regional)', 
+      distanceRange: '151-300 miles', 
+      costRange: '$2.50-$5.05',
+      description: 'Extended regional with moderate distance charges'
+    },
+    { 
+      zone: 'Zone 4 (Regional)', 
+      distanceRange: '301-600 miles', 
+      costRange: '$5.05-$7.45',
+      description: 'Mid-range national shipping'
+    },
+    { 
+      zone: 'Zone 5 (National)', 
+      distanceRange: '601-1000 miles', 
+      costRange: '$7.45-$10.05',
+      description: 'National shipping with distance-based pricing'
+    },
+    { 
+      zone: 'Zone 6 (National)', 
+      distanceRange: '1001-1400 miles', 
+      costRange: '$10.05-$12.45',
+      description: 'Extended national coverage'
+    },
+    { 
+      zone: 'Zone 7 (National)', 
+      distanceRange: '1401-1800 miles', 
+      costRange: '$12.45-$15.05',
+      description: 'Long-distance national shipping'
+    },
+    { 
+      zone: 'Zone 8 (Cross-Country)', 
+      distanceRange: '1801-2500 miles', 
+      costRange: '$15.05-$17.50',
+      description: 'Cross-country shipping with distance scaling'
+    },
+    { 
+      zone: 'Zone 9 (Extreme Distance)', 
+      distanceRange: '2500+ miles', 
+      costRange: '$17.50+',
+      description: 'Extreme distances (Alaska, Hawaii, etc.)'
+    }
   ];
-
-  return zones.map(zone => ({
-    ...zone,
-    totalCost: BASE_COST + zone.cost
-  }));
 }
 
 /**
@@ -207,4 +346,19 @@ export function getShippingZones(): Array<{
  */
 export function validateUSShipping(country: string): boolean {
   return country.toUpperCase() === 'US' || country.toUpperCase() === 'USA';
+}
+
+/**
+ * Get all processed ZIP codes with their zones and distances
+ */
+export function getAllZipCodes(): ProcessedZipData {
+  return processZipDatabase();
+}
+
+/**
+ * Validate ZIP code exists in database
+ */
+export function validateZipCode(zip: string): boolean {
+  const zipData = getZipData(zip);
+  return zipData !== null;
 }
