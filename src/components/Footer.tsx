@@ -6,7 +6,7 @@ import { FaTwitter, FaDiscord, FaTwitch, FaYoutube, FaInstagram } from 'react-ic
 const socialLinks = [
   { name: 'Twitter', href: 'https://x.com/VoidEsports2x', icon: FaTwitter },
   { name: 'Discord', href: 'https://discord.gg/voidesports2x', icon: FaDiscord },
-  { name: 'Twitch', href: 'https://www.twitch.tv/voidfrankenstein', icon: FaTwitch },
+  { name: 'Twitch', href: 'https://www.twitch.tv/voidesports2x', icon: FaTwitch },
   { name: 'YouTube', href: 'https://www.youtube.com/@VoidEsports1x', icon: FaYoutube },
   { name: 'Instagram', href: 'https://www.instagram.com/voidesports2x/', icon: FaInstagram },
 ];
