@@ -20,9 +20,12 @@ interface ProcessedZipData {
 }
 
 // Fixed values from the formula
-const BASE_COST = 23.50; // $ (8.50 carrier base + 15.00 overhead)
+const CARRIER_BASE_COST = 12.00; // $ Carrier base cost
+const FIXED_OVERHEAD = 15.00; // $ Fixed overhead (Packaging + Handling)
+const BASE_COST = CARRIER_BASE_COST + FIXED_OVERHEAD; // $ Total base cost (27.00)
 const ADDITIONAL_SURCHARGE = 10.00; // $ Additional surcharge for all shipments
-const PER_MILE_CHARGE = 0.1; // $ Additional charge per mile
+const PER_MILE_CHARGE = 0.15; // $ Additional charge per mile
+const DISTANCE_CHARGE_RATE = 2.00 / 3; // $ 2 dollars for every 3 miles (0.67 per mile)
 
 // Origin coordinates for ZIP 11549 (Hempstead, NY)
 const ORIGIN_LAT = 40.7062;
@@ -32,8 +35,8 @@ const ORIGIN_LON = -73.6187;
 let processedZipCache: ProcessedZipData | null = null;
 
 /**
- * Calculate shipping cost using the exact formula provided
- * CTotal = 23.50 + CZone(Destination ZIP) + $10 surcharge + ($0.1 × distance in miles)
+ * Calculate shipping cost using the customized formula
+ * CTotal = 27.00 + CZone(Destination ZIP) + $10 surcharge + ($0.15 × distance) + ($2 for every 3 miles)
  */
 export function calculateShippingCost(destinationZip: string): {
   totalCost: number;
@@ -41,6 +44,7 @@ export function calculateShippingCost(destinationZip: string): {
   zoneCost: number;
   surcharge: number;
   perMileCharge: number;
+  distanceCharge: number;
   distance: number;
   zone: string;
   city: string;
@@ -52,11 +56,14 @@ export function calculateShippingCost(destinationZip: string): {
     throw new Error(`Invalid or not found US ZIP code: ${destinationZip}`);
   }
 
-  // Calculate per-mile charge
+  // Calculate per-mile charge ($0.15 per mile)
   const perMileCharge = zipData.distance! * PER_MILE_CHARGE;
 
-  // Apply formula: Base Cost + Zone Cost + Additional Surcharge + Per Mile Charge
-  const totalCost = BASE_COST + zipData.zoneCost! + ADDITIONAL_SURCHARGE + perMileCharge;
+  // Calculate distance charge ($2 for every 3 miles)
+  const distanceCharge = zipData.distance! * DISTANCE_CHARGE_RATE;
+
+  // Apply formula: Base Cost + Zone Cost + Additional Surcharge + Per Mile Charge + Distance Charge
+  const totalCost = BASE_COST + zipData.zoneCost! + ADDITIONAL_SURCHARGE + perMileCharge + distanceCharge;
 
   return {
     totalCost: Math.round(totalCost * 100) / 100,
@@ -64,6 +71,7 @@ export function calculateShippingCost(destinationZip: string): {
     zoneCost: zipData.zoneCost!,
     surcharge: ADDITIONAL_SURCHARGE,
     perMileCharge: Math.round(perMileCharge * 100) / 100,
+    distanceCharge: Math.round(distanceCharge * 100) / 100,
     distance: zipData.distance!,
     zone: zipData.zone!,
     city: zipData.city,
@@ -284,13 +292,14 @@ function calculateZoneCost(distance: number): { zoneCost: number; zone: string }
 }
 
 /**
- * Get shipping zones information with realistic distance-based pricing + $10 surcharge + $0.1/mile
+ * Get shipping zones information with customized pricing formula
  */
 export function getShippingZones(): Array<{
   zone: string;
   distanceRange: string;
   zoneCostRange: string;
   perMileRange: string;
+  distanceChargeRange: string;
   totalCostRange: string;
   description: string;
 }> {
@@ -299,73 +308,82 @@ export function getShippingZones(): Array<{
       zone: 'Zone 1 (Local)',
       distanceRange: '0-50 miles',
       zoneCostRange: '$0.00-$1.00',
-      perMileRange: '$0.00-$5.00',
-      totalCostRange: '$33.50-$39.50',
-      description: 'Local delivery + $10 surcharge + $0.1/mile'
+      perMileRange: '$0.00-$7.50',
+      distanceChargeRange: '$0.00-$33.33',
+      totalCostRange: '$37.00-$78.83',
+      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
     },
     {
       zone: 'Zone 2 (Regional)',
       distanceRange: '51-150 miles',
       zoneCostRange: '$1.00-$2.50',
-      perMileRange: '$5.10-$15.00',
-      totalCostRange: '$39.60-$51.00',
-      description: 'Regional shipping + $10 surcharge + $0.1/mile'
+      perMileRange: '$7.65-$22.50',
+      distanceChargeRange: '$34.00-$100.00',
+      totalCostRange: '$79.65-$162.00',
+      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
     },
     {
       zone: 'Zone 3 (Regional)',
       distanceRange: '151-300 miles',
       zoneCostRange: '$2.50-$5.05',
-      perMileRange: '$15.10-$30.00',
-      totalCostRange: '$51.10-$68.55',
-      description: 'Extended regional + $10 surcharge + $0.1/mile'
+      perMileRange: '$22.65-$45.00',
+      distanceChargeRange: '$100.67-$200.00',
+      totalCostRange: '$162.82-$287.05',
+      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
     },
     {
       zone: 'Zone 4 (Regional)',
       distanceRange: '301-600 miles',
       zoneCostRange: '$5.05-$7.45',
-      perMileRange: '$30.10-$60.00',
-      totalCostRange: '$68.65-$100.95',
-      description: 'Mid-range national + $10 surcharge + $0.1/mile'
+      perMileRange: '$45.15-$90.00',
+      distanceChargeRange: '$200.67-$400.00',
+      totalCostRange: '$287.87-$534.45',
+      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
     },
     {
       zone: 'Zone 5 (National)',
       distanceRange: '601-1000 miles',
       zoneCostRange: '$7.45-$10.05',
-      perMileRange: '$60.10-$100.00',
-      totalCostRange: '$101.05-$143.55',
-      description: 'National shipping + $10 surcharge + $0.1/mile'
+      perMileRange: '$90.15-$150.00',
+      distanceChargeRange: '$400.67-$666.67',
+      totalCostRange: '$535.27-$863.72',
+      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
     },
     {
       zone: 'Zone 6 (National)',
       distanceRange: '1001-1400 miles',
       zoneCostRange: '$10.05-$12.45',
-      perMileRange: '$100.10-$140.00',
-      totalCostRange: '$143.65-$185.95',
-      description: 'Extended national + $10 surcharge + $0.1/mile'
+      perMileRange: '$150.15-$210.00',
+      distanceChargeRange: '$667.33-$933.33',
+      totalCostRange: '$864.53-$1192.78',
+      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
     },
     {
       zone: 'Zone 7 (National)',
       distanceRange: '1401-1800 miles',
       zoneCostRange: '$12.45-$15.05',
-      perMileRange: '$140.10-$180.00',
-      totalCostRange: '$186.05-$228.55',
-      description: 'Long-distance national + $10 surcharge + $0.1/mile'
+      perMileRange: '$210.15-$270.00',
+      distanceChargeRange: '$934.00-$1200.00',
+      totalCostRange: '$1193.60-$1522.05',
+      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
     },
     {
       zone: 'Zone 8 (Cross-Country)',
       distanceRange: '1801-2500 miles',
       zoneCostRange: '$15.05-$17.50',
-      perMileRange: '$180.10-$250.00',
-      totalCostRange: '$228.65-$301.00',
-      description: 'Cross-country + $10 surcharge + $0.1/mile'
+      perMileRange: '$270.15-$375.00',
+      distanceChargeRange: '$1200.67-$1666.67',
+      totalCostRange: '$1522.87-$2096.17',
+      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
     },
     {
       zone: 'Zone 9 (Extreme Distance)',
       distanceRange: '2500+ miles',
       zoneCostRange: '$17.50+',
-      perMileRange: '$250.00+',
-      totalCostRange: '$301.00+',
-      description: 'Extreme distances + $10 surcharge + $0.1/mile'
+      perMileRange: '$375.00+',
+      distanceChargeRange: '$1666.67+',
+      totalCostRange: '$2096.17+',
+      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
     }
   ];
 }
