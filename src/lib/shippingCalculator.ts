@@ -21,6 +21,8 @@ interface ProcessedZipData {
 
 // Fixed values from the formula
 const BASE_COST = 23.50; // $ (8.50 carrier base + 15.00 overhead)
+const ADDITIONAL_SURCHARGE = 10.00; // $ Additional surcharge for all shipments
+const PER_MILE_CHARGE = 0.1; // $ Additional charge per mile
 
 // Origin coordinates for ZIP 11549 (Hempstead, NY)
 const ORIGIN_LAT = 40.7062;
@@ -31,12 +33,14 @@ let processedZipCache: ProcessedZipData | null = null;
 
 /**
  * Calculate shipping cost using the exact formula provided
- * CTotal = 23.50 + CZone(Destination ZIP)
+ * CTotal = 23.50 + CZone(Destination ZIP) + $10 surcharge + ($0.1 × distance in miles)
  */
 export function calculateShippingCost(destinationZip: string): {
   totalCost: number;
   baseCost: number;
   zoneCost: number;
+  surcharge: number;
+  perMileCharge: number;
   distance: number;
   zone: string;
   city: string;
@@ -48,13 +52,18 @@ export function calculateShippingCost(destinationZip: string): {
     throw new Error(`Invalid or not found US ZIP code: ${destinationZip}`);
   }
 
-  // Data is already processed with distance and zone
-  const totalCost = BASE_COST + zipData.zoneCost!;
+  // Calculate per-mile charge
+  const perMileCharge = zipData.distance! * PER_MILE_CHARGE;
+
+  // Apply formula: Base Cost + Zone Cost + Additional Surcharge + Per Mile Charge
+  const totalCost = BASE_COST + zipData.zoneCost! + ADDITIONAL_SURCHARGE + perMileCharge;
 
   return {
     totalCost: Math.round(totalCost * 100) / 100,
     baseCost: BASE_COST,
     zoneCost: zipData.zoneCost!,
+    surcharge: ADDITIONAL_SURCHARGE,
+    perMileCharge: Math.round(perMileCharge * 100) / 100,
     distance: zipData.distance!,
     zone: zipData.zone!,
     city: zipData.city,
@@ -82,10 +91,10 @@ function processZipDatabase(): ProcessedZipData {
   try {
     const csvPath = path.join(process.cwd(), 'zip_code_database.csv');
     const csvContent = fs.readFileSync(csvPath, 'utf-8');
-    
+
     const lines = csvContent.split('\n');
     const headers = lines[0].split(',');
-    
+
     // Find column indices
     const zipIndex = headers.indexOf('zip');
     const latIndex = headers.indexOf('latitude');
@@ -96,31 +105,31 @@ function processZipDatabase(): ProcessedZipData {
     const shippingZoneIndex = headers.indexOf('shipping_zone');
     const zoneCostIndex = headers.indexOf('zone_cost');
     const distanceIndex = headers.indexOf('distance_from_origin');
-    
+
     const processedData: ProcessedZipData = {};
-    
+
     // Process each ZIP code
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
-      
+
       // Handle CSV parsing with quoted fields
       const columns = parseCSVLine(line);
       if (columns.length < headers.length - 3) continue; // Account for new columns
-      
+
       const zip = columns[zipIndex];
       const country = columns[countryIndex];
       const lat = parseFloat(columns[latIndex]);
       const lon = parseFloat(columns[lonIndex]);
-      
+
       // Only process US ZIP codes with valid coordinates
       if (country !== 'US' || isNaN(lat) || isNaN(lon)) continue;
-      
+
       // Use pre-calculated values if available, otherwise calculate
       let distance, zone, zoneCost;
-      
-      if (shippingZoneIndex >= 0 && zoneCostIndex >= 0 && distanceIndex >= 0 && 
-          columns[shippingZoneIndex] && columns[zoneCostIndex] && columns[distanceIndex]) {
+
+      if (shippingZoneIndex >= 0 && zoneCostIndex >= 0 && distanceIndex >= 0 &&
+        columns[shippingZoneIndex] && columns[zoneCostIndex] && columns[distanceIndex]) {
         // Use pre-calculated values
         zone = columns[shippingZoneIndex].replace(/"/g, '');
         zoneCost = parseFloat(columns[zoneCostIndex]);
@@ -133,7 +142,7 @@ function processZipDatabase(): ProcessedZipData {
         zoneCost = zoneInfo.zoneCost;
         distance = Math.round(distance * 100) / 100;
       }
-      
+
       processedData[zip] = {
         zip,
         latitude: lat,
@@ -145,7 +154,7 @@ function processZipDatabase(): ProcessedZipData {
         zoneCost
       };
     }
-    
+
     processedZipCache = processedData;
     console.log(`Processed ${Object.keys(processedData).length} US ZIP codes`);
     return processedData;
@@ -162,10 +171,10 @@ function parseCSVLine(line: string): string[] {
   const result = [];
   let current = '';
   let inQuotes = false;
-  
+
   for (let i = 0; i < line.length; i++) {
     const char = line[i];
-    
+
     if (char === '"') {
       inQuotes = !inQuotes;
     } else if (char === ',' && !inQuotes) {
@@ -175,7 +184,7 @@ function parseCSVLine(line: string): string[] {
       current += char;
     }
   }
-  
+
   result.push(current);
   return result;
 }
@@ -188,10 +197,10 @@ function getZipData(zip: string): ZipCodeData | null {
   if (!isValidUSZip(zip)) {
     return null;
   }
-  
+
   const cleanZip = zip.split('-')[0]; // Take only the first 5 digits
   const processedData = processZipDatabase();
-  
+
   return processedData[cleanZip] || null;
 }
 
@@ -203,14 +212,14 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   const R = 3959; // Earth's radius in miles
   const dLat = toRadians(lat2 - lat1);
   const dLon = toRadians(lon2 - lon1);
-  
+
   const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  
+
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distance = R * c;
-  
+
   return distance;
 }
 
@@ -229,7 +238,7 @@ function toRadians(degrees: number): number {
 function calculateZoneCost(distance: number): { zoneCost: number; zone: string } {
   let zoneCost: number;
   let zone: string;
-  
+
   if (distance <= 50) {
     // Local delivery - minimal cost
     zoneCost = Math.max(0, distance * 0.02); // $0.02 per mile
@@ -267,76 +276,96 @@ function calculateZoneCost(distance: number): { zoneCost: number; zone: string }
     zoneCost = 17.50 + (distance - 2500) * 0.002; // $17.50 base + $0.002 per mile over 2500
     zone = 'Zone 9 (Extreme Distance)';
   }
-  
+
   // Round to 2 decimal places and ensure minimum cost
   zoneCost = Math.max(0, Math.round(zoneCost * 100) / 100);
-  
+
   return { zoneCost, zone };
 }
 
 /**
- * Get shipping zones information with realistic distance-based pricing
+ * Get shipping zones information with realistic distance-based pricing + $10 surcharge + $0.1/mile
  */
 export function getShippingZones(): Array<{
   zone: string;
   distanceRange: string;
-  costRange: string;
+  zoneCostRange: string;
+  perMileRange: string;
+  totalCostRange: string;
   description: string;
 }> {
   return [
-    { 
-      zone: 'Zone 1 (Local)', 
-      distanceRange: '0-50 miles', 
-      costRange: '$0.00-$1.00',
-      description: 'Local delivery with minimal distance charges'
+    {
+      zone: 'Zone 1 (Local)',
+      distanceRange: '0-50 miles',
+      zoneCostRange: '$0.00-$1.00',
+      perMileRange: '$0.00-$5.00',
+      totalCostRange: '$33.50-$39.50',
+      description: 'Local delivery + $10 surcharge + $0.1/mile'
     },
-    { 
-      zone: 'Zone 2 (Regional)', 
-      distanceRange: '51-150 miles', 
-      costRange: '$1.00-$2.50',
-      description: 'Regional shipping with gradual distance increase'
+    {
+      zone: 'Zone 2 (Regional)',
+      distanceRange: '51-150 miles',
+      zoneCostRange: '$1.00-$2.50',
+      perMileRange: '$5.10-$15.00',
+      totalCostRange: '$39.60-$51.00',
+      description: 'Regional shipping + $10 surcharge + $0.1/mile'
     },
-    { 
-      zone: 'Zone 3 (Regional)', 
-      distanceRange: '151-300 miles', 
-      costRange: '$2.50-$5.05',
-      description: 'Extended regional with moderate distance charges'
+    {
+      zone: 'Zone 3 (Regional)',
+      distanceRange: '151-300 miles',
+      zoneCostRange: '$2.50-$5.05',
+      perMileRange: '$15.10-$30.00',
+      totalCostRange: '$51.10-$68.55',
+      description: 'Extended regional + $10 surcharge + $0.1/mile'
     },
-    { 
-      zone: 'Zone 4 (Regional)', 
-      distanceRange: '301-600 miles', 
-      costRange: '$5.05-$7.45',
-      description: 'Mid-range national shipping'
+    {
+      zone: 'Zone 4 (Regional)',
+      distanceRange: '301-600 miles',
+      zoneCostRange: '$5.05-$7.45',
+      perMileRange: '$30.10-$60.00',
+      totalCostRange: '$68.65-$100.95',
+      description: 'Mid-range national + $10 surcharge + $0.1/mile'
     },
-    { 
-      zone: 'Zone 5 (National)', 
-      distanceRange: '601-1000 miles', 
-      costRange: '$7.45-$10.05',
-      description: 'National shipping with distance-based pricing'
+    {
+      zone: 'Zone 5 (National)',
+      distanceRange: '601-1000 miles',
+      zoneCostRange: '$7.45-$10.05',
+      perMileRange: '$60.10-$100.00',
+      totalCostRange: '$101.05-$143.55',
+      description: 'National shipping + $10 surcharge + $0.1/mile'
     },
-    { 
-      zone: 'Zone 6 (National)', 
-      distanceRange: '1001-1400 miles', 
-      costRange: '$10.05-$12.45',
-      description: 'Extended national coverage'
+    {
+      zone: 'Zone 6 (National)',
+      distanceRange: '1001-1400 miles',
+      zoneCostRange: '$10.05-$12.45',
+      perMileRange: '$100.10-$140.00',
+      totalCostRange: '$143.65-$185.95',
+      description: 'Extended national + $10 surcharge + $0.1/mile'
     },
-    { 
-      zone: 'Zone 7 (National)', 
-      distanceRange: '1401-1800 miles', 
-      costRange: '$12.45-$15.05',
-      description: 'Long-distance national shipping'
+    {
+      zone: 'Zone 7 (National)',
+      distanceRange: '1401-1800 miles',
+      zoneCostRange: '$12.45-$15.05',
+      perMileRange: '$140.10-$180.00',
+      totalCostRange: '$186.05-$228.55',
+      description: 'Long-distance national + $10 surcharge + $0.1/mile'
     },
-    { 
-      zone: 'Zone 8 (Cross-Country)', 
-      distanceRange: '1801-2500 miles', 
-      costRange: '$15.05-$17.50',
-      description: 'Cross-country shipping with distance scaling'
+    {
+      zone: 'Zone 8 (Cross-Country)',
+      distanceRange: '1801-2500 miles',
+      zoneCostRange: '$15.05-$17.50',
+      perMileRange: '$180.10-$250.00',
+      totalCostRange: '$228.65-$301.00',
+      description: 'Cross-country + $10 surcharge + $0.1/mile'
     },
-    { 
-      zone: 'Zone 9 (Extreme Distance)', 
-      distanceRange: '2500+ miles', 
-      costRange: '$17.50+',
-      description: 'Extreme distances (Alaska, Hawaii, etc.)'
+    {
+      zone: 'Zone 9 (Extreme Distance)',
+      distanceRange: '2500+ miles',
+      zoneCostRange: '$17.50+',
+      perMileRange: '$250.00+',
+      totalCostRange: '$301.00+',
+      description: 'Extreme distances + $10 surcharge + $0.1/mile'
     }
   ];
 }

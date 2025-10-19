@@ -42,6 +42,8 @@ export async function POST(request: NextRequest) {
       shippingCost: result.totalCost,
       baseCost: result.baseCost,
       zoneCost: result.zoneCost,
+      surcharge: result.surcharge,
+      perMileCharge: result.perMileCharge,
       distance: result.distance,
       zone: result.zone,
       city: result.city,
@@ -49,9 +51,12 @@ export async function POST(request: NextRequest) {
       currency: 'USD',
       estimatedDelivery: '3-5 business days',
       formula: {
-        description: 'CTotal = 23.50 + CZone(Destination ZIP)',
+        description: 'CTotal = 23.50 + CZone(Destination ZIP) + $10.00 surcharge + ($0.25 × miles)',
         baseCost: 23.50,
         zoneCost: result.zoneCost,
+        surcharge: result.surcharge,
+        perMileCharge: result.perMileCharge,
+        distance: result.distance,
         total: result.totalCost
       }
     });
