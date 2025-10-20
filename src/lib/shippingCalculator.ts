@@ -19,13 +19,38 @@ interface ProcessedZipData {
   [key: string]: ZipCodeData;
 }
 
-// Fixed values from the formula
-const CARRIER_BASE_COST = 12.00; // $ Carrier base cost
-const FIXED_OVERHEAD = 15.00; // $ Fixed overhead (Packaging + Handling)
-const BASE_COST = CARRIER_BASE_COST + FIXED_OVERHEAD; // $ Total base cost (27.00)
-const ADDITIONAL_SURCHARGE = 10.00; // $ Additional surcharge for all shipments
-const PER_MILE_CHARGE = 0.15; // $ Additional charge per mile
-const DISTANCE_CHARGE_RATE = 2.00 / 3; // $ 2 dollars for every 3 miles (0.67 per mile)
+// Complex Pipeline Shipping Calculator - Multiple Factors Combined
+const PIPELINE_CONFIG = {
+  // Base costs
+  carrierBaseCost: 12.00,
+  handlingFee: 8.50,
+  packagingFee: 6.50,
+
+  // Distance-based factors (linear)
+  baseDistanceRate: 0.25,        // Base rate per mile
+  distanceMultiplier: 1.15,      // Multiplier for distance calculation
+  distanceThreshold: 100,        // Miles where additional factors kick in
+
+  // Weight factors (assuming 1lb standard)
+  weightBaseCost: 2.00,
+  weightPerPound: 1.50,
+
+  // Geographic factors
+  urbanSurcharge: 3.00,          // Additional cost for major cities
+  ruralSurcharge: 5.00,          // Additional cost for rural areas
+
+  // Service factors
+  standardServiceFee: 4.00,
+  expeditedMultiplier: 1.8,
+
+  // Fuel and operational costs
+  fuelSurchargeRate: 0.12,       // 12% of base calculation
+  operationalOverhead: 7.25,
+
+  // Time-based factors
+  peakSeasonMultiplier: 1.25,    // Holiday/peak times
+  offSeasonDiscount: 0.95,       // Off-peak discount
+}
 
 // Origin coordinates for ZIP 11549 (Hempstead, NY)
 const ORIGIN_LAT = 40.7062;
@@ -35,20 +60,30 @@ const ORIGIN_LON = -73.6187;
 let processedZipCache: ProcessedZipData | null = null;
 
 /**
- * Calculate shipping cost using the customized formula
- * CTotal = 27.00 + CZone(Destination ZIP) + $10 surcharge + ($0.15 × distance) + ($2 for every 3 miles)
+ * Complex Pipeline Shipping Calculator
+ * Multiple factors combined in a processing pipeline with linear distance effects
  */
 export function calculateShippingCost(destinationZip: string): {
   totalCost: number;
-  baseCost: number;
-  zoneCost: number;
-  surcharge: number;
-  perMileCharge: number;
-  distanceCharge: number;
+  breakdown: {
+    baseCosts: number;
+    distanceCosts: number;
+    weightCosts: number;
+    geographicCosts: number;
+    serviceCosts: number;
+    operationalCosts: number;
+    adjustments: number;
+  };
   distance: number;
   zone: string;
   city: string;
   state: string;
+  pipelineSteps: Array<{
+    step: string;
+    calculation: string;
+    amount: number;
+    runningTotal: number;
+  }>;
 } {
   // Get ZIP data with validation
   const zipData = getZipData(destinationZip);
@@ -56,26 +91,112 @@ export function calculateShippingCost(destinationZip: string): {
     throw new Error(`Invalid or not found US ZIP code: ${destinationZip}`);
   }
 
-  // Calculate per-mile charge ($0.15 per mile)
-  const perMileCharge = zipData.distance! * PER_MILE_CHARGE;
+  const distance = zipData.distance!;
+  const pipelineSteps: Array<{ step: string; calculation: string; amount: number; runningTotal: number }> = [];
+  let runningTotal = 0;
 
-  // Calculate distance charge ($2 for every 3 miles)
-  const distanceCharge = zipData.distance! * DISTANCE_CHARGE_RATE;
+  // PIPELINE STEP 1: Base Costs
+  const baseCosts = PIPELINE_CONFIG.carrierBaseCost + PIPELINE_CONFIG.handlingFee + PIPELINE_CONFIG.packagingFee;
+  runningTotal += baseCosts;
+  pipelineSteps.push({
+    step: 'Base Costs',
+    calculation: `Carrier ($${PIPELINE_CONFIG.carrierBaseCost}) + Handling ($${PIPELINE_CONFIG.handlingFee}) + Packaging ($${PIPELINE_CONFIG.packagingFee})`,
+    amount: baseCosts,
+    runningTotal
+  });
 
-  // Apply formula: Base Cost + Zone Cost + Additional Surcharge + Per Mile Charge + Distance Charge
-  const totalCost = BASE_COST + zipData.zoneCost! + ADDITIONAL_SURCHARGE + perMileCharge + distanceCharge;
+  // PIPELINE STEP 2: Distance Costs (Linear)
+  const baseDistanceCost = distance * PIPELINE_CONFIG.baseDistanceRate;
+  const distanceMultiplierEffect = distance > PIPELINE_CONFIG.distanceThreshold ?
+    (distance - PIPELINE_CONFIG.distanceThreshold) * (PIPELINE_CONFIG.distanceMultiplier - 1) * PIPELINE_CONFIG.baseDistanceRate : 0;
+  const totalDistanceCosts = baseDistanceCost + distanceMultiplierEffect;
+  runningTotal += totalDistanceCosts;
+  pipelineSteps.push({
+    step: 'Distance Costs',
+    calculation: `(${distance} miles × $${PIPELINE_CONFIG.baseDistanceRate}) + multiplier effect`,
+    amount: totalDistanceCosts,
+    runningTotal
+  });
+
+  // PIPELINE STEP 3: Weight Costs (assuming 1lb standard package)
+  const weightCosts = PIPELINE_CONFIG.weightBaseCost + (1 * PIPELINE_CONFIG.weightPerPound);
+  runningTotal += weightCosts;
+  pipelineSteps.push({
+    step: 'Weight Costs',
+    calculation: `Base ($${PIPELINE_CONFIG.weightBaseCost}) + (1 lb × $${PIPELINE_CONFIG.weightPerPound})`,
+    amount: weightCosts,
+    runningTotal
+  });
+
+  // PIPELINE STEP 4: Geographic Costs
+  const isUrban = isUrbanArea(zipData.city, zipData.state);
+  const isRural = isRuralArea(distance, zipData.state);
+  let geographicCosts = 0;
+  if (isUrban) {
+    geographicCosts += PIPELINE_CONFIG.urbanSurcharge;
+  } else if (isRural) {
+    geographicCosts += PIPELINE_CONFIG.ruralSurcharge;
+  }
+  runningTotal += geographicCosts;
+  pipelineSteps.push({
+    step: 'Geographic Costs',
+    calculation: `${isUrban ? 'Urban' : isRural ? 'Rural' : 'Standard'} area surcharge`,
+    amount: geographicCosts,
+    runningTotal
+  });
+
+  // PIPELINE STEP 5: Service Costs
+  const serviceCosts = PIPELINE_CONFIG.standardServiceFee;
+  runningTotal += serviceCosts;
+  pipelineSteps.push({
+    step: 'Service Costs',
+    calculation: `Standard service fee`,
+    amount: serviceCosts,
+    runningTotal
+  });
+
+  // PIPELINE STEP 6: Operational Costs
+  const fuelSurcharge = runningTotal * PIPELINE_CONFIG.fuelSurchargeRate;
+  const operationalCosts = PIPELINE_CONFIG.operationalOverhead + fuelSurcharge;
+  runningTotal += operationalCosts;
+  pipelineSteps.push({
+    step: 'Operational Costs',
+    calculation: `Overhead ($${PIPELINE_CONFIG.operationalOverhead}) + Fuel (${(PIPELINE_CONFIG.fuelSurchargeRate * 100)}% of subtotal)`,
+    amount: operationalCosts,
+    runningTotal
+  });
+
+  // PIPELINE STEP 7: Time-based Adjustments
+  const seasonalMultiplier = getCurrentSeasonalMultiplier();
+  const adjustments = runningTotal * (seasonalMultiplier - 1);
+  runningTotal += adjustments;
+  pipelineSteps.push({
+    step: 'Seasonal Adjustments',
+    calculation: `${seasonalMultiplier > 1 ? 'Peak season' : 'Off-season'} multiplier (${seasonalMultiplier}x)`,
+    amount: adjustments,
+    runningTotal
+  });
 
   return {
-    totalCost: Math.round(totalCost * 100) / 100,
-    baseCost: BASE_COST,
-    zoneCost: zipData.zoneCost!,
-    surcharge: ADDITIONAL_SURCHARGE,
-    perMileCharge: Math.round(perMileCharge * 100) / 100,
-    distanceCharge: Math.round(distanceCharge * 100) / 100,
-    distance: zipData.distance!,
+    totalCost: Math.round(runningTotal * 100) / 100,
+    breakdown: {
+      baseCosts: Math.round(baseCosts * 100) / 100,
+      distanceCosts: Math.round(totalDistanceCosts * 100) / 100,
+      weightCosts: Math.round(weightCosts * 100) / 100,
+      geographicCosts: Math.round(geographicCosts * 100) / 100,
+      serviceCosts: Math.round(serviceCosts * 100) / 100,
+      operationalCosts: Math.round(operationalCosts * 100) / 100,
+      adjustments: Math.round(adjustments * 100) / 100,
+    },
+    distance,
     zone: zipData.zone!,
     city: zipData.city,
-    state: zipData.state
+    state: zipData.state,
+    pipelineSteps: pipelineSteps.map(step => ({
+      ...step,
+      amount: Math.round(step.amount * 100) / 100,
+      runningTotal: Math.round(step.runningTotal * 100) / 100
+    }))
   };
 }
 
@@ -239,6 +360,59 @@ function toRadians(degrees: number): number {
 }
 
 /**
+ * Determine if location is urban area (major cities)
+ */
+function isUrbanArea(city: string, state: string): boolean {
+  const majorCities = [
+    'New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia',
+    'San Antonio', 'San Diego', 'Dallas', 'San Jose', 'Austin', 'Jacksonville',
+    'Fort Worth', 'Columbus', 'Charlotte', 'San Francisco', 'Indianapolis',
+    'Seattle', 'Denver', 'Washington', 'Boston', 'El Paso', 'Nashville',
+    'Detroit', 'Oklahoma City', 'Portland', 'Las Vegas', 'Memphis', 'Louisville',
+    'Baltimore', 'Milwaukee', 'Albuquerque', 'Tucson', 'Fresno', 'Sacramento',
+    'Mesa', 'Kansas City', 'Atlanta', 'Long Beach', 'Colorado Springs', 'Raleigh',
+    'Miami', 'Virginia Beach', 'Omaha', 'Oakland', 'Minneapolis', 'Tulsa',
+    'Arlington', 'Tampa', 'New Orleans'
+  ];
+
+  return majorCities.some(majorCity =>
+    city.toLowerCase().includes(majorCity.toLowerCase()) ||
+    majorCity.toLowerCase().includes(city.toLowerCase())
+  );
+}
+
+/**
+ * Determine if location is rural area (based on distance and state characteristics)
+ */
+function isRuralArea(distance: number, state: string): boolean {
+  const ruralStates = ['MT', 'WY', 'ND', 'SD', 'AK', 'NE', 'KS', 'OK', 'NM', 'NV', 'UT', 'ID'];
+  const isRuralState = ruralStates.includes(state);
+  const isLongDistance = distance > 500;
+
+  return isRuralState || isLongDistance;
+}
+
+/**
+ * Get current seasonal multiplier (simplified - in real app would use actual dates)
+ */
+function getCurrentSeasonalMultiplier(): number {
+  const currentMonth = new Date().getMonth() + 1; // 1-12
+
+  // Peak season: November-December (holidays), June-August (summer)
+  if ([11, 12, 6, 7, 8].includes(currentMonth)) {
+    return PIPELINE_CONFIG.peakSeasonMultiplier;
+  }
+
+  // Off season: January-February
+  if ([1, 2].includes(currentMonth)) {
+    return PIPELINE_CONFIG.offSeasonDiscount;
+  }
+
+  // Standard season
+  return 1.0;
+}
+
+/**
  * Calculate realistic distance-based shipping cost
  * Based on research of actual shipping companies (UPS, FedEx, USPS)
  * Cost increases gradually with distance, not fixed zone rates
@@ -292,100 +466,26 @@ function calculateZoneCost(distance: number): { zoneCost: number; zone: string }
 }
 
 /**
- * Get shipping zones information with customized pricing formula
+ * Get pipeline configuration and factor information
  */
-export function getShippingZones(): Array<{
-  zone: string;
-  distanceRange: string;
-  zoneCostRange: string;
-  perMileRange: string;
-  distanceChargeRange: string;
-  totalCostRange: string;
+export function getShippingPipelineInfo(): {
+  pipelineSteps: string[];
+  configuration: typeof PIPELINE_CONFIG;
   description: string;
-}> {
-  return [
-    {
-      zone: 'Zone 1 (Local)',
-      distanceRange: '0-50 miles',
-      zoneCostRange: '$0.00-$1.00',
-      perMileRange: '$0.00-$7.50',
-      distanceChargeRange: '$0.00-$33.33',
-      totalCostRange: '$37.00-$78.83',
-      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
-    },
-    {
-      zone: 'Zone 2 (Regional)',
-      distanceRange: '51-150 miles',
-      zoneCostRange: '$1.00-$2.50',
-      perMileRange: '$7.65-$22.50',
-      distanceChargeRange: '$34.00-$100.00',
-      totalCostRange: '$79.65-$162.00',
-      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
-    },
-    {
-      zone: 'Zone 3 (Regional)',
-      distanceRange: '151-300 miles',
-      zoneCostRange: '$2.50-$5.05',
-      perMileRange: '$22.65-$45.00',
-      distanceChargeRange: '$100.67-$200.00',
-      totalCostRange: '$162.82-$287.05',
-      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
-    },
-    {
-      zone: 'Zone 4 (Regional)',
-      distanceRange: '301-600 miles',
-      zoneCostRange: '$5.05-$7.45',
-      perMileRange: '$45.15-$90.00',
-      distanceChargeRange: '$200.67-$400.00',
-      totalCostRange: '$287.87-$534.45',
-      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
-    },
-    {
-      zone: 'Zone 5 (National)',
-      distanceRange: '601-1000 miles',
-      zoneCostRange: '$7.45-$10.05',
-      perMileRange: '$90.15-$150.00',
-      distanceChargeRange: '$400.67-$666.67',
-      totalCostRange: '$535.27-$863.72',
-      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
-    },
-    {
-      zone: 'Zone 6 (National)',
-      distanceRange: '1001-1400 miles',
-      zoneCostRange: '$10.05-$12.45',
-      perMileRange: '$150.15-$210.00',
-      distanceChargeRange: '$667.33-$933.33',
-      totalCostRange: '$864.53-$1192.78',
-      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
-    },
-    {
-      zone: 'Zone 7 (National)',
-      distanceRange: '1401-1800 miles',
-      zoneCostRange: '$12.45-$15.05',
-      perMileRange: '$210.15-$270.00',
-      distanceChargeRange: '$934.00-$1200.00',
-      totalCostRange: '$1193.60-$1522.05',
-      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
-    },
-    {
-      zone: 'Zone 8 (Cross-Country)',
-      distanceRange: '1801-2500 miles',
-      zoneCostRange: '$15.05-$17.50',
-      perMileRange: '$270.15-$375.00',
-      distanceChargeRange: '$1200.67-$1666.67',
-      totalCostRange: '$1522.87-$2096.17',
-      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
-    },
-    {
-      zone: 'Zone 9 (Extreme Distance)',
-      distanceRange: '2500+ miles',
-      zoneCostRange: '$17.50+',
-      perMileRange: '$375.00+',
-      distanceChargeRange: '$1666.67+',
-      totalCostRange: '$2096.17+',
-      description: 'Base: $27 + Zone + $10 surcharge + $0.15/mile + $2 per 3 miles'
-    }
-  ];
+} {
+  return {
+    pipelineSteps: [
+      'Base Costs (Carrier + Handling + Packaging)',
+      'Distance Costs (Linear with multiplier effects)',
+      'Weight Costs (Standard package)',
+      'Geographic Costs (Urban/Rural adjustments)',
+      'Service Costs (Standard service fees)',
+      'Operational Costs (Fuel surcharge + Overhead)',
+      'Seasonal Adjustments (Peak/Off-season multipliers)'
+    ],
+    configuration: PIPELINE_CONFIG,
+    description: 'Complex multi-factor pipeline system with linear distance effects and no min/max limits'
+  };
 }
 
 /**

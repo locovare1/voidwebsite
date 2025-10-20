@@ -40,26 +40,26 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       shippingCost: result.totalCost,
-      baseCost: result.baseCost,
-      zoneCost: result.zoneCost,
-      surcharge: result.surcharge,
-      perMileCharge: result.perMileCharge,
-      distanceCharge: result.distanceCharge,
+      breakdown: result.breakdown,
       distance: result.distance,
       zone: result.zone,
       city: result.city,
       state: result.state,
       currency: 'USD',
       estimatedDelivery: '3-5 business days',
-      formula: {
-        description: 'CTotal = $27.00 + CZone + $10 surcharge + ($0.15 × miles) + ($2 per 3 miles)',
-        baseCost: result.baseCost,
-        zoneCost: result.zoneCost,
-        surcharge: result.surcharge,
-        perMileCharge: result.perMileCharge,
-        distanceCharge: result.distanceCharge,
-        distance: result.distance,
-        total: result.totalCost
+      pipelineSteps: result.pipelineSteps,
+      algorithm: {
+        type: 'Complex Pipeline System',
+        description: 'Multi-factor shipping calculation with linear distance effects',
+        factors: [
+          'Base Costs (Carrier + Handling + Packaging)',
+          'Distance Costs (Linear with multiplier effects)',
+          'Weight Costs (Standard 1lb package)',
+          'Geographic Costs (Urban/Rural surcharges)',
+          'Service Costs (Standard service fees)',
+          'Operational Costs (Fuel + Overhead)',
+          'Seasonal Adjustments (Peak/Off-season multipliers)'
+        ]
       }
     });
   } catch (error) {
