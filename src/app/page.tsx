@@ -121,7 +121,7 @@ export default function Home() {
 
         <div className="text-center void-container relative z-10">
           <AnimatedHeroSection>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 gradient-text">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 text-purple-gradient">
               WELCOME TO VOID
             </h1>
             <p className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto">
@@ -131,7 +131,7 @@ export default function Home() {
               <Link href="/teams" className="void-button pulse-glow">
                 Our Teams
               </Link>
-              <Link href="/about" className="void-button bg-transparent border-2 text-white border-[#FFFFFF] hover:bg-[#FFFFF] hover:text-black glow-on-hover">
+              <Link href="/about" className="void-button bg-transparent border-2 text-white border-purple-400 hover:bg-purple-400 hover:text-black glow-on-hover">
                 Learn More
               </Link>
             </div>
@@ -143,7 +143,7 @@ export default function Home() {
       <section ref={teamsRef} className="py-20 bg-[#0F0F0F]">
         <div className="void-container">
           <ParallaxText speed={0.3}>
-            <h2 className="text-3xl font-bold mb-12 text-center gradient-text">
+            <h2 className="text-3xl font-bold mb-12 text-center text-purple-gradient">
               Our Teams
             </h2>
           </ParallaxText>
@@ -173,7 +173,7 @@ export default function Home() {
       <section ref={newsRef} className="py-20 bg-[#1A1A1A]">
         <div className="void-container">
           <ParallaxText speed={0.3}>
-            <h2 className="text-3xl font-bold mb-12 text-center gradient-text">
+            <h2 className="text-3xl font-bold mb-12 text-center text-purple-gradient">
               Latest News
             </h2>
           </ParallaxText>

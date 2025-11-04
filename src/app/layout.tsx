@@ -82,7 +82,7 @@ export default function RootLayout({
                     <ScrollToTop />
                     {/* We'll handle navbar visibility in the client-side components */}
                     <Navbar />
-                    <main className="min-h-screen bg-gray-900">{children}</main>
+                    <main className="min-h-screen bg-void-purple">{children}</main>
                     <Footer />
                   </AdvancedPageTransition>
                 </GlobalErrorBoundary>

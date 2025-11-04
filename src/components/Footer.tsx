@@ -23,12 +23,12 @@ export default function Footer() {
   const translatedSocialLinks = socialLinks;
 
   return (
-    <footer className="bg-[#0F0F0F] border-t border-gray-800">
+    <footer className="bg-gradient-to-t from-[#1a0f2e] to-[#0F0F0F] border-t border-purple-500/20">
       <div className="void-container py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold gradient-text">VOID</h3>
+            <h3 className="text-xl font-bold text-purple-gradient">VOID</h3>
             <p className="text-gray-400">
               Professional esports organization pushing the boundaries of competitive gaming.
             </p>
@@ -44,7 +44,7 @@ export default function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-gray-400 hover:text-[#FFFFFF] transition-colors"
+                    className="text-gray-400 hover:text-purple-300 transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -53,7 +53,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/track-order"
-                  className="text-gray-400 hover:text-[#FFFFFF] transition-colors"
+                  className="text-gray-400 hover:text-purple-300 transition-colors"
                 >
                   Track Order
                 </Link>
@@ -71,7 +71,7 @@ export default function Footer() {
                 <Link
                   key={social.name}
                   href={social.href}
-                  className="text-gray-400 hover:text-[#FFFFFF] transition-colors"
+                  className="text-gray-400 hover:text-purple-300 transition-colors glow-on-hover"
                 >
                   <span className="sr-only">{social.name}</span>
                   <social.icon className="h-6 w-6" />
@@ -81,7 +81,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-gray-800">
+        <div className="mt-8 pt-8 border-t border-purple-500/20">
           <p className="text-center text-gray-400">
             © 2025 Void Esports. All rights reserved.
           </p>
