@@ -16,7 +16,6 @@ import {
   GestureImage 
 } from '@/components/FramerAnimations';
 
-
 const featuredTeams = [
     {
       name: '',
@@ -90,35 +89,19 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Gradient from navbar
+  const pageGradient = "bg-gradient-to-r from-[#0F0F0F]/95 via-[#0F0F0F]/95 to-[#1a0f2e]/95";
+
   return (
-    <div className="min-h-screen loading-fade-in">
+    <div className={`min-h-screen loading-fade-in ${pageGradient}`}>
       {/* Scroll Progress Indicator */}
       <ScrollProgress />
 
       {/* Hero Section */}
-      <section ref={heroRef} className="h-screen flex items-center justify-center bg-[#0F0F0F] relative overflow-hidden parallax-container">
-        {/* Parallax Background Elements */}
-        <ParallaxElement speed={0.3} className="absolute inset-0">
-          <FloatingElement duration={4} className="absolute top-20 left-10 w-20 h-20 bg-white/5 rounded-full blur-xl" />
-          <FloatingElement duration={6} className="absolute top-40 right-20 w-32 h-32 bg-white/3 rounded-full blur-xl" />
-          <FloatingElement duration={5} className="absolute bottom-20 left-1/4 w-16 h-16 bg-white/4 rounded-full blur-xl" />
-        </ParallaxElement>
-
-        {/* Logo background with enhanced parallax */}
-        <ParallaxElement speed={0.1}>
-          <FloatingElement duration={8}>
-            <Image
-              src="/logos/logo.png"
-              alt="Void Logo Background"
-              width={1200}
-              height={1200}
-              className="absolute left-1/2 top-1/2 w-[900px] md:w-[1200px] -translate-x-1/2 -translate-y-1/2 opacity-20 pointer-events-none select-none will-change-opacity fade-on-scroll"
-              style={{ zIndex: 0 }}
-              priority
-            />
-          </FloatingElement>
-        </ParallaxElement>
-
+      <section
+        ref={heroRef}
+        className={`h-screen flex items-center justify-center relative overflow-hidden parallax-container ${pageGradient}`}
+      >
         <div className="text-center void-container relative z-10">
           <AnimatedHeroSection>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 text-purple-gradient">
@@ -140,7 +123,7 @@ export default function Home() {
       </section>
 
       {/* Featured Teams Section */}
-      <section ref={teamsRef} className="py-20 bg-[#0F0F0F]">
+      <section ref={teamsRef} className={`py-20 ${pageGradient}`}>
         <div className="void-container">
           <ParallaxText speed={0.3}>
             <h2 className="text-3xl font-bold mb-12 text-center text-purple-gradient">
@@ -170,7 +153,7 @@ export default function Home() {
       </section>
 
       {/* Latest News Section */}
-      <section ref={newsRef} className="py-20 bg-[#1A1A1A]">
+      <section ref={newsRef} className={`py-20 ${pageGradient}`}>
         <div className="void-container">
           <ParallaxText speed={0.3}>
             <h2 className="text-3xl font-bold mb-12 text-center text-purple-gradient">
@@ -207,8 +190,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-      
-
     </div>
   );
 }
