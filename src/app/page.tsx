@@ -40,7 +40,6 @@ const storeItems = [
 
 export default function Home() {
   const [newsIndex, setNewsIndex] = useState(0);
-  const [storeIndex, setStoreIndex] = useState(0);
 
   // Hero news carousel every 12s
   useEffect(() => {
@@ -50,18 +49,8 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  // Store carousel scroll every 5s
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setStoreIndex((prev) => (prev + 1) % storeItems.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const getVisibleItems = (arr: any[], start: number, count: number) =>
-    Array.from({ length: count }, (_, i) => arr[(start + i) % arr.length]);
-
-  const visibleStore = getVisibleItems(storeItems, storeIndex, 5);
+  // Duplicate store items for seamless infinite loop
+  const duplicatedStoreItems = [...storeItems, ...storeItems, ...storeItems];
 
   return (
     <div className="min-h-screen relative">
@@ -92,19 +81,47 @@ export default function Home() {
         </AnimatePresence>
       </section>
 
-      {/* Store Carousel */}
-      <section className="py-20 bg-[#1A1A1A]">
+      {/* Store Carousel - Continuous Loop */}
+      <section className="py-20 bg-[#1A1A1A] overflow-hidden">
         <div className="void-container">
           <h2 className="text-3xl font-bold mb-12 text-center text-purple-gradient">Shop Now</h2>
-          <div className="flex gap-6 overflow-hidden">
-            {visibleStore.map((item) => (
-              <Link key={item.id} href={item.link}>
-                <div className="min-w-[200px] rounded-lg overflow-hidden shadow-lg cursor-pointer flex-shrink-0">
-                  <Image src={item.image} alt={item.name} width={300} height={300} className="object-cover w-full h-full" />
-                  <div className="bg-gradient-to-t from-black/80 to-transparent p-2 text-white text-center font-semibold">{item.name}</div>
-                </div>
-              </Link>
-            ))}
+          <div className="relative carousel-container">
+            <motion.div
+              className="flex gap-6"
+              animate={{
+                x: [0, -((storeItems.length * 220))],
+              }}
+              transition={{
+                x: {
+                  repeat: Infinity,
+                  repeatType: "loop",
+                  duration: 20,
+                  ease: "linear",
+                },
+              }}
+            >
+              {duplicatedStoreItems.map((item, index) => (
+                <Link key={`${item.id}-${index}`} href={item.link}>
+                  <motion.div
+                    className="min-w-[200px] rounded-lg overflow-hidden shadow-lg cursor-pointer flex-shrink-0 void-card"
+                    whileHover={{ scale: 1.05, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="relative h-[200px] w-[200px]">
+                      <Image 
+                        src={item.image} 
+                        alt={item.name} 
+                        fill 
+                        className="object-cover" 
+                      />
+                    </div>
+                    <div className="bg-gradient-to-t from-black/80 to-transparent p-3 text-white text-center font-semibold text-sm">
+                      {item.name}
+                    </div>
+                  </motion.div>
+                </Link>
+              ))}
+            </motion.div>
           </div>
         </div>
       </section>
