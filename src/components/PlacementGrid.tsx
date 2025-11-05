@@ -57,12 +57,24 @@ export default function PlacementGrid({ placements, itemsPerPage }: PlacementGri
             >
               <div className="relative flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 relative">
-                  <Image
-                    src={placement.logo}
-                    alt={`${placement.game} logo`}
-                    fill
-                    className="object-contain"
-                  />
+                  {placement.logo && placement.logo.trim() && placement.logo.startsWith('http') ? (
+                    <img
+                      src={placement.logo}
+                      alt={`${placement.game} logo`}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/logo.png';
+                      }}
+                    />
+                  ) : (
+                    <Image
+                      src={placement.logo && placement.logo.trim() ? placement.logo : '/logo.png'}
+                      alt={`${placement.game} logo`}
+                      fill
+                      className="object-contain"
+                    />
+                  )}
                 </div>
                 <div>
                   <h3 className="text-white font-semibold text-lg md:text-xl">

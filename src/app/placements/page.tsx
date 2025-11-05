@@ -113,13 +113,13 @@ export default function Placements() {
   }, []);
 
   const games = useMemo(() => {
-    const unique = Array.from(new Set(placements.map(p => p.game)));
+    const unique = Array.from(new Set(placements.map(p => p.game.trim())));
     return ['All', ...unique];
   }, [placements]);
 
   const filteredPlacements = useMemo(() => {
     if (selectedGame === 'All') return placements;
-    return placements.filter(p => p.game === selectedGame);
+    return placements.filter(p => p.game.trim() === selectedGame);
   }, [selectedGame, placements]);
 
   // Removed fade/observer logic to ensure the container doesn't disappear

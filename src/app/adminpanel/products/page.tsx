@@ -152,7 +152,7 @@ export default function ProductsPage() {
             ) : (
               <div className="space-y-3 p-4">
                 {filteredProducts.map((product) => (
-                  <div key={product.id ?? product.name} className="p-4 rounded-lg border border-[#3A3A3A] hover:bg-[#2A2A2A] transition-all duration-300 transform hover:-translate-y-0.5">
+                  <div key={product.id ?? product.name} className="p-4 rounded-lg border border-[#3A3A3A] hover:bg-[#2A2A2A] transition-all duration-300">
                     <div className="flex items-start justify-between">
                       <div className="min-w-0 flex-1">
                         <h3 className="text-white font-semibold truncate">{product.name}</h3>

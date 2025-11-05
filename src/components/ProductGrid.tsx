@@ -115,7 +115,7 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 
 			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8">
 				{currentProducts.map((product) => (
-					<AnimatedCard key={product.id} enableTilt className="void-card shine-hover overflow-hidden group">
+					<AnimatedCard key={product.id} className="void-card shine-hover overflow-hidden group">
 						<div className="relative h-64 w-full overflow-hidden">
 							<Image
 								src={product.image && product.image.trim() ? product.image : '/logo.png'}

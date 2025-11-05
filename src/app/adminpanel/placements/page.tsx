@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { placementService } from '@/lib/placementService';
 import { 
   PlusIcon, 
@@ -251,12 +252,47 @@ export default function PlacementsPage() {
                 placeholder="Prize (e.g. $1000)" 
                 className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]" 
               />
-              <input 
-                value={placementForm.logo} 
-                onChange={e=>setPlacementForm(p=>({...p,logo:e.target.value}))} 
-                placeholder="Logo URL" 
-                className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] md:col-span-2" 
-              />
+              <div className="md:col-span-2">
+                <label className="block text-sm text-gray-400 mb-1">Logo URL</label>
+                <input 
+                  value={placementForm.logo} 
+                  onChange={e=>setPlacementForm(p=>({...p,logo:e.target.value}))} 
+                  placeholder="Logo URL" 
+                  className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]" 
+                />
+                {placementForm.logo && placementForm.logo.trim() && (
+                  <div className="mt-2 p-2 bg-[#2A2A2A] rounded-lg">
+                    <p className="text-xs text-gray-400 mb-2">Logo Preview:</p>
+                    <div className="w-10 h-10 relative">
+                      <img
+                        src={placementForm.logo}
+                        alt="Logo preview"
+                        className="w-full h-full object-contain rounded"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent && !parent.querySelector('.error-message')) {
+                            const errorMsg = document.createElement('span');
+                            errorMsg.className = 'error-message text-red-400 text-xs';
+                            errorMsg.textContent = 'Invalid image URL';
+                            parent.appendChild(errorMsg);
+                          }
+                        }}
+                        onLoad={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          const parent = target.parentElement;
+                          const errorMsg = parent?.querySelector('.error-message');
+                          if (errorMsg) {
+                            errorMsg.remove();
+                          }
+                          target.style.display = 'block';
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex gap-2 pt-4">
               <button 

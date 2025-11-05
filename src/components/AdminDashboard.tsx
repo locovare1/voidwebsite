@@ -1126,7 +1126,7 @@ export default function AdminDashboard() {
       {/* Products Tab */}
       {activeTab === 'products' && (
         <div className="space-y-6">
-          <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+          <AnimatedCard className="admin-card shine-hover p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
                 <UserIcon className="w-6 h-6" />
@@ -1140,7 +1140,7 @@ export default function AdminDashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map((product) => (
-                <AnimatedCard key={product.id} enableTilt className="admin-card p-4">
+                <AnimatedCard key={product.id} className="admin-card p-4">
                   <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
                     <Image
                       src={product.image}
