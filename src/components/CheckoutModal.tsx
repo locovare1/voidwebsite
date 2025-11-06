@@ -438,19 +438,10 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
               {/* Proceed Button */}
               <button
                 onClick={handleProceedToPayment}
-                disabled={!isFormValid || isLoading}
+                disabled={true}
                 className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed glow-on-hover"
               >
-                {isLoading ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
-                    Processing...
-                  </div>
-                ) : finalTotal <= 0 ? (
-                  'Place Free Order'
-                ) : (
-                  `Pay with Stripe - $${finalTotal.toFixed(2)}`
-                )}
+                Checkout Temporarily Disabled
               </button>
             </>
           ) : (
