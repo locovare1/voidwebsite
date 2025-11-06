@@ -513,7 +513,7 @@ html {
 /* Mobile-specific improvements */
 @media (max-width: 640px) {
   .void-card {
-    padding: 1rem;
+    padding: 0.75rem;
   }
   
   .void-button {
@@ -536,6 +536,22 @@ html {
   /* Prevent horizontal scroll */
   html, body {
     overflow-x: hidden;
+  }
+  
+  /* Better carousel spacing on mobile */
+  .carousel-container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  
+  .carousel-container::before,
+  .carousel-container::after {
+    width: 60px;
+  }
+  
+  /* Improve mobile menu */
+  .mobile-menu-open {
+    overflow: hidden !important;
   }
 }
 

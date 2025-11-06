@@ -37,6 +37,20 @@ export default function Navbar() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [mobileMenuOpen]);
+
   // Hide navbar in admin panel - moved this after all hooks
   if (pathname && pathname.startsWith('/adminpanel')) {
     return null;
@@ -93,11 +107,11 @@ export default function Navbar() {
       </nav>
 
       <div 
-        className={`fixed inset-0 transition-all duration-500 ${mobileMenuOpen ? 'block opacity-100' : 'hidden opacity-0'} lg:hidden z-[999] bg-black/50`}
+        className={`fixed inset-0 transition-all duration-500 ${mobileMenuOpen ? 'block opacity-100' : 'hidden opacity-0'} lg:hidden z-[999] bg-black/80 backdrop-blur-sm`}
         onClick={() => setMobileMenuOpen(false)}
       >
         <div 
-          className={`fixed top-0 right-0 h-full w-full max-w-sm bg-gradient-to-b from-[#0F0F0F] to-[#1a0f2e] shadow-xl transition-transform duration-500 ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+          className={`fixed top-0 right-0 h-full w-full max-w-sm bg-gradient-to-b from-[#0F0F0F] via-[#0F0F0F] to-[#1a0f2e] shadow-2xl transition-transform duration-500 border-l border-purple-500/20 ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between p-4 sm:p-6 border-b border-purple-500/20">

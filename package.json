@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "node_modules/.bin/next start",
     "lint": "next lint",
-    "vercel-build": "next build"
+    "vercel-build": "next build",
+    "verify-stripe": "node verify-stripe-env.js"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
