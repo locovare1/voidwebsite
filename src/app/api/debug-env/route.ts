@@ -1,13 +1,17 @@
 import { NextResponse } from 'next/server';
 
-export async function GET() {
-  // Only allow in development or with special debug header
+export async function GET(request: Request) {
+  // Allow debug in production with special query parameter
+  const url = new URL(request.url);
+  const debugKey = url.searchParams.get('debug');
   const isDev = process.env.NODE_ENV === 'development';
   
-  if (!isDev) {
+  // Only allow if development OR with debug key "stripe123"
+  if (!isDev && debugKey !== 'stripe123') {
     return NextResponse.json({ 
-      error: 'Debug endpoint only available in development',
-      production: true 
+      error: 'Debug endpoint requires ?debug=stripe123 in production',
+      production: true,
+      hint: 'Add ?debug=stripe123 to the URL'
     });
   }
 
