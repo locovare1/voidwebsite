@@ -124,12 +124,12 @@ export default function Home() {
             >
               <Image src={latestNews[newsIndex].image} alt={latestNews[newsIndex].title} fill className="object-cover" />
               <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"></div>
-              <div className="absolute inset-0 flex items-center px-8 md:px-16 lg:px-24">
+              <div className="absolute inset-0 flex items-center px-4 sm:px-8 md:px-16 lg:px-24">
                 <div className="max-w-xl text-left">
-                  <p className="text-sm text-gray-300 mb-2">{latestNews[newsIndex].date}</p>
-                  <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">{latestNews[newsIndex].title}</h1>
-                  <p className="text-base md:text-lg text-gray-200 mb-6">{latestNews[newsIndex].description}</p>
-                  <Link href="/news" className="void-button pulse-glow">Read More</Link>
+                  <p className="text-xs sm:text-sm text-gray-300 mb-2">{latestNews[newsIndex].date}</p>
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 leading-tight">{latestNews[newsIndex].title}</h1>
+                  <p className="text-sm sm:text-base md:text-lg text-gray-200 mb-4 sm:mb-6 line-clamp-3 sm:line-clamp-none">{latestNews[newsIndex].description}</p>
+                  <Link href="/news" className="void-button pulse-glow text-sm sm:text-base">Read More</Link>
                 </div>
               </div>
             </motion.div>
@@ -138,14 +138,14 @@ export default function Home() {
       </section>
 
       {/* Store Carousel - Continuous Loop */}
-      <section className="py-20 bg-[#1A1A1A] overflow-hidden">
+      <section className="py-12 sm:py-16 lg:py-20 bg-[#1A1A1A] overflow-hidden">
         <div className="void-container">
-          <h2 className="text-3xl font-bold mb-12 text-center text-purple-gradient">Shop Now</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-8 sm:mb-12 text-center text-purple-gradient">Shop Now</h2>
           <div className="relative carousel-container">
             <motion.div
-              className="flex gap-6"
+              className="flex gap-4 sm:gap-6"
               animate={{
-                x: [0, -((storeItems.length * 220))],
+                x: [0, -((storeItems.length * 180))],
               }}
               transition={{
                 x: {
@@ -159,11 +159,11 @@ export default function Home() {
               {duplicatedStoreItems.map((item, index) => (
                 <Link key={`${item.id}-${index}`} href={item.link}>
                   <motion.div
-                    className="min-w-[200px] rounded-lg overflow-hidden shadow-lg cursor-pointer flex-shrink-0 void-card"
+                    className="min-w-[160px] sm:min-w-[200px] rounded-lg overflow-hidden shadow-lg cursor-pointer flex-shrink-0 void-card"
                     whileHover={{ scale: 1.05, y: -10 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="relative h-[200px] w-[200px]">
+                    <div className="relative h-[160px] w-[160px] sm:h-[200px] sm:w-[200px]">
                       <Image 
                         src={item.image} 
                         alt={item.name} 
@@ -171,7 +171,7 @@ export default function Home() {
                         className="object-cover" 
                       />
                     </div>
-                    <div className="bg-gradient-to-t from-black/80 to-transparent p-3 text-white text-center font-semibold text-sm">
+                    <div className="bg-gradient-to-t from-black/80 to-transparent p-2 sm:p-3 text-white text-center font-semibold text-xs sm:text-sm">
                       {item.name}
                     </div>
                   </motion.div>

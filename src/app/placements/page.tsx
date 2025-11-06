@@ -136,30 +136,30 @@ export default function Placements() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0F0F0F] pt-24 pb-20">
+    <div className="min-h-screen bg-[#0F0F0F] pt-20 sm:pt-24 pb-16 sm:pb-20">
       <ScrollProgress />
       <div className="void-container">
-        <div className="text-center mb-12">
+        <div className="text-center mb-8 sm:mb-12">
           <ParallaxText speed={0.2}>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4">
               Recent Placements
             </h1>
           </ParallaxText>
           <FadeInSection delay={0.1}>
-            <p className="text-gray-400 text-lg">
+            <p className="text-gray-400 text-base sm:text-lg px-4">
               Our teams&apos; latest achievements across various esports titles
             </p>
           </FadeInSection>
         </div>
         
-        <AnimatedCard className="flex flex-col items-center mb-10 gap-3 bg-transparent border-0 shadow-none">
-          <span className="text-sm font-medium text-gray-400">Filter by game:</span>
-          <div className="flex flex-wrap gap-2 bg-[#1A1A1A] rounded-full p-1.5 border border-[#2A2A2A]">
+        <AnimatedCard className="flex flex-col items-center mb-8 sm:mb-10 gap-3 bg-transparent border-0 shadow-none">
+          <span className="text-xs sm:text-sm font-medium text-gray-400">Filter by game:</span>
+          <div className="flex flex-wrap gap-1 sm:gap-2 bg-[#1A1A1A] rounded-full p-1 sm:p-1.5 border border-[#2A2A2A] max-w-full overflow-x-auto">
             {games.map(game => (
               <button
                 key={game}
                 onClick={() => setSelectedGame(game)}
-                className={`px-4 py-2 rounded-full font-medium text-sm transition-colors ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
                   selectedGame === game
                     ? 'bg-white text-black'
                     : 'bg-transparent text-white hover:bg-white/10'

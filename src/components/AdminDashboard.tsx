@@ -551,11 +551,11 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0A0A0A] via-[#1A1A1A] to-[#0F0F0F] p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#0A0A0A] via-[#1A1A1A] to-[#0F0F0F] p-3 sm:p-6">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
       {/* Navigation Tabs */}
       <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-1">
-        <div className="flex space-x-1">
+        <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
           {[
             { id: 'overview', label: 'Overview', icon: ChartBarIcon },
             { id: 'orders', label: 'Orders', icon: ShoppingBagIcon },
@@ -570,13 +570,14 @@ export default function AdminDashboard() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${activeTab === tab.id
+              className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-300 whitespace-nowrap text-sm sm:text-base ${activeTab === tab.id
                   ? 'bg-[#FFFFFF] text-black'
                   : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]'
                 }`}
             >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <tab.icon className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
             </button>
           ))}
         </div>
@@ -586,113 +587,113 @@ export default function AdminDashboard() {
       {activeTab === 'overview' && (
         <div className="space-y-6">
           {/* Enhanced Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm font-medium">Total Revenue</p>
-                  <p className="text-3xl font-bold text-white mt-2">${totalRevenue.toFixed(2)}</p>
-                  <div className="flex items-center gap-1 mt-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-gray-400 text-xs sm:text-sm font-medium">Total Revenue</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-white mt-1 sm:mt-2 truncate">${totalRevenue.toFixed(2)}</p>
+                  <div className="flex items-center gap-1 mt-1 sm:mt-2">
                     <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                     <span className="text-green-400 text-xs">Active</span>
                   </div>
                 </div>
-                <div className="bg-green-500/20 p-3 rounded-xl group-hover:bg-green-500/30 transition-colors">
-                  <CurrencyDollarIcon className="w-8 h-8 text-green-400" />
+                <div className="bg-green-500/20 p-2 sm:p-3 rounded-xl group-hover:bg-green-500/30 transition-colors flex-shrink-0">
+                  <CurrencyDollarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" />
                 </div>
               </div>
             </AnimatedCard>
 
-            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm font-medium">Total Orders</p>
-                  <p className="text-3xl font-bold text-white mt-2">{totalOrders}</p>
-                  <div className="flex items-center gap-1 mt-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-gray-400 text-xs sm:text-sm font-medium">Total Orders</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-white mt-1 sm:mt-2">{totalOrders}</p>
+                  <div className="flex items-center gap-1 mt-1 sm:mt-2">
                     <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                     <span className="text-blue-400 text-xs">{pendingOrders} pending</span>
                   </div>
                 </div>
-                <div className="bg-blue-500/20 p-3 rounded-xl group-hover:bg-blue-500/30 transition-colors">
-                  <ShoppingBagIcon className="w-8 h-8 text-blue-400" />
+                <div className="bg-blue-500/20 p-2 sm:p-3 rounded-xl group-hover:bg-blue-500/30 transition-colors flex-shrink-0">
+                  <ShoppingBagIcon className="w-6 h-6 sm:w-8 sm:h-8 text-blue-400" />
                 </div>
               </div>
             </AnimatedCard>
 
-            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm font-medium">Avg Order Value</p>
-                  <p className="text-3xl font-bold text-white mt-2">${averageOrderValue.toFixed(2)}</p>
-                  <div className="flex items-center gap-1 mt-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-gray-400 text-xs sm:text-sm font-medium">Avg Order Value</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-white mt-1 sm:mt-2 truncate">${averageOrderValue.toFixed(2)}</p>
+                  <div className="flex items-center gap-1 mt-1 sm:mt-2">
                     <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
                     <span className="text-purple-400 text-xs">Per order</span>
                   </div>
                 </div>
-                <div className="bg-purple-500/20 p-3 rounded-xl group-hover:bg-purple-500/30 transition-colors">
-                  <ChartBarIcon className="w-8 h-8 text-purple-400" />
+                <div className="bg-purple-500/20 p-2 sm:p-3 rounded-xl group-hover:bg-purple-500/30 transition-colors flex-shrink-0">
+                  <ChartBarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
                 </div>
               </div>
             </AnimatedCard>
 
-            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm font-medium">Avg Rating</p>
-                  <p className="text-3xl font-bold text-white mt-2">{averageRating.toFixed(1)}/5</p>
-                  <div className="flex items-center gap-1 mt-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-gray-400 text-xs sm:text-sm font-medium">Avg Rating</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-white mt-1 sm:mt-2">{averageRating.toFixed(1)}/5</p>
+                  <div className="flex items-center gap-1 mt-1 sm:mt-2">
                     <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
                     <span className="text-yellow-400 text-xs">{reviews.length} reviews</span>
                   </div>
                 </div>
-                <div className="bg-yellow-500/20 p-3 rounded-xl group-hover:bg-yellow-500/30 transition-colors">
-                  <StarIcon className="w-8 h-8 text-yellow-400" />
+                <div className="bg-yellow-500/20 p-2 sm:p-3 rounded-xl group-hover:bg-yellow-500/30 transition-colors flex-shrink-0">
+                  <StarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400" />
                 </div>
               </div>
             </AnimatedCard>
           </div>
 
           {/* Enhanced Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
-              <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-bold text-white mb-4 sm:mb-6 flex items-center gap-2">
                 <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                 Order Status
               </h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 bg-[#0F0F0F]/50 rounded-lg">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex justify-between items-center p-2 sm:p-3 bg-[#0F0F0F]/50 rounded-lg">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                    <span className="text-gray-300">Pending</span>
+                    <span className="text-gray-300 text-sm sm:text-base">Pending</span>
                   </div>
-                  <span className="text-yellow-400 font-bold text-lg">{pendingOrders}</span>
+                  <span className="text-yellow-400 font-bold text-base sm:text-lg">{pendingOrders}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-[#0F0F0F]/50 rounded-lg">
+                <div className="flex justify-between items-center p-2 sm:p-3 bg-[#0F0F0F]/50 rounded-lg">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                    <span className="text-gray-300">Completed</span>
+                    <span className="text-gray-300 text-sm sm:text-base">Completed</span>
                   </div>
-                  <span className="text-green-400 font-bold text-lg">{completedOrders}</span>
+                  <span className="text-green-400 font-bold text-base sm:text-lg">{completedOrders}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-[#0F0F0F]/50 rounded-lg">
+                <div className="flex justify-between items-center p-2 sm:p-3 bg-[#0F0F0F]/50 rounded-lg">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
-                    <span className="text-gray-300">Total Reviews</span>
+                    <span className="text-gray-300 text-sm sm:text-base">Total Reviews</span>
                   </div>
-                  <span className="text-blue-400 font-bold text-lg">{reviews.length}</span>
+                  <span className="text-blue-400 font-bold text-base sm:text-lg">{reviews.length}</span>
                 </div>
               </div>
             </AnimatedCard>
 
-            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Recent Activity</h3>
-              <div className="space-y-3">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Recent Activity</h3>
+              <div className="space-y-2 sm:space-y-3">
                 {orders.slice(0, 3).map((order) => (
-                  <div key={order.id} className="flex justify-between items-center">
-                    <span className="text-gray-400 text-sm">
+                  <div key={order.id} className="flex justify-between items-center gap-2">
+                    <span className="text-gray-400 text-xs sm:text-sm truncate">
                       Order {formatOrderNumber(order.id)}
                     </span>
-                    <span className={`px-2 py-1 rounded text-xs ${getStatusColor(order.status)}`}>
+                    <span className={`px-2 py-1 rounded text-xs flex-shrink-0 ${getStatusColor(order.status)}`}>
                       {order.status}
                     </span>
                   </div>

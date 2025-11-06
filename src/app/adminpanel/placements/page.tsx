@@ -138,11 +138,11 @@ export default function PlacementsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
         {/* Placements List */}
         <div className="bg-[#1A1A1A] rounded-xl border border-[#2A2A2A] overflow-hidden">
-          <div className="p-4 border-b border-[#2A2A2A]">
-            <h2 className="text-xl font-semibold text-white">Placements</h2>
+          <div className="p-3 sm:p-4 border-b border-[#2A2A2A]">
+            <h2 className="text-lg sm:text-xl font-semibold text-white">Placements</h2>
           </div>
           <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
             {loading ? (
@@ -155,21 +155,21 @@ export default function PlacementsPage() {
                 <p>No placements found</p>
               </div>
             ) : (
-              <div className="space-y-3 p-4">
+              <div className="space-y-2 sm:space-y-3 p-3 sm:p-4">
                 {filteredPlacements.map(placement => (
-                  <div key={placement.id ?? `${placement.game}-${placement.tournament}`} className="p-4 rounded-lg border border-[#3A3A3A] hover:bg-[#2A2A2A] transition-all duration-300 transform hover:-translate-y-0.5">
-                    <div className="flex items-start justify-between">
-                      <div className="min-w-0">
-                        <h3 className="text-white font-semibold truncate">{placement.tournament}</h3>
-                        <p className="text-gray-400 text-sm truncate">{placement.team} • {placement.game}</p>
-                        <div className="flex items-center gap-2 mt-1">
+                  <div key={placement.id ?? `${placement.game}-${placement.tournament}`} className="p-3 sm:p-4 rounded-lg border border-[#3A3A3A] hover:bg-[#2A2A2A] transition-all duration-300 transform hover:-translate-y-0.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-white font-semibold text-sm sm:text-base truncate">{placement.tournament}</h3>
+                        <p className="text-gray-400 text-xs sm:text-sm truncate">{placement.team} • {placement.game}</p>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <span className="text-xs text-gray-500">{placement.position}</span>
                           {placement.prize && placement.prize !== "$0" && (
                             <span className="text-xs text-[#FFD700] font-bold">{placement.prize}</span>
                           )}
                         </div>
                       </div>
-                      <div className="flex gap-2 ml-4">
+                      <div className="flex gap-1 sm:gap-2 flex-shrink-0">
                         <button
                           onClick={() => {
                             setEditingPlacement(placement);
@@ -183,16 +183,16 @@ export default function PlacementsPage() {
                               logo: placement.logo
                             });
                           }}
-                          className="text-blue-400 hover:text-blue-300 p-1 rounded hover:bg-blue-400/10 transition-all duration-300"
+                          className="text-blue-400 hover:text-blue-300 p-1.5 sm:p-2 rounded hover:bg-blue-400/10 transition-all duration-300"
                         >
-                          <PencilIcon className="w-4 h-4" />
+                          <PencilIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                         </button>
                         {placement.id && (
                           <button
                             onClick={() => setShowDeleteConfirm(placement.id!)}
-                            className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-400/10 transition-all duration-300"
+                            className="text-red-400 hover:text-red-300 p-1.5 sm:p-2 rounded hover:bg-red-400/10 transition-all duration-300"
                           >
-                            <TrashIcon className="w-4 h-4" />
+                            <TrashIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                           </button>
                         )}
                       </div>
@@ -206,24 +206,24 @@ export default function PlacementsPage() {
 
         {/* Placement Form */}
         <div className="bg-[#1A1A1A] rounded-xl border border-[#2A2A2A] overflow-hidden">
-          <div className="p-4 border-b border-[#2A2A2A]">
-            <h2 className="text-xl font-semibold text-white">
+          <div className="p-3 sm:p-4 border-b border-[#2A2A2A]">
+            <h2 className="text-lg sm:text-xl font-semibold text-white">
               {editingPlacement ? 'Edit Placement' : 'Create Placement'}
             </h2>
           </div>
-          <div className="p-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input 
                 value={placementForm.game} 
                 onChange={e=>setPlacementForm(p=>({...p,game:e.target.value}))} 
                 placeholder="Game" 
-                className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] md:col-span-2" 
+                className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] sm:col-span-2" 
               />
               <input 
                 value={placementForm.tournament} 
                 onChange={e=>setPlacementForm(p=>({...p,tournament:e.target.value}))} 
                 placeholder="Tournament" 
-                className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] md:col-span-2" 
+                className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] sm:col-span-2" 
               />
               <input 
                 value={placementForm.team} 
@@ -237,8 +237,8 @@ export default function PlacementsPage() {
                 placeholder="Position" 
                 className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]" 
               />
-              <div className="md:col-span-2">
-                <label className="block text-sm text-gray-400 mb-1">Players (comma separated)</label>
+              <div className="sm:col-span-2">
+                <label className="block text-xs sm:text-sm text-gray-400 mb-1">Players (comma separated)</label>
                 <input 
                   value={placementForm.players} 
                   onChange={e=>setPlacementForm(p=>({...p,players:e.target.value}))} 
@@ -252,8 +252,8 @@ export default function PlacementsPage() {
                 placeholder="Prize (e.g. $1000)" 
                 className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]" 
               />
-              <div className="md:col-span-2">
-                <label className="block text-sm text-gray-400 mb-1">Logo URL</label>
+              <div className="sm:col-span-2">
+                <label className="block text-xs sm:text-sm text-gray-400 mb-1">Logo URL</label>
                 <input 
                   value={placementForm.logo} 
                   onChange={e=>setPlacementForm(p=>({...p,logo:e.target.value}))} 
@@ -263,7 +263,7 @@ export default function PlacementsPage() {
                 {placementForm.logo && placementForm.logo.trim() && (
                   <div className="mt-2 p-2 bg-[#2A2A2A] rounded-lg">
                     <p className="text-xs text-gray-400 mb-2">Logo Preview:</p>
-                    <div className="w-10 h-10 relative">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 relative">
                       <img
                         src={placementForm.logo}
                         alt="Logo preview"
@@ -294,17 +294,17 @@ export default function PlacementsPage() {
                 )}
               </div>
             </div>
-            <div className="flex gap-2 pt-4">
+            <div className="flex flex-col sm:flex-row gap-2 pt-4">
               <button 
                 onClick={submitPlacement} 
                 disabled={placementRequiredMissing} 
-                className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 flex-1"
+                className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 flex-1 text-sm sm:text-base"
               >
                 {editingPlacement ? 'Update Placement' : 'Create Placement'}
               </button>
               <button 
                 onClick={resetPlacementForm} 
-                className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
+                className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 text-sm sm:text-base"
               >
                 Clear
               </button>
