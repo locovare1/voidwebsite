@@ -53,7 +53,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
   const [orderProcessed, setOrderProcessed] = useState(false);
   const [shippingCost, setShippingCost] = useState<number>(0);
   const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
-  const [isMockPayment, setIsMockPayment] = useState(false);
+
   
   const { addOrder } = useOrders();
   const { clearCart } = useCart();
@@ -163,56 +163,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
     }));
   };
 
-  const handleMockPaymentSuccess = async () => {
-    try {
-      console.log('🧪 Processing mock payment success');
-      
-      // Create order object
-      const order: Order = {
-        id: generateOrderNumber(),
-        items: items.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image
-        })),
-        total: finalTotal,
-        status: 'accepted',
-        customerInfo,
-        createdAt: new Date().toISOString()
-      };
 
-      // Save to Firebase
-      if (db) {
-        await setDoc(doc(db, 'orders', order.id), {
-          ...order,
-          createdAt: new Date()
-        });
-      }
-
-      // Add to context
-      addOrder(order);
-      
-      // Clear cart
-      clearCart();
-      
-      // Show success
-      setCompletedOrder(order);
-      setShowSuccessModal(true);
-      setOrderProcessed(true);
-      
-      // Close checkout
-      setShowPayment(false);
-      setClientSecret('');
-      onClose();
-      
-      console.log('✅ Mock order created successfully:', order.id);
-    } catch (error) {
-      console.error('❌ Error processing mock payment:', error);
-      alert('Failed to process order. Please try again.');
-    }
-  };
 
   const handleProceedToPayment = async () => {
     if (!isFormValid) return;
@@ -311,16 +262,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
       }
 
       const responseData = await response.json();
-      const { clientSecret, mock } = responseData;
-      
-      if (mock) {
-        console.log('🧪 Using mock payment system for testing');
-        setIsMockPayment(true);
-        // For mock payments, simulate immediate success
-        setTimeout(() => {
-          handleMockPaymentSuccess();
-        }, 2000); // 2 second delay to simulate processing
-      }
+      const { clientSecret } = responseData;
       
       setClientSecret(clientSecret);
       setShowPayment(true);
@@ -515,27 +457,9 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
             <>
               {/* Payment Form */}
               {clientSecret && (
-                <>
-                  {isMockPayment ? (
-                    <div className="bg-[#1A1A1A] rounded-lg p-6 text-center">
-                      <div className="mb-4">
-                        <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <span className="text-2xl">🧪</span>
-                        </div>
-                        <h3 className="text-lg font-semibold text-white mb-2">Test Mode</h3>
-                        <p className="text-gray-400 text-sm mb-4">
-                          Stripe is not configured. Using mock payment for testing.
-                        </p>
-                        <div className="flex items-center justify-center gap-2 text-sm text-yellow-400">
-                          <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                          Processing mock payment...
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <Elements options={options} stripe={getStripe()}>
-                      <CheckoutForm 
-                        clientSecret={clientSecret}
+                <Elements options={options} stripe={getStripe()}>
+                  <CheckoutForm 
+                    clientSecret={clientSecret}
                         customerInfo={customerInfo}
                         onSuccess={(order) => {
                           setCompletedOrder(order);
@@ -546,16 +470,14 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                         }}
                         total={finalTotal}
                       />
-                    </Elements>
-                  )}
-                </>
+                </Elements>
               )}
             </>
           )}
         </div>
       </div>
-        </div>
-      )}
+    </div>
+  )}
 
       {/* Order Success Modal - Persists even when checkout modal closes */}
       <OrderSuccessModal
