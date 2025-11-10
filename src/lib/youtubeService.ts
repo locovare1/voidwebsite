@@ -60,6 +60,24 @@ class YouTubeService {
     return formatted;
   }
 
+  // Get duration in seconds from ISO 8601 format
+  private getDurationInSeconds(duration: string): number {
+    const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+    if (!match) return 0;
+
+    const hours = parseInt((match[1] || '0').replace('H', '')) || 0;
+    const minutes = parseInt((match[2] || '0').replace('M', '')) || 0;
+    const seconds = parseInt((match[3] || '0').replace('S', '')) || 0;
+
+    return hours * 3600 + minutes * 60 + seconds;
+  }
+
+  // Check if video is long-form (4+ minutes)
+  private isLongFormVideo(duration: string): boolean {
+    const durationInSeconds = this.getDurationInSeconds(duration);
+    return durationInSeconds >= 240; // 4 minutes = 240 seconds
+  }
+
   // Get latest videos from the channel
   async getLatestVideos(maxResults: number = 10): Promise<YouTubeVideo[]> {
     if (!this.apiKey || !this.channelId) {

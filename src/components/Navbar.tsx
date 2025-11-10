@@ -107,11 +107,11 @@ export default function Navbar() {
       </nav>
 
       <div 
-        className={`fixed inset-0 transition-all duration-500 ${mobileMenuOpen ? 'block opacity-100' : 'hidden opacity-0'} lg:hidden z-[999] bg-black/80 backdrop-blur-sm`}
+        className={`fixed inset-0 transition-all duration-500 ${mobileMenuOpen ? 'block opacity-100' : 'hidden opacity-0'} lg:hidden z-[999] bg-black/70 backdrop-blur-md`}
         onClick={() => setMobileMenuOpen(false)}
       >
         <div 
-          className={`fixed top-0 right-0 h-full w-full max-w-sm bg-gradient-to-b from-[#0F0F0F] via-[#0F0F0F] to-[#1a0f2e] shadow-2xl transition-transform duration-500 border-l border-purple-500/20 ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+          className={`fixed top-0 right-0 h-full w-full max-w-sm bg-[#0F0F0F]/95 backdrop-blur-xl shadow-2xl transition-transform duration-500 border-l border-purple-500/30 ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between p-4 sm:p-6 border-b border-purple-500/20">

@@ -212,7 +212,7 @@ export default function Home() {
             <motion.div
               className="flex gap-3 sm:gap-4 lg:gap-6 pl-4 sm:pl-6"
               animate={{
-                x: [0, -((youtubeVideos.length * 260))],
+                x: [0, -((youtubeVideos.length * 250))],
               }}
               transition={{
                 x: {
@@ -226,13 +226,13 @@ export default function Home() {
               {duplicatedYouTubeVideos.map((video, index) => (
                 <motion.div
                   key={`${video.id}-${index}`}
-                  className="min-w-[220px] sm:min-w-[260px] lg:min-w-[300px] rounded-lg overflow-hidden shadow-lg cursor-pointer flex-shrink-0 void-card group"
+                  className="min-w-[200px] sm:min-w-[250px] lg:min-w-[300px] rounded-lg overflow-hidden shadow-lg cursor-pointer flex-shrink-0 void-card group"
                   whileHover={{ scale: 1.05, y: -10 }}
                   transition={{ duration: 0.3 }}
                   onClick={() => window.open(`https://www.youtube.com/watch?v=${video.videoId}`, '_blank')}
                 >
                   <div className="relative">
-                    <div className="relative h-[124px] w-[220px] sm:h-[146px] sm:w-[260px] lg:h-[169px] lg:w-[300px]">
+                    <div className="relative h-[113px] w-[200px] sm:h-[141px] sm:w-[250px] lg:h-[169px] lg:w-[300px]">
                       <Image 
                         src={video.thumbnail} 
                         alt={video.title} 
@@ -246,7 +246,7 @@ export default function Home() {
                         </div>
                       </div>
                       {/* Duration badge */}
-                      <div className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 bg-black/80 text-white text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs">
+                      <div className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 bg-black/80 text-white text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 rounded font-medium">
                         {video.duration}
                       </div>
                     </div>
