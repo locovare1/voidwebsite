@@ -114,6 +114,7 @@ export default function Navbar() {
         <div 
           className={`fixed top-0 right-0 h-full w-full max-w-[min(400px,85vw)] bg-gradient-to-b from-purple-900/95 via-purple-950/95 to-[#0F0F0F]/95 backdrop-blur-xl shadow-2xl transition-transform duration-500 border-l border-purple-500/50 ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
           onClick={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between p-4 sm:p-6 border-b border-purple-500/20">
             <Link href="/" onClick={() => setMobileMenuOpen(false)} className="hover:scale-105 transition-transform duration-300 min-h-[44px] flex items-center">
