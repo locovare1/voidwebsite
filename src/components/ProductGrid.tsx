@@ -83,27 +83,27 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 	};
 
 	return (
-		<div className="space-y-8">
-			<div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
+		<div className="space-y-6 sm:space-y-8">
+			<div className="flex flex-col gap-4">
 				<div className="flex flex-wrap gap-2">
-					<span className="text-sm font-medium text-gray-400 mr-2 self-center">Filter:</span>
+					<span className="text-sm font-medium text-gray-400 mr-2 self-center w-full sm:w-auto mb-1 sm:mb-0">Filter:</span>
 					{categories.map((category) => (
 						<button
 							key={category}
 							onClick={() => handleCategoryChange(category)}
-							className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-300 ${selectedCategory === category ? 'bg-[#FFFFFF] text-black shadow-lg' : 'bg-[#1A1A1A] text-gray-400 border border-[#2A2A2A] hover:bg-[#2A2A2A] hover:text-white'}`}
+							className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 min-h-[44px] ${selectedCategory === category ? 'bg-[#FFFFFF] text-black shadow-lg' : 'bg-[#1A1A1A] text-gray-400 border border-[#2A2A2A] hover:bg-[#2A2A2A] hover:text-white'}`}
 						>
 							{category}
 						</button>
 					))}
 				</div>
 
-				<div className="flex items-center gap-2">
-					<span className="text-sm font-medium text-gray-400">Sort by:</span>
+				<div className="flex items-center gap-2 w-full sm:w-auto">
+					<span className="text-sm font-medium text-gray-400 whitespace-nowrap">Sort by:</span>
 					<select
 						value={sortBy}
 						onChange={(e) => handleSortChange(e.target.value)}
-						className="bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] transition-all duration-300 hover:border-[#FFFFFF]/50"
+						className="bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] transition-all duration-300 hover:border-[#FFFFFF]/50 flex-1 sm:flex-initial min-h-[44px]"
 						aria-label="Sort products by"
 					>
 						<option value="name">Name</option>
@@ -113,37 +113,38 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 				</div>
 			</div>
 
-			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8">
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
 				{currentProducts.map((product) => (
 					<AnimatedCard key={product.id} className="void-card shine-hover overflow-hidden group">
-						<div className="relative h-64 w-full overflow-hidden">
+						<div className="relative h-48 sm:h-56 lg:h-64 w-full overflow-hidden">
 							<Image
 								src={product.image && product.image.trim() ? product.image : '/logo.png'}
 								alt={product.name}
 								fill
-								className="object-contain transition-transform duration-500 group-hover:scale-105 p-4"
+								className="object-contain transition-transform duration-500 group-hover:scale-105 p-3 sm:p-4"
+								sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
 							/>
-							<div className="absolute top-3 right-3 bg-black/80 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
-								{product.price === 0 ? 'FREE' : `$${product.price.toFixed(2)}`}
+							<div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-black/80 text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold shadow-lg">
+								{product.price === 0 ? 'FREE' : `${product.price.toFixed(2)}`}
 							</div>
 						</div>
 
-						<div className="p-6 space-y-3">
+						<div className="p-4 sm:p-6 space-y-3">
 							<div className="flex justify-between items-start gap-2 mb-2">
-								<span className="px-3 py-1.5 bg-[#FFFFFF]/10 rounded-full text-[#FFFFFF] text-xs font-medium shadow-sm">
+								<span className="px-2.5 py-1 sm:px-3 sm:py-1.5 bg-[#FFFFFF]/10 rounded-full text-[#FFFFFF] text-xs font-medium shadow-sm">
 									{product.category}
 								</span>
 							</div>
 
-							<h3 className="text-xl font-bold text-white group-hover:text-[#a2a2a2] transition-colors duration-300 mb-0">
+							<h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-[#a2a2a2] transition-colors duration-300 mb-0 line-clamp-2">
 								{product.name}
 							</h3>
-							<p className="text-gray-400 text-sm mb-0">
+							<p className="text-gray-400 text-sm mb-0 line-clamp-2">
 								{product.description}
 							</p>
 
 							<button
-								className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black text-center py-3 px-4 rounded-lg transition-all duration-300 mt-4 font-medium hover:shadow-lg transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed glow-on-hover"
+								className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black text-center py-3 px-4 rounded-lg transition-all duration-300 mt-4 font-medium hover:shadow-lg transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed glow-on-hover min-h-[44px] text-sm sm:text-base"
 								onClick={() => handleAddToCart(product)}
 								disabled={addingToCart === product.id}
 							>
@@ -155,7 +156,7 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 								) : product.price === 0 ? (
 									'Add to Cart - FREE'
 								) : (
-									`Add to Cart - $${product.price.toFixed(2)}`
+									`Add to Cart - ${product.price.toFixed(2)}`
 								)}
 							</button>
 
@@ -181,7 +182,7 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 			{totalPages > 1 && (
 				<div className="mt-12 flex flex-col items-center">
 					<Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-					<div className="text-center text-sm text-gray-400 mt-4">
+					<div className="text-center text-sm text-gray-400 mt-4 px-4">
 						Showing {Math.min((currentPage - 1) * itemsPerPage + 1, processedProducts.length)}-
 						{Math.min(currentPage * itemsPerPage, processedProducts.length)} of {processedProducts.length} results{selectedCategory !== 'All' ? ` in ${selectedCategory}` : ''}
 					</div>

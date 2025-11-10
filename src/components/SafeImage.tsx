@@ -11,6 +11,7 @@ interface SafeImageProps {
   fill?: boolean;
   width?: number;
   height?: number;
+  sizes?: string;
   onError?: () => void;
 }
 
@@ -21,6 +22,7 @@ export default function SafeImage({
   fill = false, 
   width, 
   height,
+  sizes,
   onError 
 }: SafeImageProps) {
   const [currentSrc, setCurrentSrc] = useState(src);
@@ -108,6 +110,7 @@ export default function SafeImage({
         fill={fill}
         width={width}
         height={height}
+        sizes={sizes}
         className={className}
         onError={handleError}
         onLoad={handleLoad}

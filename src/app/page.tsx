@@ -133,7 +133,7 @@ export default function Home() {
       <ScrollProgress />
 
       {/* Hero News Carousel */}
-      <section className="relative h-screen w-full overflow-hidden">
+      <section className="relative h-[70vh] sm:h-[80vh] lg:h-screen w-full overflow-hidden">
         {latestNews.length > 0 && (
           <AnimatePresence mode="wait">
             <motion.div
@@ -145,13 +145,13 @@ export default function Home() {
               className="absolute inset-0 w-full h-full flex"
             >
               <Image src={latestNews[newsIndex].image} alt={latestNews[newsIndex].title} fill className="object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent sm:from-black/70 sm:via-black/40"></div>
-              <div className="absolute inset-0 flex items-center px-6 sm:px-8 md:px-16 lg:px-24">
-                <div className="max-w-xl text-left">
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30 sm:bg-gradient-to-r sm:from-black/80 sm:via-black/50 sm:to-transparent"></div>
+              <div className="absolute inset-0 flex items-end sm:items-center px-4 pb-8 sm:px-8 md:px-16 lg:px-24">
+                <div className="max-w-xl text-left w-full">
                   <p className="text-xs sm:text-sm text-gray-300 mb-2">{latestNews[newsIndex].date}</p>
                   <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 leading-tight">{latestNews[newsIndex].title}</h1>
                   <p className="text-sm sm:text-base md:text-lg text-gray-200 mb-4 sm:mb-6 line-clamp-3 sm:line-clamp-none">{latestNews[newsIndex].description}</p>
-                  <Link href="/news" className="void-button pulse-glow text-sm sm:text-base inline-block">Read More</Link>
+                  <Link href="/news" className="void-button pulse-glow text-sm sm:text-base inline-block min-h-[44px] flex items-center justify-center px-6">Read More</Link>
                 </div>
               </div>
             </motion.div>
@@ -167,33 +167,35 @@ export default function Home() {
             <motion.div
               className="flex gap-3 sm:gap-4 lg:gap-6 pl-4 sm:pl-6"
               animate={{
-                x: [0, -((storeItems.length * 170))],
+                x: [0, -((storeItems.length * 160))],
               }}
               transition={{
                 x: {
                   repeat: Infinity,
                   repeatType: "loop",
-                  duration: 20,
+                  duration: 25,
                   ease: "linear",
                 },
               }}
             >
               {duplicatedStoreItems.map((item, index) => (
-                <Link key={`${item.id}-${index}`} href={item.link}>
+                <Link key={`${item.id}-${index}`} href={item.link} className="block">
                   <motion.div
-                    className="min-w-[140px] sm:min-w-[170px] lg:min-w-[200px] rounded-lg overflow-hidden shadow-lg cursor-pointer flex-shrink-0 void-card"
+                    className="min-w-[130px] sm:min-w-[160px] lg:min-w-[200px] rounded-lg overflow-hidden shadow-lg cursor-pointer flex-shrink-0 void-card"
                     whileHover={{ scale: 1.05, y: -10 }}
+                    whileTap={{ scale: 0.95 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="relative h-[140px] w-[140px] sm:h-[170px] sm:w-[170px] lg:h-[200px] lg:w-[200px]">
+                    <div className="relative h-[130px] w-[130px] sm:h-[160px] sm:w-[160px] lg:h-[200px] lg:w-[200px]">
                       <Image 
                         src={item.image} 
                         alt={item.name} 
                         fill 
                         className="object-cover" 
+                        sizes="(max-width: 640px) 130px, (max-width: 1024px) 160px, 200px"
                       />
                     </div>
-                    <div className="bg-gradient-to-t from-black/80 to-transparent p-2 sm:p-3 text-white text-center font-semibold text-xs sm:text-sm leading-tight">
+                    <div className="bg-gradient-to-t from-black/80 to-transparent p-2 sm:p-3 text-white text-center font-semibold text-xs sm:text-sm leading-tight min-h-[44px] flex items-center justify-center">
                       <span className="line-clamp-2">{item.name}</span>
                     </div>
                   </motion.div>
@@ -212,13 +214,13 @@ export default function Home() {
             <motion.div
               className="flex gap-3 sm:gap-4 lg:gap-6 pl-4 sm:pl-6"
               animate={{
-                x: [0, -((youtubeVideos.length * 250))],
+                x: [0, -((youtubeVideos.length * 230))],
               }}
               transition={{
                 x: {
                   repeat: Infinity,
                   repeatType: "loop",
-                  duration: 25,
+                  duration: 30,
                   ease: "linear",
                 },
               }}
@@ -226,23 +228,25 @@ export default function Home() {
               {duplicatedYouTubeVideos.map((video, index) => (
                 <motion.div
                   key={`${video.id}-${index}`}
-                  className="min-w-[200px] sm:min-w-[250px] lg:min-w-[300px] rounded-lg overflow-hidden shadow-lg cursor-pointer flex-shrink-0 void-card group"
+                  className="min-w-[180px] sm:min-w-[230px] lg:min-w-[300px] rounded-lg overflow-hidden shadow-lg cursor-pointer flex-shrink-0 void-card group"
                   whileHover={{ scale: 1.05, y: -10 }}
+                  whileTap={{ scale: 0.95 }}
                   transition={{ duration: 0.3 }}
                   onClick={() => window.open(`https://www.youtube.com/watch?v=${video.videoId}`, '_blank')}
                 >
                   <div className="relative">
-                    <div className="relative h-[113px] w-[200px] sm:h-[141px] sm:w-[250px] lg:h-[169px] lg:w-[300px]">
+                    <div className="relative h-[101px] w-[180px] sm:h-[129px] sm:w-[230px] lg:h-[169px] lg:w-[300px]">
                       <Image 
                         src={video.thumbnail} 
                         alt={video.title} 
                         fill 
                         className="object-cover" 
+                        sizes="(max-width: 640px) 180px, (max-width: 1024px) 230px, 300px"
                       />
                       {/* Play button overlay */}
                       <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-red-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                          <PlayIcon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white ml-0.5" />
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-red-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg min-h-[44px] min-w-[44px]">
+                          <PlayIcon className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white ml-0.5" />
                         </div>
                       </div>
                       {/* Duration badge */}
@@ -251,7 +255,7 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="p-2.5 sm:p-3 lg:p-4">
-                      <h3 className="text-white font-semibold text-xs sm:text-sm lg:text-base mb-1.5 sm:mb-2 line-clamp-2 group-hover:text-purple-300 transition-colors leading-tight">
+                      <h3 className="text-white font-semibold text-xs sm:text-sm lg:text-base mb-1.5 sm:mb-2 line-clamp-2 group-hover:text-purple-300 transition-colors leading-tight min-h-[32px]">
                         {video.title}
                       </h3>
                       <div className="flex items-center justify-between text-gray-400 text-xs">

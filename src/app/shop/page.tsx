@@ -65,12 +65,12 @@ export default function ShopPage() {
 
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F]">
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold gradient-text">
+      <div className="void-container py-8 sm:py-12">
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-3xl sm:text-4xl font-bold gradient-text">
             SHOP VOID
           </h1>
-          <p className="mt-4 text-gray-400 max-w-2xl mx-auto">
+          <p className="mt-3 sm:mt-4 text-sm sm:text-base text-gray-400 max-w-2xl mx-auto px-4">
             Discover official VOID merchandise including apparel, accessories, and gaming gear for true esports enthusiasts.
           </p>
         </div>

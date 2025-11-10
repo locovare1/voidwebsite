@@ -267,10 +267,10 @@ export default function TeamsPage() {
         }
       `}</style>
 
-      <div className="void-container py-12">
+      <div className="void-container py-8 sm:py-12">
         <AnimatedSection animationType="fadeIn" delay={100}>
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold gradient-text">Our Teams</h1>
+          <div className="text-center mb-8 sm:mb-12">
+            <h1 className="text-3xl sm:text-4xl font-bold gradient-text">Our Teams</h1>
             {process.env.NODE_ENV === 'development' && (
               <div className="mt-4 space-x-2">
                 <button 
@@ -314,27 +314,28 @@ export default function TeamsPage() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                  <div className="relative h-64 lg:h-full min-h-[300px] rounded-lg overflow-hidden group">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-12">
+                  <div className="relative h-56 sm:h-64 lg:h-full min-h-[250px] sm:min-h-[300px] rounded-lg overflow-hidden group">
                     <Image
                       src={team.image}
                       alt={team.name}
                       fill
                       className={team.name === 'Fortnite' ? 'object-cover object-[50%_15%] w-full h-full' : 'object-cover w-full h-full'}
+                      sizes="(max-width: 1024px) 100vw, 50vw"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
 
-                  <div className="space-y-6">
-                    <h2 className="text-3xl font-bold gradient-text">{team.name}</h2>
-                    <p className="text-gray-300 text-lg">{team.description}</p>
+                  <div className="space-y-4 sm:space-y-6">
+                    <h2 className="text-2xl sm:text-3xl font-bold gradient-text">{team.name}</h2>
+                    <p className="text-gray-300 text-base sm:text-lg">{team.description}</p>
 
                     <div>
-                      <h3 className="text-xl font-semibold mb-3 text-white">Team Achievements</h3>
+                      <h3 className="text-lg sm:text-xl font-semibold mb-3 text-white">Team Achievements</h3>
                       <ul className="space-y-2">
                         {team.achievements.map((achievement) => (
-                          <li key={achievement} className="text-gray-400 flex items-center">
-                            <span className="w-2 h-2 bg-white rounded-full mr-3"></span>
+                          <li key={achievement} className="text-sm sm:text-base text-gray-400 flex items-center">
+                            <span className="w-2 h-2 bg-white rounded-full mr-3 flex-shrink-0"></span>
                             {achievement}
                           </li>
                         ))}
@@ -343,7 +344,7 @@ export default function TeamsPage() {
                     
                     {/* Hint for easter egg */}
                     {team.name === 'Ownership' && (
-                      <div className="mt-4 text-sm text-gray-500 italic">
+                      <div className="mt-4 text-xs sm:text-sm text-gray-500 italic">
                         {ownershipClicks > 0 
                           ? `Click ${4 - ownershipClicks} more times...` 
                           : 'Click the team card 4 times to unlock a secret!'}
@@ -353,12 +354,12 @@ export default function TeamsPage() {
                 </div>
 
                 {/* Player Cards Grid */}
-                <div className="mt-12">
-                  <h3 className="text-2xl font-bold mb-8 gradient-text text-center">Meet the Team</h3>
+                <div className="mt-8 sm:mt-12">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 gradient-text text-center">Meet the Team</h3>
 
                   <div className={team.name === 'Ownership'
-                    ? "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6"
-                    : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                    ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6"
+                    : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
                   }>
                     {team.players.map((player, pIdx) => (
                       <AnimatedSection key={player.name} animationType="fadeIn" delay={pIdx * 100}>

@@ -24,19 +24,19 @@ export default function Footer() {
 
   return (
     <footer className="bg-gradient-to-t from-[#1a0f2e] to-[#0F0F0F] border-t border-purple-500/20">
-      <div className="void-container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="void-container py-8 sm:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Brand Section */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-bold text-purple-gradient">VOID</h3>
-            <p className="text-gray-400">
+          <div className="space-y-3 sm:space-y-4">
+            <h3 className="text-lg sm:text-xl font-bold text-purple-gradient">VOID</h3>
+            <p className="text-sm sm:text-base text-gray-400">
               Professional esports organization pushing the boundaries of competitive gaming.
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 text-white">
+            <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-white">
               Quick Links
             </h4>
             <ul className="space-y-2">
@@ -44,7 +44,7 @@ export default function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-gray-400 hover:text-purple-300 transition-colors"
+                    className="text-sm sm:text-base text-gray-400 hover:text-purple-300 transition-colors inline-block min-h-[44px] flex items-center"
                   >
                     {link.name}
                   </Link>
@@ -53,7 +53,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/track-order"
-                  className="text-gray-400 hover:text-purple-300 transition-colors"
+                  className="text-sm sm:text-base text-gray-400 hover:text-purple-300 transition-colors inline-block min-h-[44px] flex items-center"
                 >
                   Track Order
                 </Link>
@@ -62,27 +62,28 @@ export default function Footer() {
           </div>
 
           {/* Social Links */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4 text-white">
+          <div className="sm:col-span-2 lg:col-span-2">
+            <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-white">
               Connect With Us
             </h4>
-            <div className="flex space-x-4">
+            <div className="flex flex-wrap gap-4">
               {translatedSocialLinks.map((social) => (
                 <Link
                   key={social.name}
                   href={social.href}
-                  className="text-gray-400 hover:text-purple-300 transition-colors glow-on-hover"
+                  className="text-gray-400 hover:text-purple-300 transition-colors glow-on-hover min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  aria-label={social.name}
                 >
                   <span className="sr-only">{social.name}</span>
-                  <social.icon className="h-6 w-6" />
+                  <social.icon className="h-6 w-6 sm:h-7 sm:w-7" />
                 </Link>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-purple-500/20">
-          <p className="text-center text-gray-400">
+        <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-purple-500/20">
+          <p className="text-center text-xs sm:text-sm text-gray-400">
             © 2025 Void Esports. All rights reserved.
           </p>
         </div>

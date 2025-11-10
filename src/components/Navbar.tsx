@@ -72,12 +72,13 @@ export default function Navbar() {
           </Link>
         </div>
         
-        <div className="flex lg:hidden items-center gap-3">
+        <div className="flex lg:hidden items-center gap-2">
           <CartIcon />
           <button
             type="button"
-            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-white hover:bg-white/10 transition-colors duration-300"
+            className="inline-flex items-center justify-center rounded-md p-2.5 text-white hover:bg-white/10 transition-colors duration-300 min-h-[44px] min-w-[44px]"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Open main menu"
           >
             <span className="sr-only">Open main menu</span>
             <Bars3Icon className="h-6 w-6" aria-hidden="true" />
@@ -111,11 +112,11 @@ export default function Navbar() {
         onClick={() => setMobileMenuOpen(false)}
       >
         <div 
-          className={`fixed top-0 right-0 h-full w-full max-w-sm bg-[#0F0F0F]/95 backdrop-blur-xl shadow-2xl transition-transform duration-500 border-l border-purple-500/30 ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+          className={`fixed top-0 right-0 h-full w-full max-w-[min(400px,85vw)] bg-[#0F0F0F]/95 backdrop-blur-xl shadow-2xl transition-transform duration-500 border-l border-purple-500/30 ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between p-4 sm:p-6 border-b border-purple-500/20">
-            <Link href="/" onClick={() => setMobileMenuOpen(false)} className="hover:scale-105 transition-transform duration-300">
+            <Link href="/" onClick={() => setMobileMenuOpen(false)} className="hover:scale-105 transition-transform duration-300 min-h-[44px] flex items-center">
               <Image
                 src="/logo.png"
                 alt="Void Logo"
@@ -135,12 +136,12 @@ export default function Navbar() {
             </button>
           </div>
           
-          <div className="mt-4 sm:mt-6 px-4 sm:px-6 flex flex-col max-h-[calc(100vh-120px)] overflow-y-auto">
+          <div className="mt-4 sm:mt-6 px-4 sm:px-6 flex flex-col max-h-[calc(100vh-120px)] overflow-y-auto pb-6">
             {navigation.map((item, index) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`block py-4 text-base font-semibold text-white hover:text-purple-300 border-b border-purple-500/10 transition-all duration-300 hover:bg-purple-500/5 hover:pl-2 min-h-[44px] flex items-center ${index === 0 ? 'delay-0' : index === 1 ? 'delay-100' : index === 2 ? 'delay-200' : index === 3 ? 'delay-300' : index === 4 ? 'delay-400' : index === 5 ? 'delay-500' : index === 6 ? 'delay-600' : index === 7 ? 'delay-700' : 'delay-0'}`}
+                className={`block py-4 text-base font-semibold text-white hover:text-purple-300 border-b border-purple-500/10 transition-all duration-300 hover:bg-purple-500/5 hover:pl-2 min-h-[56px] flex items-center ${index === 0 ? 'delay-0' : index === 1 ? 'delay-100' : index === 2 ? 'delay-200' : index === 3 ? 'delay-300' : index === 4 ? 'delay-400' : index === 5 ? 'delay-500' : index === 6 ? 'delay-600' : index === 7 ? 'delay-700' : 'delay-0'}`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.name}
@@ -148,7 +149,7 @@ export default function Navbar() {
             ))}
             <Link
               href="/cart"
-              className="mt-4 block py-4 text-base font-semibold text-white hover:text-[#a6a6a6] transition-all duration-300 hover:bg-white/5 hover:pl-2 flex items-center gap-2 min-h-[44px]"
+              className="mt-4 block py-4 text-base font-semibold text-white hover:text-purple-300 transition-all duration-300 hover:bg-purple-500/5 hover:pl-2 flex items-center gap-2 min-h-[56px] border-b border-purple-500/10"
               onClick={() => setMobileMenuOpen(false)}
             >
               <ShoppingCartIcon className="h-5 w-5" />
@@ -156,12 +157,11 @@ export default function Navbar() {
             </Link>
             <Link
               href="/contact"
-              className="mt-2 block py-4 text-base font-semibold text-white hover:text-[#a6a6a6] transition-all duration-300 hover:bg-white/5 hover:pl-2 min-h-[44px] flex items-center"
+              className="mt-2 block py-4 text-base font-semibold text-white hover:text-purple-300 transition-all duration-300 hover:bg-purple-500/5 hover:pl-2 min-h-[56px] flex items-center"
               onClick={() => setMobileMenuOpen(false)}
             >
               Contact Us
             </Link>
-            {/* Removed Translation Test link */}
           </div>
         </div>
       </div>
