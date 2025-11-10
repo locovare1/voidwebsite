@@ -136,7 +136,7 @@ export default function Navbar() {
             </button>
           </div>
           
-          <div className="mt-4 sm:mt-6 px-4 sm:px-6 flex flex-col max-h-[calc(100vh-120px)] overflow-y-auto pb-6">
+          <div className="mt-4 sm:mt-6 px-4 sm:px-6 flex flex-col max-h-[calc(100vh-120px)] overflow-y-auto pb-6 bg-gradient-to-b from-transparent via-purple-950/50 to-[#0F0F0F]/50">
             {navigation.map((item, index) => (
               <Link
                 key={item.name}
