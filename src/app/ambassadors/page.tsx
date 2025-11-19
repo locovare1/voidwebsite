@@ -1,190 +1,186 @@
 'use client';
 
-import React from "react";
-import Image from 'next/image';
-import { 
-  AnimatedHeroSection, 
-  StaggeredList, 
-  StaggeredItem, 
-  AnimatedCard,
-  FadeInSection
-} from '@/components/FramerAnimations';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import AnimatedSection from '@/components/AnimatedSection';
+import PlayerCard from '@/components/PlayerCard';
+import { ambassadorService, type Ambassador } from '@/lib/ambassadorService';
 
 export default function AmbassadorsPage() {
+  const [ambassadors, setAmbassadors] = useState<Ambassador[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAmbassadors = async () => {
+      try {
+        const data = await ambassadorService.getAll();
+        setAmbassadors(data);
+      } catch (error) {
+        console.error('Error fetching ambassadors:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAmbassadors();
+  }, []);
 
   return (
-    <>
+    <div className="pt-20 min-h-screen bg-[#0F0F0F] relative">
       {/* SEO / Meta Tags */}
       <title>Void Outreach Program | Void Esports</title>
-      <meta charSet="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta name="description" content="Join the Void Outreach Program and become an official brand ambassador! Help Void grow in every game you play." />
-      <meta property="og:title" content="Void Outreach Program | Void Esports" />
-      <meta property="og:description" content="Join the Void Outreach Program and become an official brand ambassador! Help Void grow in every game you play." />
-      <meta property="og:type" content="website" />
-      <meta property="og:url" content="https://www.voidesports.org/ambassadors " />
-      <meta property="og:image" content="https://www.voidesports.org/logo.png " />
 
-      <main className="min-h-screen bg-black text-gray-100">
+      <div className="void-container py-8 sm:py-12">
+
         {/* Hero Section */}
-        <AnimatedHeroSection>
-          <div className="py-16 md:py-24 bg-black flex flex-col items-center justify-center min-h-[500px] relative overflow-hidden">
-            {/* Logo background */}
-            <Image
-              src="/logos/logo.png"
-              alt="Void Logo Background"
-              width={400}
-              height={400}
-              className="absolute left-1/2 top-1/2 w-72 md:w-[400px] -translate-x-1/2 -translate-y-1/2 opacity-20 pointer-events-none select-none transition-opacity duration-500 will-change-opacity"
-              style={{ zIndex: 0 }}
-            />
-            <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-              <h1 className="text-4xl md:text-5xl font-bold mb-10 leading-tight gradient-text">
-                Announcing the Void Outreach Program!
-              </h1>
-              <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mt-4">
-                The Void Outreach Program allows anyone to become an official brand ambassador today and help Void grow in every game you play!
-              </p>
+        <AnimatedSection animationType="fadeIn" delay={100}>
+          <div className="text-center mb-16 sm:mb-24 relative">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-purple-600/20 blur-[100px] rounded-full pointer-events-none" />
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 gradient-text relative z-10">
+              Void Outreach Program
+            </h1>
+            <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed relative z-10">
+              Become an official brand ambassador and help Void grow in every game you play.
+              Join the movement today!
+            </p>
+            <div className="mt-8 relative z-10">
+              <Link
+                href="/contact"
+                className="inline-block bg-white text-black hover:bg-gray-200 font-bold py-3 px-8 rounded-lg transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:-translate-y-1"
+              >
+                Apply Now
+              </Link>
             </div>
           </div>
-        </AnimatedHeroSection>
+        </AnimatedSection>
 
-        {/* What is it Section */}
-        <FadeInSection>
-          <section className="py-16 px-6 bg-[#0F0F0F]">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold text-center gradient-text mb-8">
-                What is it?
-              </h2>
-              <div className="bg-[#18181b] rounded-xl shadow-md p-8 border border-[#2A2A2A] hover:shadow-lg transition-all duration-300">
-                <p className="text-lg text-gray-300 leading-relaxed">
-                  The Void Outreach Program is very simple. Make a team or group in any game you play. Reach out to us showing you have made it and then that&apos;s it. You will be an official brand ambassador in that game and will be featured on our website when it is all set up. All you have to do is make sure that you play that game often enough so that we are active in that game.
-                </p>
-              </div>
-            </div>
-          </section>
-        </FadeInSection>
-
-        {/* Why we're doing this Section */}
-        <FadeInSection>
-          <section className="py-16 px-6 bg-black">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold text-center gradient-text mb-8">
-                Why we&apos;re doing this?
-              </h2>
-              <div className="bg-[#18181b] rounded-xl shadow-md p-8 border border-[#2A2A2A] hover:shadow-lg transition-all duration-300">
-                <p className="text-lg text-gray-300 leading-relaxed">
-                  This is to help us grow outside of Fortnite. We would love to gain a presence in games like Siege, CSGO, Warzone, Clash Royale, Brawl Stars and more!
-                </p>
-              </div>
-            </div>
-          </section>
-        </FadeInSection>
-
-        {/* What you get out of it Section */}
-        <FadeInSection>
-          <section className="py-16 px-6 bg-[#0F0F0F]">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold text-center gradient-text mb-8">
-                What you get out of it?
-              </h2>
-              <div className="grid md:grid-cols-2 gap-8">
-                <AnimatedCard className="bg-[#18181b] p-6 rounded-xl shadow-md border border-[#2A2A2A] hover:shadow-lg transition-all duration-300">
-                  <h3 className="text-xl font-semibold mb-2 text-white">Board of Directors</h3>
-                  <p className="text-gray-300">
-                    If you are the brand ambassador for any game and that game becomes successful for Void you are put onto the board of directors automatically. This allows you to make money from Void and have Void invest in your favorite games.
-                  </p>
-                </AnimatedCard>
-                <AnimatedCard delay={0.2} className="bg-[#18181b] p-6 rounded-xl shadow-md border border-[#2A2A2A] hover:shadow-lg transition-all duration-300">
-                  <h3 className="text-xl font-semibold mb-2 text-white">Content Promotion</h3>
-                  <p className="text-gray-300">
-                    If you also want you can make content and we can end up promoting it around our brand. (This is by discretion of leadership if we invest!)
-                  </p>
-                </AnimatedCard>
-              </div>
-            </div>
-          </section>
-        </FadeInSection>
-
-        {/* Brand Ambassadors by Game Section */}
-        <FadeInSection>
-          <section className="py-16 px-6 bg-black">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold text-center gradient-text mb-8">
-                Our Brand Ambassadors
-              </h2>
-              <StaggeredList>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {/* Fortnite */}
-                  <StaggeredItem>
-                    <AnimatedCard className="bg-[#18181b] p-6 rounded-xl shadow-md border border-[#2A2A2A] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                      <h3 className="text-xl font-semibold mb-4 text-white">Fortnite</h3>
-                      <div className="space-y-2">
-                        <p className="text-gray-400 text-sm">
-                          Current Ambassadors:
-                        </p>
-                        <p className="text-gray-300">- Void Frankenstein</p>
-                        
-                      </div>
-                    </AnimatedCard>
-                  </StaggeredItem>
-                  
-                  {/* Brawl Stars */}
-                  <StaggeredItem>
-                    <AnimatedCard delay={0.1} className="bg-[#18181b] p-6 rounded-xl shadow-md border border-[#2A2A2A] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                      <h3 className="text-xl font-semibold mb-4 text-white">Brawl Stars</h3>
-                      <div className="space-y-2">
-                        <p className="text-gray-400 text-sm">
-                          Current Ambassadors:
-                        </p>
-                        <p className="text-gray-300">- Void Hyper</p>
-                      </div>
-                    </AnimatedCard>
-                  </StaggeredItem>
-                  
-                  {/* Clash Royale */}
-                  <StaggeredItem>
-                    <AnimatedCard delay={0.2} className="bg-[#18181b] p-6 rounded-xl shadow-md border border-[#2A2A2A] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                      <h3 className="text-xl font-semibold mb-4 text-white">Clash Royale</h3>
-                      <div className="space-y-2">
-                        <p className="text-gray-400 text-sm">
-                          Current Ambassadors:
-                        </p>
-                        <p className="text-gray-300">- Void Frankenstein</p>
-                      </div>
-                    </AnimatedCard>
-                  </StaggeredItem>
-                </div>
-              </StaggeredList>
-            </div>
-          </section>
-        </FadeInSection>
-
-        {/* CTA Section */}
-        <FadeInSection>
-          <section className="py-16 px-6 bg-[#0F0F0F]">
-            <div className="max-w-3xl mx-auto bg-[#18181b] text-white rounded-xl shadow-lg p-8 text-center">
-              <h2 className="text-2xl font-bold mb-4 gradient-text">Ready to Join?</h2>
-              <p className="mb-6">
-                If you want to become an official brand ambassador, click the button below to contact us!
+        {/* What is it & Why sections */}
+        <div className="grid md:grid-cols-2 gap-8 mb-20">
+          <AnimatedSection animationType="slideRight" delay={200}>
+            <div className="void-card h-full">
+              <h2 className="text-2xl font-bold mb-4 gradient-text">What is it?</h2>
+              <p className="text-gray-300 leading-relaxed">
+                The Void Outreach Program is simple. Make a team or group in any game you play.
+                Reach out to us showing you have made it, and you can become an official brand ambassador
+                for that game. You'll be featured on our website and help us maintain an active presence
+                in your favorite games.
               </p>
-              <AnimatedCard className="inline-block">
-                <a
-                  href="/contact"
-                  className="inline-block bg-white text-black hover:bg-gray-100 font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-                >
-                  Contact us!
-                </a>
-              </AnimatedCard>
             </div>
-          </section>
-        </FadeInSection>
+          </AnimatedSection>
 
-        {/* Footer Note */}
-        <footer className="text-center text-sm text-gray-600 py-8">
-          <p>© {new Date().getFullYear()} Void Esports, Inc. All rights reserved.</p>
-        </footer>
-      </main>
-    </>
+          <AnimatedSection animationType="slideLeft" delay={300}>
+            <div className="void-card h-full">
+              <h2 className="text-2xl font-bold mb-4 gradient-text">Why join?</h2>
+              <p className="text-gray-300 leading-relaxed">
+                We want to grow beyond Fortnite! We are looking to establish a presence in games like
+                Siege, CSGO, Warzone, Clash Royale, Brawl Stars, and more. As an ambassador, you are
+                the key to this expansion.
+              </p>
+            </div>
+          </AnimatedSection>
+        </div>
+
+        {/* Benefits Section */}
+        <div className="mb-20">
+          <AnimatedSection animationType="fadeIn" delay={200}>
+            <h2 className="text-3xl font-bold text-center mb-10 gradient-text">Program Benefits</h2>
+          </AnimatedSection>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            <AnimatedSection animationType="slideUp" delay={300}>
+              <div className="void-card group hover:border-purple-500/50 transition-colors duration-300">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-purple-900/20 rounded-lg text-purple-400 group-hover:text-purple-300 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-2 text-white group-hover:text-purple-200 transition-colors">Board of Directors</h3>
+                    <p className="text-gray-400 group-hover:text-gray-300 transition-colors">
+                      If your game becomes successful for Void, you could be automatically appointed to the
+                      Board of Directors. This opens opportunities to earn from Void and influence our
+                      investment in your favorite games.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </AnimatedSection>
+
+            <AnimatedSection animationType="slideUp" delay={400}>
+              <div className="void-card group hover:border-purple-500/50 transition-colors duration-300">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-purple-900/20 rounded-lg text-purple-400 group-hover:text-purple-300 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-2 text-white group-hover:text-purple-200 transition-colors">Content Promotion</h3>
+                    <p className="text-gray-400 group-hover:text-gray-300 transition-colors">
+                      Create content for your game and we can help promote it across our brand channels.
+                      Grow your personal brand alongside Void!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </AnimatedSection>
+          </div>
+        </div>
+
+        {/* Current Ambassadors Section */}
+        <div className="mb-20">
+          <AnimatedSection animationType="fadeIn" delay={200}>
+            <h2 className="text-3xl font-bold text-center mb-10 gradient-text">Our Brand Ambassadors</h2>
+          </AnimatedSection>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-center">
+            {loading ? (
+              <div className="col-span-full text-center text-gray-400 py-12">
+                Loading ambassadors...
+              </div>
+            ) : ambassadors.length === 0 ? (
+              <div className="col-span-full text-center text-gray-400 py-12">
+                No ambassadors found yet. Be the first to join!
+              </div>
+            ) : (
+              ambassadors.map((ambassador, idx) => (
+                <AnimatedSection key={ambassador.id || idx} animationType="slideUp" delay={300 + (idx * 100)}>
+                  <PlayerCard
+                    name={ambassador.name}
+                    role={ambassador.role}
+                    image={ambassador.image}
+                    game={ambassador.game}
+                    achievements={ambassador.achievements}
+                    socialLinks={ambassador.socialLinks}
+                  />
+                </AnimatedSection>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Final CTA */}
+        <AnimatedSection animationType="scale" delay={200}>
+          <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-2xl p-8 md:p-12 text-center border border-white/10 relative overflow-hidden">
+            <div className="absolute inset-0 bg-grid-white/[0.02] [mask-image:linear-gradient(0deg,white,transparent)]" />
+            <div className="relative z-10">
+              <h2 className="text-3xl font-bold mb-4 text-white">Ready to represent Void?</h2>
+              <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
+                Join our team of ambassadors and help us build the future of esports gaming communities.
+              </p>
+              <Link
+                href="/contact"
+                className="inline-block bg-white text-black hover:bg-gray-200 font-bold py-3 px-8 rounded-lg transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:-translate-y-1"
+              >
+                Contact Us to Join
+              </Link>
+            </div>
+          </div>
+        </AnimatedSection>
+
+      </div>
+    </div>
   );
 }

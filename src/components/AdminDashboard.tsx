@@ -11,6 +11,7 @@ import { newsService, type NewsArticle } from '@/lib/newsService';
 import { placementService, type Placement } from '@/lib/placementService';
 import { scheduleService, type Match } from '@/lib/scheduleService';
 import { teamService, Team, Player } from '@/lib/teamService';
+import { ambassadorService, Ambassador } from '@/lib/ambassadorService';
 import { AnimatedCard } from '@/components/FramerAnimations';
 import { processExternalImageUrl } from '@/lib/imageUtils';
 
@@ -31,7 +32,8 @@ import {
   NewspaperIcon,
   TrophyIcon,
   CalendarIcon,
-  ChartPieIcon
+  ChartPieIcon,
+  UserGroupIcon
 } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 
@@ -49,7 +51,7 @@ export default function AdminDashboard() {
   const { orders, updateOrderStatus, deleteOrder } = useOrders();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'reviews' | 'products' | 'teams' | 'news' | 'placements' | 'schedule' | 'advanced'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'reviews' | 'products' | 'teams' | 'ambassadors' | 'news' | 'placements' | 'schedule' | 'advanced'>('overview');
 
   // Team management state
   const [teams, setTeams] = useState<Team[]>([]);
@@ -74,6 +76,20 @@ export default function AdminDashboard() {
     description: '',
     achievements: [],
     players: []
+  });
+
+  // Ambassador management state
+  const [ambassadors, setAmbassadors] = useState<Ambassador[]>([]);
+  const [loadingAmbassadors, setLoadingAmbassadors] = useState(false);
+  const [showCreateAmbassador, setShowCreateAmbassador] = useState(false);
+  const [editingAmbassador, setEditingAmbassador] = useState<Ambassador | null>(null);
+  const [ambassadorForm, setAmbassadorForm] = useState<Omit<Ambassador, 'id' | 'createdAt'>>({
+    name: '',
+    role: 'Ambassador',
+    image: '',
+    game: '',
+    achievements: [],
+    socialLinks: {}
   });
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
@@ -118,12 +134,14 @@ export default function AdminDashboard() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [reviewsData, teamsData] = await Promise.all([
+        const [reviewsData, teamsData, ambassadorsData] = await Promise.all([
           reviewService.getAllReviews(),
-          teamService.getAll()
+          teamService.getAll(),
+          ambassadorService.getAll()
         ]);
         setReviews(reviewsData);
         setTeams(teamsData);
+        setAmbassadors(ambassadorsData);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -301,7 +319,7 @@ export default function AdminDashboard() {
     try {
       setLoadingTeams(true);
       console.log('Adding player to team:', teamId, newPlayer);
-      
+
       await teamService.addPlayer(teamId, newPlayer as Player);
 
       // Reload teams
@@ -334,7 +352,7 @@ export default function AdminDashboard() {
     try {
       setLoadingTeams(true);
       console.log('Updating player:', teamId, playerIndex, updatedPlayer);
-      
+
       await teamService.updatePlayer(teamId, playerIndex, updatedPlayer);
 
       // Reload teams
@@ -381,11 +399,11 @@ export default function AdminDashboard() {
     try {
       setLoadingTeams(true);
       await teamService.create(newTeam);
-      
+
       // Reload teams
       const updatedTeams = await teamService.getAll();
       setTeams(updatedTeams);
-      
+
       // Reset form
       setNewTeam({
         name: '',
@@ -395,7 +413,7 @@ export default function AdminDashboard() {
         players: []
       });
       setShowCreateTeam(false);
-      
+
       alert('Team created successfully!');
     } catch (error) {
       console.error('Error creating team:', error);
@@ -411,11 +429,11 @@ export default function AdminDashboard() {
     try {
       setLoadingTeams(true);
       await teamService.remove(teamId);
-      
+
       // Reload teams
       const updatedTeams = await teamService.getAll();
       setTeams(updatedTeams);
-      
+
       alert('Team deleted successfully!');
     } catch (error) {
       console.error('Error deleting team:', error);
@@ -439,7 +457,7 @@ export default function AdminDashboard() {
     try {
       setLoadingTeams(true);
       console.log('Updating team:', editingTeam.id, editingTeam);
-      
+
       await teamService.update(editingTeam.id!, {
         name: editingTeam.name,
         image: editingTeam.image,
@@ -447,17 +465,17 @@ export default function AdminDashboard() {
         achievements: editingTeam.achievements,
         players: editingTeam.players
       });
-      
+
       console.log('Team updated in Firebase, reloading...');
-      
+
       // Reload teams
       const updatedTeams = await teamService.getAll();
       console.log('Reloaded teams:', updatedTeams);
       setTeams(updatedTeams);
-      
+
       setShowEditTeam(false);
       setEditingTeam(null);
-      
+
       alert('Team updated successfully! Changes should appear on the teams page.');
     } catch (error) {
       console.error('Error updating team:', error);
@@ -467,15 +485,105 @@ export default function AdminDashboard() {
     }
   };
 
+  // Ambassador management functions
+  const handleCreateAmbassador = async () => {
+    try {
+      setLoadingAmbassadors(true);
+      await ambassadorService.create(ambassadorForm);
+      const updatedAmbassadors = await ambassadorService.getAll();
+      setAmbassadors(updatedAmbassadors);
+      setShowCreateAmbassador(false);
+      setAmbassadorForm({
+        name: '',
+        role: 'Ambassador',
+        image: '',
+        game: '',
+        achievements: [],
+        socialLinks: {}
+      });
+    } catch (error) {
+      console.error('Error creating ambassador:', error);
+      alert('Failed to create ambassador');
+    } finally {
+      setLoadingAmbassadors(false);
+    }
+  };
+
+  const handleUpdateAmbassador = async () => {
+    if (!editingAmbassador) return;
+    try {
+      setLoadingAmbassadors(true);
+      await ambassadorService.update(editingAmbassador.id!, ambassadorForm);
+      const updatedAmbassadors = await ambassadorService.getAll();
+      setAmbassadors(updatedAmbassadors);
+      setShowCreateAmbassador(false);
+      setEditingAmbassador(null);
+      setAmbassadorForm({
+        name: '',
+        role: 'Ambassador',
+        image: '',
+        game: '',
+        achievements: [],
+        socialLinks: {}
+      });
+    } catch (error) {
+      console.error('Error updating ambassador:', error);
+      alert('Failed to update ambassador');
+    } finally {
+      setLoadingAmbassadors(false);
+    }
+  };
+
+  const handleDeleteAmbassador = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this ambassador?')) return;
+    try {
+      setLoadingAmbassadors(true);
+      await ambassadorService.remove(id);
+      const updatedAmbassadors = await ambassadorService.getAll();
+      setAmbassadors(updatedAmbassadors);
+    } catch (error) {
+      console.error('Error deleting ambassador:', error);
+      alert('Failed to delete ambassador');
+    } finally {
+      setLoadingAmbassadors(false);
+    }
+  };
+
+  const openCreateAmbassadorModal = () => {
+    setEditingAmbassador(null);
+    setAmbassadorForm({
+      name: '',
+      role: 'Ambassador',
+      image: '',
+      game: '',
+      achievements: [],
+      socialLinks: {}
+    });
+    setShowCreateAmbassador(true);
+  };
+
+  const openEditAmbassadorModal = (ambassador: Ambassador) => {
+    setEditingAmbassador(ambassador);
+    setAmbassadorForm({
+      name: ambassador.name,
+      role: ambassador.role,
+      image: ambassador.image,
+      game: ambassador.game,
+      achievements: ambassador.achievements || [],
+      socialLinks: ambassador.socialLinks || {}
+    });
+    setShowCreateAmbassador(true);
+  };
+
   const movePlayer = (direction: 'up' | 'down', playerIndex: number) => {
     if (!editingTeam) return;
-    
+
     const newIndex = direction === 'up' ? playerIndex - 1 : playerIndex + 1;
     if (newIndex < 0 || newIndex >= editingTeam.players.length) return;
-    
+
     const updatedPlayers = [...editingTeam.players];
     [updatedPlayers[playerIndex], updatedPlayers[newIndex]] = [updatedPlayers[newIndex], updatedPlayers[playerIndex]];
-    
+
     setEditingTeam({
       ...editingTeam,
       players: updatedPlayers
@@ -484,7 +592,7 @@ export default function AdminDashboard() {
 
   const removePlayerFromTeam = (playerIndex: number) => {
     if (!editingTeam) return;
-    
+
     const updatedPlayers = editingTeam.players.filter((_, index) => index !== playerIndex);
     setEditingTeam({
       ...editingTeam,
@@ -495,27 +603,27 @@ export default function AdminDashboard() {
   const handleMovePlayer = async (teamId: string, playerIndex: number, direction: 'up' | 'down') => {
     try {
       setLoadingTeams(true);
-      
+
       // Get the current team
       const team = teams.find(t => t.id === teamId);
       if (!team || !team.players) return;
-      
+
       const newIndex = direction === 'up' ? playerIndex - 1 : playerIndex + 1;
       if (newIndex < 0 || newIndex >= team.players.length) return;
-      
+
       // Create new players array with swapped positions
       const updatedPlayers = [...team.players];
       [updatedPlayers[playerIndex], updatedPlayers[newIndex]] = [updatedPlayers[newIndex], updatedPlayers[playerIndex]];
-      
+
       // Update the team in Firebase
       await teamService.update(teamId, {
         players: updatedPlayers
       });
-      
+
       // Reload teams to reflect changes
       const updatedTeams = await teamService.getAll();
       setTeams(updatedTeams);
-      
+
     } catch (error) {
       console.error('Error moving player:', error);
       alert('Failed to move player');
@@ -553,1168 +661,1046 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0A0A0A] via-[#1A1A1A] to-[#0F0F0F] p-3 sm:p-6">
       <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
-      {/* Navigation Tabs */}
-      <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-1">
-        <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
-          {[
-            { id: 'overview', label: 'Overview', icon: ChartBarIcon },
-            { id: 'orders', label: 'Orders', icon: ShoppingBagIcon },
-            { id: 'reviews', label: 'Reviews', icon: StarIcon },
-            { id: 'products', label: 'Products', icon: UserIcon },
-            { id: 'teams', label: 'Teams', icon: UserIcon },
-            { id: 'news', label: 'News', icon: NewspaperIcon },
-            { id: 'placements', label: 'Placements', icon: TrophyIcon },
-            { id: 'schedule', label: 'Schedule', icon: CalendarIcon },
-            { id: 'advanced', label: 'Advanced Analytics', icon: ChartPieIcon },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-300 whitespace-nowrap text-sm sm:text-base ${activeTab === tab.id
+        {/* Navigation Tabs */}
+        <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-1">
+          <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
+            {[
+              { id: 'overview', label: 'Overview', icon: ChartBarIcon },
+              { id: 'orders', label: 'Orders', icon: ShoppingBagIcon },
+              { id: 'reviews', label: 'Reviews', icon: StarIcon },
+              { id: 'products', label: 'Products', icon: UserIcon },
+              { id: 'teams', label: 'Teams', icon: UserIcon },
+              { id: 'ambassadors', label: 'Ambassadors', icon: UserGroupIcon },
+              { id: 'news', label: 'News', icon: NewspaperIcon },
+              { id: 'placements', label: 'Placements', icon: TrophyIcon },
+              { id: 'schedule', label: 'Schedule', icon: CalendarIcon },
+              { id: 'advanced', label: 'Advanced Analytics', icon: ChartPieIcon },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-300 whitespace-nowrap text-sm sm:text-base ${activeTab === tab.id
                   ? 'bg-[#FFFFFF] text-black'
                   : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]'
-                }`}
-            >
-              <tab.icon className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{tab.label}</span>
-              <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Overview Tab */}
-      {activeTab === 'overview' && (
-        <div className="space-y-6">
-          {/* Enhanced Statistics Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div className="min-w-0 flex-1">
-                  <p className="text-gray-400 text-xs sm:text-sm font-medium">Total Revenue</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-white mt-1 sm:mt-2 truncate">${totalRevenue.toFixed(2)}</p>
-                  <div className="flex items-center gap-1 mt-1 sm:mt-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-green-400 text-xs">Active</span>
-                  </div>
-                </div>
-                <div className="bg-green-500/20 p-2 sm:p-3 rounded-xl group-hover:bg-green-500/30 transition-colors flex-shrink-0">
-                  <CurrencyDollarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" />
-                </div>
-              </div>
-            </AnimatedCard>
-
-            <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div className="min-w-0 flex-1">
-                  <p className="text-gray-400 text-xs sm:text-sm font-medium">Total Orders</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-white mt-1 sm:mt-2">{totalOrders}</p>
-                  <div className="flex items-center gap-1 mt-1 sm:mt-2">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                    <span className="text-blue-400 text-xs">{pendingOrders} pending</span>
-                  </div>
-                </div>
-                <div className="bg-blue-500/20 p-2 sm:p-3 rounded-xl group-hover:bg-blue-500/30 transition-colors flex-shrink-0">
-                  <ShoppingBagIcon className="w-6 h-6 sm:w-8 sm:h-8 text-blue-400" />
-                </div>
-              </div>
-            </AnimatedCard>
-
-            <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div className="min-w-0 flex-1">
-                  <p className="text-gray-400 text-xs sm:text-sm font-medium">Avg Order Value</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-white mt-1 sm:mt-2 truncate">${averageOrderValue.toFixed(2)}</p>
-                  <div className="flex items-center gap-1 mt-1 sm:mt-2">
-                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-                    <span className="text-purple-400 text-xs">Per order</span>
-                  </div>
-                </div>
-                <div className="bg-purple-500/20 p-2 sm:p-3 rounded-xl group-hover:bg-purple-500/30 transition-colors flex-shrink-0">
-                  <ChartBarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
-                </div>
-              </div>
-            </AnimatedCard>
-
-            <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div className="min-w-0 flex-1">
-                  <p className="text-gray-400 text-xs sm:text-sm font-medium">Avg Rating</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-white mt-1 sm:mt-2">{averageRating.toFixed(1)}/5</p>
-                  <div className="flex items-center gap-1 mt-1 sm:mt-2">
-                    <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                    <span className="text-yellow-400 text-xs">{reviews.length} reviews</span>
-                  </div>
-                </div>
-                <div className="bg-yellow-500/20 p-2 sm:p-3 rounded-xl group-hover:bg-yellow-500/30 transition-colors flex-shrink-0">
-                  <StarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400" />
-                </div>
-              </div>
-            </AnimatedCard>
-          </div>
-
-          {/* Enhanced Quick Stats */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-bold text-white mb-4 sm:mb-6 flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                Order Status
-              </h3>
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex justify-between items-center p-2 sm:p-3 bg-[#0F0F0F]/50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                    <span className="text-gray-300 text-sm sm:text-base">Pending</span>
-                  </div>
-                  <span className="text-yellow-400 font-bold text-base sm:text-lg">{pendingOrders}</span>
-                </div>
-                <div className="flex justify-between items-center p-2 sm:p-3 bg-[#0F0F0F]/50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                    <span className="text-gray-300 text-sm sm:text-base">Completed</span>
-                  </div>
-                  <span className="text-green-400 font-bold text-base sm:text-lg">{completedOrders}</span>
-                </div>
-                <div className="flex justify-between items-center p-2 sm:p-3 bg-[#0F0F0F]/50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
-                    <span className="text-gray-300 text-sm sm:text-base">Total Reviews</span>
-                  </div>
-                  <span className="text-blue-400 font-bold text-base sm:text-lg">{reviews.length}</span>
-                </div>
-              </div>
-            </AnimatedCard>
-
-            <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Recent Activity</h3>
-              <div className="space-y-2 sm:space-y-3">
-                {orders.slice(0, 3).map((order) => (
-                  <div key={order.id} className="flex justify-between items-center gap-2">
-                    <span className="text-gray-400 text-xs sm:text-sm truncate">
-                      Order {formatOrderNumber(order.id)}
-                    </span>
-                    <span className={`px-2 py-1 rounded text-xs flex-shrink-0 ${getStatusColor(order.status)}`}>
-                      {order.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </AnimatedCard>
-          </div>
-        </div>
-      )}
-
-      {/* Advanced Analytics Tab */}
-      {activeTab === 'advanced' && (
-        <div className="space-y-6">
-          <AnimatedCard enableTilt className="admin-card shine-hover p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <ChartPieIcon className="w-6 h-6" />
-                Advanced Analytics
-              </h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => router.push('/adminpanel/advanced-analytics')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                >
-                  Open Advanced Analytics
-                </button>
-              </div>
-            </div>
-            <p className="text-gray-400 text-sm">Dive into deeper insights: moving averages, funnels, rating distributions, and more.</p>
-          </AnimatedCard>
-        </div>
-      )}
-
-      {/* Product Modal */}
-      {showProductModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-lg w-full">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-white">{productMode === 'create' ? 'Create' : 'Edit'} Product</h3>
-                <button onClick={() => setShowProductModal(false)} className="text-gray-400 hover:text-white">✕</button>
-              </div>
-              <div className="grid grid-cols-1 gap-3">
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Name" value={productForm.name} onChange={e=>setProductForm({...productForm, name:e.target.value})} />
-                <input type="number" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Price" value={productForm.price} onChange={e=>setProductForm({...productForm, price: Number(e.target.value)})} />
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Category" value={productForm.category} onChange={e=>setProductForm({...productForm, category:e.target.value})} />
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Image URL" value={productForm.image} onChange={e=>setProductForm({...productForm, image:e.target.value})} />
-                {productForm.image?.trim() && (
-                  <div className="h-40 rounded border border-[#2A2A2A] overflow-hidden"><img src={productForm.image} className="object-contain w-full h-full" /></div>
-                )}
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Product Link" value={productForm.link} onChange={e=>setProductForm({...productForm, link:e.target.value})} />
-                <textarea className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white h-24" placeholder="Description" value={productForm.description} onChange={e=>setProductForm({...productForm, description:e.target.value})} />
-              </div>
-              <div className="flex gap-3 mt-4">
-                <button onClick={()=>setShowProductModal(false)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white py-2 rounded">Cancel</button>
-                <button onClick={submitProduct} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded">Save</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* News Modal */}
-      {showNewsModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-lg w-full">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-white">{newsMode === 'create' ? 'Create' : 'Edit'} News</h3>
-                <button onClick={() => setShowNewsModal(false)} className="text-gray-400 hover:text-white">✕</button>
-              </div>
-              <div className="grid grid-cols-1 gap-3">
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Title" value={newsForm.title} onChange={e=>setNewsForm({...newsForm, title:e.target.value})} />
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Image URL" value={newsForm.image} onChange={e=>setNewsForm({...newsForm, image:e.target.value})} />
-                {newsForm.image?.trim() && (
-                  <div className="h-40 rounded border border-[#2A2A2A] overflow-hidden"><img src={newsForm.image} className="object-contain w-full h-full" /></div>
-                )}
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Category" value={newsForm.category} onChange={e=>setNewsForm({...newsForm, category:e.target.value})} />
-                <input type="datetime-local" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" value={newsDate} onChange={e=>setNewsDate(e.target.value)} />
-                <textarea className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white h-24" placeholder="Description" value={newsForm.description} onChange={e=>setNewsForm({...newsForm, description:e.target.value})} />
-              </div>
-              <div className="flex gap-3 mt-4">
-                <button onClick={()=>setShowNewsModal(false)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white py-2 rounded">Cancel</button>
-                <button onClick={submitNews} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded">Save</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Placement Modal */}
-      {showPlacementModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-lg w-full">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-white">{placementMode === 'create' ? 'Add' : 'Edit'} Placement</h3>
-                <button onClick={() => setShowPlacementModal(false)} className="text-gray-400 hover:text-white">✕</button>
-              </div>
-              <div className="grid grid-cols-1 gap-3">
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Game" value={placementForm.game} onChange={e=>setPlacementForm({...placementForm, game:e.target.value})} />
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Tournament" value={placementForm.tournament} onChange={e=>setPlacementForm({...placementForm, tournament:e.target.value})} />
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Team" value={placementForm.team} onChange={e=>setPlacementForm({...placementForm, team:e.target.value})} />
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Position" value={placementForm.position} onChange={e=>setPlacementForm({...placementForm, position:e.target.value})} />
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Prize (optional)" value={placementForm.prize || ''} onChange={e=>setPlacementForm({...placementForm, prize:e.target.value})} />
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Logo URL" value={placementForm.logo} onChange={e=>setPlacementForm({...placementForm, logo:e.target.value})} />
-                {placementForm.logo?.trim() && (<div className="h-32 rounded border border-[#2A2A2A] overflow-hidden"><img src={placementForm.logo} className="object-contain w-full h-full" /></div>)}
-                <textarea className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white h-20" placeholder="Players (comma separated)" value={placementPlayersText} onChange={e=>setPlacementPlayersText(e.target.value)} />
-              </div>
-              <div className="flex gap-3 mt-4">
-                <button onClick={()=>setShowPlacementModal(false)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white py-2 rounded">Cancel</button>
-                <button onClick={submitPlacement} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded">Save</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Match Modal */}
-      {showMatchModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-lg w-full">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-white">{matchMode === 'create' ? 'Add' : 'Edit'} Match/Event</h3>
-                <button onClick={() => setShowMatchModal(false)} className="text-gray-400 hover:text-white">✕</button>
-              </div>
-              <div className="grid grid-cols-1 gap-3">
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Game" value={matchForm.game} onChange={e=>setMatchForm({...matchForm, game:e.target.value})} />
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Event" value={matchForm.event} onChange={e=>setMatchForm({...matchForm, event:e.target.value})} />
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Opponent" value={matchForm.opponent} onChange={e=>setMatchForm({...matchForm, opponent:e.target.value})} />
-                <input type="date" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" value={matchForm.date} onChange={e=>setMatchForm({...matchForm, date:e.target.value})} />
-                <input type="time" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" value={matchForm.time} onChange={e=>setMatchForm({...matchForm, time:e.target.value})} />
-                <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Stream Link" value={matchForm.streamLink} onChange={e=>setMatchForm({...matchForm, streamLink:e.target.value})} />
-              </div>
-              <div className="flex gap-3 mt-4">
-                <button onClick={()=>setShowMatchModal(false)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white py-2 rounded">Cancel</button>
-                <button onClick={submitMatch} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded">Save</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Orders Tab */}
-      {activeTab === 'orders' && (
-        <div className="space-y-6">
-          {/* Orders Header */}
-          <AnimatedCard enableTilt className="admin-card shine-hover p-6">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                  <div className="bg-green-500/20 p-2 rounded-xl">
-                    <ShoppingBagIcon className="w-6 h-6 text-green-400" />
-                  </div>
-                  Orders Management
-                </h2>
-                <p className="text-gray-400 text-sm mt-2">Manage and track all customer orders</p>
-              </div>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as any)}
-                className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white text-sm"
+                  }`}
               >
-                <option value="all">All Orders</option>
-                <option value="pending">Pending</option>
-                <option value="accepted">Accepted</option>
-                <option value="processing">Processing</option>
-                <option value="delivered">Delivered</option>
-                <option value="declined">Declined</option>
-                <option value="canceled">Canceled</option>
-              </select>
-            </div>
-
-            <div className="space-y-4">
-              {filteredOrders.length === 0 ? (
-                <p className="text-gray-400">No orders found.</p>
-              ) : (
-                filteredOrders.map((order) => (
-                  <div key={order.id} className="admin-card p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-white font-medium">
-                            Order {formatOrderNumber(order.id)}
-                          </h3>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                            {order.status}
-                          </span>
-                        </div>
-                        <p className="text-gray-400 text-sm">
-                          {order.customerInfo.name} - {order.customerInfo.email}
-                        </p>
-                        <p className="text-gray-500 text-xs">
-                          {new Date(order.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            setSelectedOrder(order);
-                            setShowOrderDetails(true);
-                          }}
-                          className="text-blue-400 hover:text-blue-300 p-1"
-                          title="View Details"
-                        >
-                          <EyeIcon className="w-4 h-4" />
-                        </button>
-                        <select
-                          value={order.status}
-                          onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                          className="bg-[#2A2A2A] border border-[#3A3A3A] rounded px-2 py-1 text-xs text-white"
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="accepted">Accepted</option>
-                          <option value="processing">Processing</option>
-                          <option value="delivered">Delivered</option>
-                          <option value="declined">Declined</option>
-                          <option value="canceled">Canceled</option>
-                        </select>
-                        <button
-                          onClick={() => handleDeleteOrder(order.id)}
-                          className="text-red-400 hover:text-red-300 p-1"
-                          title="Delete Order"
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-400">Total:</span>
-                        <span className="text-white font-medium ml-2">${order.total.toFixed(2)}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">Items:</span>
-                        <span className="text-white font-medium ml-2">{order.items.length}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">Country:</span>
-                        <span className="text-white font-medium ml-2">{order.customerInfo.country}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">Zip:</span>
-                        <span className="text-white font-medium ml-2">{order.customerInfo.zipCode}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </AnimatedCard>
+                <tab.icon className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      )}
 
-      {/* Reviews Tab */}
-      {activeTab === 'reviews' && (
-        <div className="space-y-6">
-          <AnimatedCard enableTilt className="admin-card shine-hover p-6">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                  <div className="bg-yellow-500/20 p-2 rounded-xl">
-                    <StarIcon className="w-6 h-6 text-yellow-400" />
+        {/* Overview Tab */}
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            {/* Enhanced Statistics Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-gray-400 text-xs sm:text-sm font-medium">Total Revenue</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-white mt-1 sm:mt-2 truncate">${totalRevenue.toFixed(2)}</p>
+                    <div className="flex items-center gap-1 mt-1 sm:mt-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-green-400 text-xs">Active</span>
+                    </div>
                   </div>
-                  Reviews Management
+                  <div className="bg-green-500/20 p-2 sm:p-3 rounded-xl group-hover:bg-green-500/30 transition-colors flex-shrink-0">
+                    <CurrencyDollarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" />
+                  </div>
+                </div>
+              </AnimatedCard>
+
+              <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-gray-400 text-xs sm:text-sm font-medium">Total Orders</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-white mt-1 sm:mt-2">{totalOrders}</p>
+                    <div className="flex items-center gap-1 mt-1 sm:mt-2">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                      <span className="text-blue-400 text-xs">{pendingOrders} pending</span>
+                    </div>
+                  </div>
+                  <div className="bg-blue-500/20 p-2 sm:p-3 rounded-xl group-hover:bg-blue-500/30 transition-colors flex-shrink-0">
+                    <ShoppingBagIcon className="w-6 h-6 sm:w-8 sm:h-8 text-blue-400" />
+                  </div>
+                </div>
+              </AnimatedCard>
+
+              <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-gray-400 text-xs sm:text-sm font-medium">Avg Order Value</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-white mt-1 sm:mt-2 truncate">${averageOrderValue.toFixed(2)}</p>
+                    <div className="flex items-center gap-1 mt-1 sm:mt-2">
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                      <span className="text-purple-400 text-xs">Per order</span>
+                    </div>
+                  </div>
+                  <div className="bg-purple-500/20 p-2 sm:p-3 rounded-xl group-hover:bg-purple-500/30 transition-colors flex-shrink-0">
+                    <ChartBarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
+                  </div>
+                </div>
+              </AnimatedCard>
+
+              <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-gray-400 text-xs sm:text-sm font-medium">Avg Rating</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-white mt-1 sm:mt-2">{averageRating.toFixed(1)}/5</p>
+                    <div className="flex items-center gap-1 mt-1 sm:mt-2">
+                      <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                      <span className="text-yellow-400 text-xs">{reviews.length} reviews</span>
+                    </div>
+                  </div>
+                  <div className="bg-yellow-500/20 p-2 sm:p-3 rounded-xl group-hover:bg-yellow-500/30 transition-colors flex-shrink-0">
+                    <StarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400" />
+                  </div>
+                </div>
+              </AnimatedCard>
+            </div>
+
+            {/* Enhanced Quick Stats */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-bold text-white mb-4 sm:mb-6 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                  Order Status
+                </h3>
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex justify-between items-center p-2 sm:p-3 bg-[#0F0F0F]/50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                      <span className="text-gray-300 text-sm sm:text-base">Pending</span>
+                    </div>
+                    <span className="text-yellow-400 font-bold text-base sm:text-lg">{pendingOrders}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-2 sm:p-3 bg-[#0F0F0F]/50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                      <span className="text-gray-300 text-sm sm:text-base">Completed</span>
+                    </div>
+                    <span className="text-green-400 font-bold text-base sm:text-lg">{completedOrders}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-2 sm:p-3 bg-[#0F0F0F]/50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
+                      <span className="text-gray-300 text-sm sm:text-base">Total Reviews</span>
+                    </div>
+                    <span className="text-blue-400 font-bold text-base sm:text-lg">{reviews.length}</span>
+                  </div>
+                </div>
+              </AnimatedCard>
+
+              <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Recent Activity</h3>
+                <div className="space-y-2 sm:space-y-3">
+                  {orders.slice(0, 3).map((order) => (
+                    <div key={order.id} className="flex justify-between items-center gap-2">
+                      <span className="text-gray-400 text-xs sm:text-sm truncate">
+                        Order {formatOrderNumber(order.id)}
+                      </span>
+                      <span className={`px-2 py-1 rounded text-xs flex-shrink-0 ${getStatusColor(order.status)}`}>
+                        {order.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </AnimatedCard>
+            </div>
+          </div>
+        )}
+
+        {/* Advanced Analytics Tab */}
+        {activeTab === 'advanced' && (
+          <div className="space-y-6">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <ChartPieIcon className="w-6 h-6" />
+                  Advanced Analytics
                 </h2>
-                <p className="text-gray-400 text-sm mt-2">Monitor and manage customer feedback</p>
-              </div>
-              {showBulkActions && (
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-400 text-sm">
-                    {selectedReviews.size} selected
-                  </span>
+                <div className="flex gap-2">
                   <button
-                    onClick={handleBulkDeleteReviews}
-                    className="bg-red-600/20 hover:bg-red-600/30 border border-red-600/30 text-red-400 px-3 py-1 rounded text-sm"
+                    onClick={() => router.push('/adminpanel/advanced-analytics')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
                   >
-                    Delete Selected
+                    Open Advanced Analytics
                   </button>
                 </div>
-              )}
+              </div>
+              <p className="text-gray-400 text-sm">Dive into deeper insights: moving averages, funnels, rating distributions, and more.</p>
+            </AnimatedCard>
+          </div>
+        )}
+
+        {/* Product Modal */}
+        {showProductModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-lg w-full">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold text-white">{productMode === 'create' ? 'Create' : 'Edit'} Product</h3>
+                  <button onClick={() => setShowProductModal(false)} className="text-gray-400 hover:text-white">✕</button>
+                </div>
+                <div className="grid grid-cols-1 gap-3">
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Name" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} />
+                  <input type="number" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Price" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: Number(e.target.value) })} />
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Category" value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })} />
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Image URL" value={productForm.image} onChange={e => setProductForm({ ...productForm, image: e.target.value })} />
+                  {productForm.image?.trim() && (
+                    <div className="h-40 rounded border border-[#2A2A2A] overflow-hidden"><img src={productForm.image} className="object-contain w-full h-full" /></div>
+                  )}
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Product Link" value={productForm.link} onChange={e => setProductForm({ ...productForm, link: e.target.value })} />
+                  <textarea className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white h-24" placeholder="Description" value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} />
+                </div>
+                <div className="flex gap-3 mt-4">
+                  <button onClick={() => setShowProductModal(false)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white py-2 rounded">Cancel</button>
+                  <button onClick={submitProduct} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded">Save</button>
+                </div>
+              </div>
             </div>
+          </div>
+        )}
 
-            <div className="space-y-4">
-              {reviews.length === 0 ? (
-                <p className="text-gray-400">No reviews found.</p>
-              ) : (
-                reviews.map((review) => (
-                  <div key={review.id} className="admin-card p-4">
-                    <div className="flex items-start gap-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedReviews.has(review.id || '')}
-                        onChange={() => review.id && toggleReviewSelection(review.id)}
-                        className="mt-1 rounded border-[#2A2A2A] bg-[#0F0F0F] text-white"
-                      />
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h3 className="text-white font-medium">{review.userName}</h3>
-                            <p className="text-gray-500 text-sm">{review.userEmail}</p>
-                            <div className="flex items-center gap-1 mt-1">
-                              {[...Array(5)].map((_, i) => (
-                                <StarIcon
-                                  key={i}
-                                  className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-600'
-                                    }`}
-                                />
-                              ))}
-                              <span className="text-gray-400 text-sm ml-2">
-                                {review.rating}/5
-                              </span>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => review.id && handleDeleteReview(review.id)}
-                            className="text-red-400 hover:text-red-300 p-1"
-                          >
-                            <TrashIcon className="w-4 h-4" />
-                          </button>
-                        </div>
+        {/* News Modal */}
+        {showNewsModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-lg w-full">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold text-white">{newsMode === 'create' ? 'Create' : 'Edit'} News</h3>
+                  <button onClick={() => setShowNewsModal(false)} className="text-gray-400 hover:text-white">✕</button>
+                </div>
+                <div className="grid grid-cols-1 gap-3">
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Title" value={newsForm.title} onChange={e => setNewsForm({ ...newsForm, title: e.target.value })} />
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Image URL" value={newsForm.image} onChange={e => setNewsForm({ ...newsForm, image: e.target.value })} />
+                  {newsForm.image?.trim() && (
+                    <div className="h-40 rounded border border-[#2A2A2A] overflow-hidden"><img src={newsForm.image} className="object-contain w-full h-full" /></div>
+                  )}
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Category" value={newsForm.category} onChange={e => setNewsForm({ ...newsForm, category: e.target.value })} />
+                  <input type="datetime-local" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" value={newsDate} onChange={e => setNewsDate(e.target.value)} />
+                  <textarea className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white h-24" placeholder="Description" value={newsForm.description} onChange={e => setNewsForm({ ...newsForm, description: e.target.value })} />
+                </div>
+                <div className="flex gap-3 mt-4">
+                  <button onClick={() => setShowNewsModal(false)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white py-2 rounded">Cancel</button>
+                  <button onClick={submitNews} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded">Save</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
-                        <p className="text-gray-300 text-sm mb-2">{review.comment}</p>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-xs text-gray-500">
-                          <span>Product ID: {review.productId}</span>
-                          <span>ID: {review.id}</span>
-                          <span>Helpful: {review.helpful}</span>
-                          <span>{review.createdAt.toDate().toLocaleString()}</span>
-                        </div>
-                        <div className="mt-2">
-                          <span className={`px-2 py-1 rounded text-xs ${review.verified ? 'bg-green-900/20 text-green-400' : 'bg-gray-900/20 text-gray-400'}`}>
-                            {review.verified ? 'Verified' : 'Unverified'}
-                          </span>
-                        </div>
-                      </div>
+        {/* Placement Modal */}
+        {showPlacementModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-lg w-full">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold text-white">{placementMode === 'create' ? 'Add' : 'Edit'} Placement</h3>
+                  <button onClick={() => setShowPlacementModal(false)} className="text-gray-400 hover:text-white">✕</button>
+                </div>
+                <div className="grid grid-cols-1 gap-3">
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Game" value={placementForm.game} onChange={e => setPlacementForm({ ...placementForm, game: e.target.value })} />
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Tournament" value={placementForm.tournament} onChange={e => setPlacementForm({ ...placementForm, tournament: e.target.value })} />
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Team" value={placementForm.team} onChange={e => setPlacementForm({ ...placementForm, team: e.target.value })} />
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Position" value={placementForm.position} onChange={e => setPlacementForm({ ...placementForm, position: e.target.value })} />
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Prize (optional)" value={placementForm.prize || ''} onChange={e => setPlacementForm({ ...placementForm, prize: e.target.value })} />
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Logo URL" value={placementForm.logo} onChange={e => setPlacementForm({ ...placementForm, logo: e.target.value })} />
+                  {placementForm.logo?.trim() && (<div className="h-32 rounded border border-[#2A2A2A] overflow-hidden"><img src={placementForm.logo} className="object-contain w-full h-full" /></div>)}
+                  <textarea className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white h-20" placeholder="Players (comma separated)" value={placementPlayersText} onChange={e => setPlacementPlayersText(e.target.value)} />
+                </div>
+                <div className="flex gap-3 mt-4">
+                  <button onClick={() => setShowPlacementModal(false)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white py-2 rounded">Cancel</button>
+                  <button onClick={submitPlacement} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded">Save</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Match Modal */}
+        {showMatchModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-lg w-full">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold text-white">{matchMode === 'create' ? 'Add' : 'Edit'} Match/Event</h3>
+                  <button onClick={() => setShowMatchModal(false)} className="text-gray-400 hover:text-white">✕</button>
+                </div>
+                <div className="grid grid-cols-1 gap-3">
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Game" value={matchForm.game} onChange={e => setMatchForm({ ...matchForm, game: e.target.value })} />
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Event" value={matchForm.event} onChange={e => setMatchForm({ ...matchForm, event: e.target.value })} />
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Opponent" value={matchForm.opponent} onChange={e => setMatchForm({ ...matchForm, opponent: e.target.value })} />
+                  <input type="date" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" value={matchForm.date} onChange={e => setMatchForm({ ...matchForm, date: e.target.value })} />
+                  <input type="time" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" value={matchForm.time} onChange={e => setMatchForm({ ...matchForm, time: e.target.value })} />
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Stream Link" value={matchForm.streamLink} onChange={e => setMatchForm({ ...matchForm, streamLink: e.target.value })} />
+                </div>
+                <div className="flex gap-3 mt-4">
+                  <button onClick={() => setShowMatchModal(false)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white py-2 rounded">Cancel</button>
+                  <button onClick={submitMatch} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded">Save</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Orders Tab */}
+        {activeTab === 'orders' && (
+          <div className="space-y-6">
+            {/* Orders Header */}
+            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                    <div className="bg-green-500/20 p-2 rounded-xl">
+                      <ShoppingBagIcon className="w-6 h-6 text-green-400" />
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </AnimatedCard>
-        </div>
-      )}
-
-      {/* News Tab */}
-      {activeTab === 'news' && (
-        <div className="space-y-6">
-          <AnimatedCard enableTilt className="admin-card shine-hover p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                Manage News
-              </h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => router.push('/adminpanel/news')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                    Orders Management
+                  </h2>
+                  <p className="text-gray-400 text-sm mt-2">Manage and track all customer orders</p>
+                </div>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value as any)}
+                  className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white text-sm"
                 >
-                  Open News Manager
-                </button>
-                <button
-                  onClick={() => openCreateNews()}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                >
-                  Create News
-                </button>
+                  <option value="all">All Orders</option>
+                  <option value="pending">Pending</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="processing">Processing</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="declined">Declined</option>
+                  <option value="canceled">Canceled</option>
+                </select>
               </div>
-            </div>
-            <p className="text-gray-400 text-sm">Create, edit, and delete news posts. Use the News Manager page for full controls.</p>
-          </AnimatedCard>
-        </div>
-      )}
 
-      {/* Placements Tab */}
-      {activeTab === 'placements' && (
-        <div className="space-y-6">
-          <AnimatedCard enableTilt className="admin-card shine-hover p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                Manage Placements
-              </h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => router.push('/adminpanel/placements')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                >
-                  Open Placements Manager
-                </button>
-                <button
-                  onClick={() => openCreatePlacement()}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                >
-                  Add Placement
-                </button>
-              </div>
-            </div>
-            <p className="text-gray-400 text-sm">Add new tournament placements or edit existing results and metadata.</p>
-          </AnimatedCard>
-        </div>
-      )}
-
-      {/* Schedule Tab */}
-      {activeTab === 'schedule' && (
-        <div className="space-y-6">
-          <AnimatedCard enableTilt className="admin-card shine-hover p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                Manage Schedule
-              </h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => router.push('/adminpanel/schedule')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                >
-                  Open Schedule Manager
-                </button>
-                <button
-                  onClick={() => openCreateMatch()}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                >
-                  Add Match/Event
-                </button>
-              </div>
-            </div>
-            <p className="text-gray-400 text-sm">Create or edit matches, dates, teams, and status from the Schedule Manager page.</p>
-          </AnimatedCard>
-        </div>
-      )}
-
-      {/* Products Tab */}
-      {activeTab === 'products' && (
-        <div className="space-y-6">
-          <AnimatedCard className="admin-card shine-hover p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <UserIcon className="w-6 h-6" />
-                Products Catalog
-              </h2>
-              <div className="flex gap-2">
-                <button onClick={openCreateProduct} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Create Product</button>
-                <button onClick={() => router.push('/adminpanel/products')} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Open Products Manager</button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product) => (
-                <AnimatedCard key={product.id} className="admin-card p-4">
-                  <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <h3 className="text-white font-medium mb-2">{product.name}</h3>
-                  <p className="text-gray-400 text-sm mb-3 line-clamp-2">{product.description}</p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-green-400 font-bold">${product.price.toFixed(2)}</span>
-                    <span className="text-gray-500 text-xs bg-[#2A2A2A] px-2 py-1 rounded">
-                      {product.category}
-                    </span>
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-[#2A2A2A]">
-                    <p className="text-gray-500 text-xs">Product ID: {product.id}</p>
-                  </div>
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      onClick={() => openEditProduct({ id: String(product.id), name: product.name, price: product.price, image: product.image, category: product.category, description: product.description, link: product.link, createdAt: undefined as any })}
-                      className="bg-yellow-600/20 hover:bg-yellow-600/30 border border-yellow-600/30 text-yellow-400 px-3 py-1 rounded text-sm"
-                    >
-                      Edit (Modal)
-                    </button>
-                  </div>
-                </AnimatedCard>
-              ))}
-            </div>
-          </AnimatedCard>
-        </div>
-      )}
-
-      {/* Teams Tab */}
-      {activeTab === 'teams' && (
-        <div className="space-y-6">
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <UserIcon className="w-6 h-6" />
-                Teams Management
-              </h2>
-              <button
-                onClick={() => setShowCreateTeam(true)}
-                className="bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/30 text-blue-400 px-4 py-2 rounded-lg text-sm font-medium"
-              >
-                Create Team
-              </button>
-            </div>
-
-            {loadingTeams ? (
-              <div className="text-center py-8">
-                <div className="text-white">Loading teams...</div>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {teams.length === 0 ? (
-                  <p className="text-gray-400">No teams found.</p>
+              <div className="space-y-4">
+                {filteredOrders.length === 0 ? (
+                  <p className="text-gray-400">No orders found.</p>
                 ) : (
-                  teams.map((team) => (
-                    <div key={team.id} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h3 className="text-xl font-bold text-white mb-2">{team.name}</h3>
-                          <p className="text-gray-400 text-sm mb-2">{team.description}</p>
-                          <div className="text-xs text-gray-500">
-                            Players: {team.players?.length || 0}
+                  filteredOrders.map((order) => (
+                    <div key={order.id} className="admin-card p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-white font-medium">
+                              Order {formatOrderNumber(order.id)}
+                            </h3>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                              {order.status}
+                            </span>
                           </div>
+                          <p className="text-gray-400 text-sm">
+                            {order.customerInfo.name} - {order.customerInfo.email}
+                          </p>
+                          <p className="text-gray-500 text-xs">
+                            {new Date(order.createdAt).toLocaleDateString()}
+                          </p>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2">
                           <button
                             onClick={() => {
-                              setSelectedTeam(team);
-                              setShowAddPlayer(true);
+                              setSelectedOrder(order);
+                              setShowOrderDetails(true);
                             }}
-                            className="bg-green-600/20 hover:bg-green-600/30 border border-green-600/30 text-green-400 px-3 py-2 rounded-lg text-sm font-medium"
+                            className="text-blue-400 hover:text-blue-300 p-1"
+                            title="View Details"
                           >
-                            Add Player
+                            <EyeIcon className="w-4 h-4" />
                           </button>
-                          <button
-                            onClick={() => handleEditTeam(team)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium"
-                            title="Edit Team & Reorder Players"
+                          <select
+                            value={order.status}
+                            onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                            className="bg-[#2A2A2A] border border-[#3A3A3A] rounded px-2 py-1 text-xs text-white"
                           >
-                            Edit Team
-                          </button>
+                            <option value="pending">Pending</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="processing">Processing</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="declined">Declined</option>
+                            <option value="canceled">Canceled</option>
+                          </select>
                           <button
-                            onClick={() => handleDeleteTeam(team.id!, team.name)}
-                            className="bg-red-600/20 hover:bg-red-600/30 border border-red-600/30 text-red-400 px-3 py-2 rounded-lg text-sm font-medium"
-                            title="Delete Team"
+                            onClick={() => handleDeleteOrder(order.id)}
+                            className="text-red-400 hover:text-red-300 p-1"
+                            title="Delete Order"
                           >
                             <TrashIcon className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
 
-                      {/* Players List */}
-                      <div className="space-y-3">
-                        <h4 className="text-lg font-medium text-white">Players</h4>
-                        {!team.players || team.players.length === 0 ? (
-                          <p className="text-gray-400 text-sm">No players in this team yet.</p>
-                        ) : (
-                          team.players.map((player, index) => (
-                            <div key={index} className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-4">
-                              {editingPlayer?.teamId === team.id && editingPlayer?.playerIndex === index ? (
-                                // Edit Mode
-                                <div className="space-y-4">
-                                  <div className="text-sm font-medium text-gray-300 mb-2">
-                                    Editing: {editingPlayer.player.name}
-                                  </div>
-                                  
-                                  {/* Basic Info */}
-                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                    <input
-                                      type="text"
-                                      value={editingPlayer.player.name}
-                                      onChange={(e) => setEditingPlayer({
-                                        ...editingPlayer,
-                                        player: { ...editingPlayer.player, name: e.target.value }
-                                      })}
-                                      className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
-                                      placeholder="Player Name"
-                                    />
-                                    <input
-                                      type="text"
-                                      value={editingPlayer.player.role}
-                                      onChange={(e) => setEditingPlayer({
-                                        ...editingPlayer,
-                                        player: { ...editingPlayer.player, role: e.target.value }
-                                      })}
-                                      className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
-                                      placeholder="Role"
-                                    />
-                                    <input
-                                      type="text"
-                                      value={editingPlayer.player.game}
-                                      onChange={(e) => setEditingPlayer({
-                                        ...editingPlayer,
-                                        player: { ...editingPlayer.player, game: e.target.value }
-                                      })}
-                                      className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
-                                      placeholder="Game"
-                                    />
-                                  </div>
-
-                                  {/* Image URL */}
-                                  <div>
-                                    <input
-                                      type="text"
-                                      value={editingPlayer.player.image}
-                                      onChange={(e) => setEditingPlayer({
-                                        ...editingPlayer,
-                                        player: { ...editingPlayer.player, image: e.target.value }
-                                      })}
-                                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
-                                      placeholder="Player Image URL"
-                                    />
-                                    {editingPlayer.player.image?.trim() && (
-                                      <div className="mt-2 rounded-lg overflow-hidden border border-[#2A2A2A] bg-black/40">
-                                        <div className="h-32 w-full flex items-center justify-center">
-                                          <img 
-                                            src={processExternalImageUrl(editingPlayer.player.image)} 
-                                            alt="Preview" 
-                                            className="object-contain w-full h-full" 
-                                            onError={(e) => {
-                                              const target = e.target as HTMLImageElement;
-                                              target.style.display = 'none';
-                                              const parent = target.parentElement;
-                                              if (parent && !parent.querySelector('.error-message')) {
-                                                const errorDiv = document.createElement('div');
-                                                errorDiv.className = 'error-message text-red-400 text-sm text-center';
-                                                errorDiv.textContent = 'Failed to load image';
-                                                parent.appendChild(errorDiv);
-                                              }
-                                            }}
-                                            onLoad={(e) => {
-                                              const target = e.target as HTMLImageElement;
-                                              const parent = target.parentElement;
-                                              const errorMsg = parent?.querySelector('.error-message');
-                                              if (errorMsg) {
-                                                errorMsg.remove();
-                                              }
-                                              target.style.display = 'block';
-                                            }}
-                                          />
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {/* Achievements */}
-                                  <div>
-                                    <input
-                                      type="text"
-                                      value={editingPlayer.player.achievements?.join(', ') || ''}
-                                      onChange={(e) => setEditingPlayer({
-                                        ...editingPlayer,
-                                        player: { 
-                                          ...editingPlayer.player, 
-                                          achievements: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-                                        }
-                                      })}
-                                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
-                                      placeholder="Achievements (comma separated) - e.g. FNCS Grand Finals, 2500+ Earnings, Top 10 Placement"
-                                    />
-                                  </div>
-
-                                  {/* Social Links */}
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <input
-                                      type="text"
-                                      value={editingPlayer.player.socialLinks?.twitter || ''}
-                                      onChange={(e) => setEditingPlayer({
-                                        ...editingPlayer,
-                                        player: { 
-                                          ...editingPlayer.player, 
-                                          socialLinks: {
-                                            ...editingPlayer.player.socialLinks,
-                                            twitter: e.target.value
-                                          }
-                                        }
-                                      })}
-                                      className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
-                                      placeholder="Twitter URL"
-                                    />
-                                    <input
-                                      type="text"
-                                      value={editingPlayer.player.socialLinks?.twitch || ''}
-                                      onChange={(e) => setEditingPlayer({
-                                        ...editingPlayer,
-                                        player: { 
-                                          ...editingPlayer.player, 
-                                          socialLinks: {
-                                            ...editingPlayer.player.socialLinks,
-                                            twitch: e.target.value
-                                          }
-                                        }
-                                      })}
-                                      className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
-                                      placeholder="Twitch URL"
-                                    />
-                                  </div>
-
-                                  {/* Instagram Link */}
-                                  <div>
-                                    <input
-                                      type="text"
-                                      value={editingPlayer.player.socialLinks?.instagram || ''}
-                                      onChange={(e) => setEditingPlayer({
-                                        ...editingPlayer,
-                                        player: { 
-                                          ...editingPlayer.player, 
-                                          socialLinks: {
-                                            ...editingPlayer.player.socialLinks,
-                                            instagram: e.target.value
-                                          }
-                                        }
-                                      })}
-                                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
-                                      placeholder="Instagram URL"
-                                    />
-                                  </div>
-                                  <div className="flex gap-3 pt-2 border-t border-[#2A2A2A]">
-                                    <button
-                                      onClick={() => handleEditPlayer(team.id!, index, editingPlayer.player)}
-                                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium"
-                                    >
-                                      Save Changes
-                                    </button>
-                                    <button
-                                      onClick={() => setEditingPlayer(null)}
-                                      className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm font-medium"
-                                    >
-                                      Cancel
-                                    </button>
-                                  </div>
-                                </div>
-                              ) : (
-                                // View Mode
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
-                                      <span className="bg-gray-600/20 text-gray-400 px-2 py-1 rounded text-xs font-mono">
-                                        #{index + 1}
-                                      </span>
-                                      <h5 className="text-white font-medium">{player.name}</h5>
-                                      <span className="bg-blue-600/20 text-blue-400 px-2 py-1 rounded text-xs">
-                                        {player.role}
-                                      </span>
-                                    </div>
-                                    <div className="text-sm text-gray-400 space-y-1">
-                                      <div>Game: {player.game}</div>
-                                      {player.achievements && player.achievements.length > 0 && (
-                                        <div>Achievements: {player.achievements.slice(0, 2).join(', ')}{player.achievements.length > 2 ? '...' : ''}</div>
-                                      )}
-                                      {(player.socialLinks?.twitter || player.socialLinks?.twitch || player.socialLinks?.instagram) && (
-                                        <div className="flex gap-2 mt-1">
-                                          {player.socialLinks?.twitter && (
-                                            <a href={player.socialLinks.twitter} target="_blank" rel="noopener noreferrer" 
-                                               className="text-blue-400 hover:text-blue-300 text-xs">Twitter</a>
-                                          )}
-                                          {player.socialLinks?.twitch && (
-                                            <a href={player.socialLinks.twitch} target="_blank" rel="noopener noreferrer" 
-                                               className="text-purple-400 hover:text-purple-300 text-xs">Twitch</a>
-                                          )}
-                                          {player.socialLinks?.instagram && (
-                                            <a href={player.socialLinks.instagram} target="_blank" rel="noopener noreferrer" 
-                                               className="text-pink-400 hover:text-pink-300 text-xs">Instagram</a>
-                                          )}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div className="flex gap-1 items-center">
-                                    {/* Reorder buttons */}
-                                    <div className="flex flex-col">
-                                      <button
-                                        onClick={() => handleMovePlayer(team.id!, index, 'up')}
-                                        disabled={index === 0}
-                                        className="text-gray-400 hover:text-white p-1 disabled:opacity-30 disabled:cursor-not-allowed"
-                                        title="Move Up"
-                                      >
-                                        <ChevronUpIcon className="w-3 h-3" />
-                                      </button>
-                                      <button
-                                        onClick={() => handleMovePlayer(team.id!, index, 'down')}
-                                        disabled={index === (team.players?.length || 0) - 1}
-                                        className="text-gray-400 hover:text-white p-1 disabled:opacity-30 disabled:cursor-not-allowed"
-                                        title="Move Down"
-                                      >
-                                        <ChevronDownIcon className="w-3 h-3" />
-                                      </button>
-                                    </div>
-                                    
-                                    {/* Action buttons */}
-                                    <button
-                                      onClick={() => {
-                                        console.log('Edit button clicked for player:', player.name);
-                                        setEditingPlayer({
-                                          teamId: team.id!,
-                                          playerIndex: index,
-                                          player: { ...player }
-                                        });
-                                      }}
-                                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium"
-                                      title="Edit Player"
-                                    >
-                                      Edit
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeletePlayer(team.id!, index)}
-                                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm font-medium"
-                                      title="Remove Player"
-                                    >
-                                      Remove
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          ))
-                        )}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-400">Total:</span>
+                          <span className="text-white font-medium ml-2">${order.total.toFixed(2)}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Items:</span>
+                          <span className="text-white font-medium ml-2">{order.items.length}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Country:</span>
+                          <span className="text-white font-medium ml-2">{order.customerInfo.country}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Zip:</span>
+                          <span className="text-white font-medium ml-2">{order.customerInfo.zipCode}</span>
+                        </div>
                       </div>
                     </div>
                   ))
                 )}
               </div>
-            )}
+            </AnimatedCard>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Add Player Modal */}
-      {showAddPlayer && selectedTeam && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-md w-full">
-            <div className="p-6">
+        {/* Reviews Tab */}
+        {activeTab === 'reviews' && (
+          <div className="space-y-6">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-white">
-                  Add Player to {selectedTeam.name}
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowAddPlayer(false);
-                    setSelectedTeam(null);
-                    setNewPlayer({
-                      name: '',
-                      role: '',
-                      image: '',
-                      game: '',
-                      achievements: [],
-                      socialLinks: {}
-                    });
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <XMarkIcon className="w-6 h-6" />
-                </button>
+                <div>
+                  <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                    <div className="bg-yellow-500/20 p-2 rounded-xl">
+                      <StarIcon className="w-6 h-6 text-yellow-400" />
+                    </div>
+                    Reviews Management
+                  </h2>
+                  <p className="text-gray-400 text-sm mt-2">Monitor and manage customer feedback</p>
+                </div>
+                {showBulkActions && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400 text-sm">
+                      {selectedReviews.size} selected
+                    </span>
+                    <button
+                      onClick={handleBulkDeleteReviews}
+                      className="bg-red-600/20 hover:bg-red-600/30 border border-red-600/30 text-red-400 px-3 py-1 rounded text-sm"
+                    >
+                      Delete Selected
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Player Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={newPlayer.name}
-                    onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
-                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
-                    placeholder="Enter player name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Role *
-                  </label>
-                  <input
-                    type="text"
-                    value={newPlayer.role}
-                    onChange={(e) => setNewPlayer({ ...newPlayer, role: e.target.value })}
-                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
-                    placeholder="e.g. Entry Fragger, IGL, AWPer"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Game *
-                  </label>
-                  <input
-                    type="text"
-                    value={newPlayer.game}
-                    onChange={(e) => setNewPlayer({ ...newPlayer, game: e.target.value })}
-                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
-                    placeholder="e.g. Fortnite, CS2, Valorant"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Image URL
-                  </label>
-                  <input
-                    type="text"
-                    value={newPlayer.image}
-                    onChange={(e) => setNewPlayer({ ...newPlayer, image: e.target.value })}
-                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
-                    placeholder="Player image URL (Discord, Imgur, etc.)"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    💡 Tip: For Discord images, right-click → "Copy image address" for best results
-                  </p>
-                  {newPlayer.image?.trim() && (
-                    <div className="mt-3 rounded-lg overflow-hidden border border-[#2A2A2A] bg-black/40">
-                      <div className="h-40 w-full flex items-center justify-center">
-                        <img 
-                          src={processExternalImageUrl(newPlayer.image)} 
-                          alt="Preview" 
-                          className="object-contain w-full h-full" 
-                          crossOrigin="anonymous"
-                          referrerPolicy="no-referrer"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            const parent = target.parentElement;
-                            if (parent && !parent.querySelector('.error-message')) {
-                              const errorDiv = document.createElement('div');
-                              errorDiv.className = 'error-message text-red-400 text-sm text-center p-4';
-                              if (newPlayer.image?.includes('discord')) {
-                                errorDiv.innerHTML = `
-                                  <div>❌ Discord image failed to load</div>
-                                  <div class="text-xs mt-2">Try these alternatives:</div>
-                                  <div class="text-xs">• Upload to <a href="https://imgur.com" target="_blank" class="text-blue-400 underline">Imgur</a></div>
-                                  <div class="text-xs">• Use a different image host</div>
-                                  <div class="text-xs">• Right-click → "Copy image address" in Discord</div>
-                                `;
-                              } else {
-                                errorDiv.innerHTML = `
-                                  <div>❌ External image failed to load</div>
-                                  <div class="text-xs mt-2">Suggestions:</div>
-                                  <div class="text-xs">• Check if URL is accessible</div>
-                                  <div class="text-xs">• Try uploading to <a href="https://imgur.com" target="_blank" class="text-blue-400 underline">Imgur</a></div>
-                                  <div class="text-xs">• Use a direct image link</div>
-                                `;
-                              }
-                              parent.appendChild(errorDiv);
-                            }
-                          }}
-                          onLoad={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            const parent = target.parentElement;
-                            const errorMsg = parent?.querySelector('.error-message');
-                            if (errorMsg) {
-                              errorMsg.remove();
-                            }
-                            target.style.display = 'block';
-                          }}
+                {reviews.length === 0 ? (
+                  <p className="text-gray-400">No reviews found.</p>
+                ) : (
+                  reviews.map((review) => (
+                    <div key={review.id} className="admin-card p-4">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedReviews.has(review.id || '')}
+                          onChange={() => review.id && toggleReviewSelection(review.id)}
+                          className="mt-1 rounded border-[#2A2A2A] bg-[#0F0F0F] text-white"
                         />
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h3 className="text-white font-medium">{review.userName}</h3>
+                              <p className="text-gray-500 text-sm">{review.userEmail}</p>
+                              <div className="flex items-center gap-1 mt-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <StarIcon
+                                    key={i}
+                                    className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-600'
+                                      }`}
+                                  />
+                                ))}
+                                <span className="text-gray-400 text-sm ml-2">
+                                  {review.rating}/5
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => review.id && handleDeleteReview(review.id)}
+                              className="text-red-400 hover:text-red-300 p-1"
+                            >
+                              <TrashIcon className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          <p className="text-gray-300 text-sm mb-2">{review.comment}</p>
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-xs text-gray-500">
+                            <span>Product ID: {review.productId}</span>
+                            <span>ID: {review.id}</span>
+                            <span>Helpful: {review.helpful}</span>
+                            <span>{review.createdAt.toDate().toLocaleString()}</span>
+                          </div>
+                          <div className="mt-2">
+                            <span className={`px-2 py-1 rounded text-xs ${review.verified ? 'bg-green-900/20 text-green-400' : 'bg-gray-900/20 text-gray-400'}`}>
+                              {review.verified ? 'Verified' : 'Unverified'}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
+                  ))
+                )}
+              </div>
+            </AnimatedCard>
+          </div>
+        )}
+
+        {/* News Tab */}
+        {activeTab === 'news' && (
+          <div className="space-y-6">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  Manage News
+                </h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => router.push('/adminpanel/news')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                  >
+                    Open News Manager
+                  </button>
+                  <button
+                    onClick={() => openCreateNews()}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                  >
+                    Create News
+                  </button>
+                </div>
+              </div>
+              <p className="text-gray-400 text-sm">Create, edit, and delete news posts. Use the News Manager page for full controls.</p>
+            </AnimatedCard>
+          </div>
+        )}
+
+        {/* Placements Tab */}
+        {activeTab === 'placements' && (
+          <div className="space-y-6">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  Manage Placements
+                </h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => router.push('/adminpanel/placements')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                  >
+                    Open Placements Manager
+                  </button>
+                  <button
+                    onClick={() => openCreatePlacement()}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                  >
+                    Add Placement
+                  </button>
+                </div>
+              </div>
+              <p className="text-gray-400 text-sm">Add new tournament placements or edit existing results and metadata.</p>
+            </AnimatedCard>
+          </div>
+        )}
+
+        {/* Schedule Tab */}
+        {activeTab === 'schedule' && (
+          <div className="space-y-6">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  Manage Schedule
+                </h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => router.push('/adminpanel/schedule')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                  >
+                    Open Schedule Manager
+                  </button>
+                  <button
+                    onClick={() => openCreateMatch()}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                  >
+                    Add Match/Event
+                  </button>
+                </div>
+              </div>
+              <p className="text-gray-400 text-sm">Create or edit matches, dates, teams, and status from the Schedule Manager page.</p>
+            </AnimatedCard>
+          </div>
+        )}
+
+        {/* Products Tab */}
+        {activeTab === 'products' && (
+          <div className="space-y-6">
+            <AnimatedCard className="admin-card shine-hover p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <UserIcon className="w-6 h-6" />
+                  Products Catalog
+                </h2>
+                <div className="flex gap-2">
+                  <button onClick={openCreateProduct} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Create Product</button>
+                  <button onClick={() => router.push('/adminpanel/products')} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Open Products Manager</button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {products.map((product) => (
+                  <AnimatedCard key={product.id} className="admin-card p-4">
+                    <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <h3 className="text-white font-medium mb-2">{product.name}</h3>
+                    <p className="text-gray-400 text-sm mb-3 line-clamp-2">{product.description}</p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-green-400 font-bold">${product.price.toFixed(2)}</span>
+                      <span className="text-gray-500 text-xs bg-[#2A2A2A] px-2 py-1 rounded">
+                        {product.category}
+                      </span>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-[#2A2A2A]">
+                      <p className="text-gray-500 text-xs">Product ID: {product.id}</p>
+                    </div>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        onClick={() => openEditProduct({ id: String(product.id), name: product.name, price: product.price, image: product.image, category: product.category, description: product.description, link: product.link, createdAt: undefined as any })}
+                        className="bg-yellow-600/20 hover:bg-yellow-600/30 border border-yellow-600/30 text-yellow-400 px-3 py-1 rounded text-sm"
+                      >
+                        Edit (Modal)
+                      </button>
+                    </div>
+                  </AnimatedCard>
+                ))}
+              </div>
+            </AnimatedCard>
+          </div>
+        )}
+
+        {/* Teams Tab */}
+        {activeTab === 'teams' && (
+          <div className="space-y-6">
+            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <UserIcon className="w-6 h-6" />
+                  Teams Management
+                </h2>
+                <button
+                  onClick={() => setShowCreateTeam(true)}
+                  className="bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/30 text-blue-400 px-4 py-2 rounded-lg text-sm font-medium"
+                >
+                  Create Team
+                </button>
+              </div>
+
+              {loadingTeams ? (
+                <div className="text-center py-8">
+                  <div className="text-white">Loading teams...</div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {teams.length === 0 ? (
+                    <p className="text-gray-400">No teams found.</p>
+                  ) : (
+                    teams.map((team) => (
+                      <div key={team.id} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="text-xl font-bold text-white mb-2">{team.name}</h3>
+                            <p className="text-gray-400 text-sm mb-2">{team.description}</p>
+                            <div className="text-xs text-gray-500">
+                              Players: {team.players?.length || 0}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setSelectedTeam(team);
+                                setShowAddPlayer(true);
+                              }}
+                              className="bg-green-600/20 hover:bg-green-600/30 border border-green-600/30 text-green-400 px-3 py-2 rounded-lg text-sm font-medium"
+                            >
+                              Add Player
+                            </button>
+                            <button
+                              onClick={() => handleEditTeam(team)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium"
+                              title="Edit Team & Reorder Players"
+                            >
+                              Edit Team
+                            </button>
+                            <button
+                              onClick={() => handleDeleteTeam(team.id!, team.name)}
+                              className="bg-red-600/20 hover:bg-red-600/30 border border-red-600/30 text-red-400 px-3 py-2 rounded-lg text-sm font-medium"
+                              title="Delete Team"
+                            >
+                              <TrashIcon className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Players List */}
+                        <div className="space-y-3">
+                          <h4 className="text-lg font-medium text-white">Players</h4>
+                          {!team.players || team.players.length === 0 ? (
+                            <p className="text-gray-400 text-sm">No players in this team yet.</p>
+                          ) : (
+                            team.players.map((player, index) => (
+                              <div key={index} className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-4">
+                                {editingPlayer?.teamId === team.id && editingPlayer?.playerIndex === index ? (
+                                  // Edit Mode
+                                  <div className="space-y-4">
+                                    <div className="text-sm font-medium text-gray-300 mb-2">
+                                      Editing: {editingPlayer.player.name}
+                                    </div>
+
+                                    {/* Basic Info */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                      <input
+                                        type="text"
+                                        value={editingPlayer.player.name}
+                                        onChange={(e) => setEditingPlayer({
+                                          ...editingPlayer,
+                                          player: { ...editingPlayer.player, name: e.target.value }
+                                        })}
+                                        className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                        placeholder="Player Name"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={editingPlayer.player.role}
+                                        onChange={(e) => setEditingPlayer({
+                                          ...editingPlayer,
+                                          player: { ...editingPlayer.player, role: e.target.value }
+                                        })}
+                                        className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                        placeholder="Role"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={editingPlayer.player.game}
+                                        onChange={(e) => setEditingPlayer({
+                                          ...editingPlayer,
+                                          player: { ...editingPlayer.player, game: e.target.value }
+                                        })}
+                                        className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                        placeholder="Game"
+                                      />
+                                    </div>
+
+                                    {/* Image URL */}
+                                    <div>
+                                      <input
+                                        type="text"
+                                        value={editingPlayer.player.image}
+                                        onChange={(e) => setEditingPlayer({
+                                          ...editingPlayer,
+                                          player: { ...editingPlayer.player, image: e.target.value }
+                                        })}
+                                        className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                        placeholder="Player Image URL"
+                                      />
+                                      {editingPlayer.player.image?.trim() && (
+                                        <div className="mt-2 rounded-lg overflow-hidden border border-[#2A2A2A] bg-black/40">
+                                          <div className="h-32 w-full flex items-center justify-center">
+                                            <img
+                                              src={processExternalImageUrl(editingPlayer.player.image)}
+                                              alt="Preview"
+                                              className="object-contain w-full h-full"
+                                              onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.style.display = 'none';
+                                                const parent = target.parentElement;
+                                                if (parent && !parent.querySelector('.error-message')) {
+                                                  const errorDiv = document.createElement('div');
+                                                  errorDiv.className = 'error-message text-red-400 text-sm text-center';
+                                                  errorDiv.textContent = 'Failed to load image';
+                                                  parent.appendChild(errorDiv);
+                                                }
+                                              }}
+                                              onLoad={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                const parent = target.parentElement;
+                                                const errorMsg = parent?.querySelector('.error-message');
+                                                if (errorMsg) {
+                                                  errorMsg.remove();
+                                                }
+                                                target.style.display = 'block';
+                                              }}
+                                            />
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Achievements */}
+                                    <div>
+                                      <input
+                                        type="text"
+                                        value={editingPlayer.player.achievements?.join(', ') || ''}
+                                        onChange={(e) => setEditingPlayer({
+                                          ...editingPlayer,
+                                          player: {
+                                            ...editingPlayer.player,
+                                            achievements: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                                          }
+                                        })}
+                                        className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                        placeholder="Achievements (comma separated) - e.g. FNCS Grand Finals, 2500+ Earnings, Top 10 Placement"
+                                      />
+                                    </div>
+
+                                    {/* Social Links */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                      <input
+                                        type="text"
+                                        value={editingPlayer.player.socialLinks?.twitter || ''}
+                                        onChange={(e) => setEditingPlayer({
+                                          ...editingPlayer,
+                                          player: {
+                                            ...editingPlayer.player,
+                                            socialLinks: {
+                                              ...editingPlayer.player.socialLinks,
+                                              twitter: e.target.value
+                                            }
+                                          }
+                                        })}
+                                        className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                        placeholder="Twitter URL"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={editingPlayer.player.socialLinks?.twitch || ''}
+                                        onChange={(e) => setEditingPlayer({
+                                          ...editingPlayer,
+                                          player: {
+                                            ...editingPlayer.player,
+                                            socialLinks: {
+                                              ...editingPlayer.player.socialLinks,
+                                              twitch: e.target.value
+                                            }
+                                          }
+                                        })}
+                                        className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                        placeholder="Twitch URL"
+                                      />
+                                    </div>
+
+                                    {/* Instagram Link */}
+                                    <div>
+                                      <input
+                                        type="text"
+                                        value={editingPlayer.player.socialLinks?.instagram || ''}
+                                        onChange={(e) => setEditingPlayer({
+                                          ...editingPlayer,
+                                          player: {
+                                            ...editingPlayer.player,
+                                            socialLinks: {
+                                              ...editingPlayer.player.socialLinks,
+                                              instagram: e.target.value
+                                            }
+                                          }
+                                        })}
+                                        className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                        placeholder="Instagram URL"
+                                      />
+                                    </div>
+                                    <div className="flex gap-3 pt-2 border-t border-[#2A2A2A]">
+                                      <button
+                                        onClick={() => handleEditPlayer(team.id!, index, editingPlayer.player)}
+                                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium"
+                                      >
+                                        Save Changes
+                                      </button>
+                                      <button
+                                        onClick={() => setEditingPlayer(null)}
+                                        className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm font-medium"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  // View Mode
+                                  <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-3 mb-2">
+                                        <span className="bg-gray-600/20 text-gray-400 px-2 py-1 rounded text-xs font-mono">
+                                          #{index + 1}
+                                        </span>
+                                        <h5 className="text-white font-medium">{player.name}</h5>
+                                        <span className="bg-blue-600/20 text-blue-400 px-2 py-1 rounded text-xs">
+                                          {player.role}
+                                        </span>
+                                      </div>
+                                      <div className="text-sm text-gray-400 space-y-1">
+                                        <div>Game: {player.game}</div>
+                                        {player.achievements && player.achievements.length > 0 && (
+                                          <div>Achievements: {player.achievements.slice(0, 2).join(', ')}{player.achievements.length > 2 ? '...' : ''}</div>
+                                        )}
+                                        {(player.socialLinks?.twitter || player.socialLinks?.twitch || player.socialLinks?.instagram) && (
+                                          <div className="flex gap-2 mt-1">
+                                            {player.socialLinks?.twitter && (
+                                              <a href={player.socialLinks.twitter} target="_blank" rel="noopener noreferrer"
+                                                className="text-blue-400 hover:text-blue-300 text-xs">Twitter</a>
+                                            )}
+                                            {player.socialLinks?.twitch && (
+                                              <a href={player.socialLinks.twitch} target="_blank" rel="noopener noreferrer"
+                                                className="text-purple-400 hover:text-purple-300 text-xs">Twitch</a>
+                                            )}
+                                            {player.socialLinks?.instagram && (
+                                              <a href={player.socialLinks.instagram} target="_blank" rel="noopener noreferrer"
+                                                className="text-pink-400 hover:text-pink-300 text-xs">Instagram</a>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="flex gap-1 items-center">
+                                      {/* Reorder buttons */}
+                                      <div className="flex flex-col">
+                                        <button
+                                          onClick={() => handleMovePlayer(team.id!, index, 'up')}
+                                          disabled={index === 0}
+                                          className="text-gray-400 hover:text-white p-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                                          title="Move Up"
+                                        >
+                                          <ChevronUpIcon className="w-3 h-3" />
+                                        </button>
+                                        <button
+                                          onClick={() => handleMovePlayer(team.id!, index, 'down')}
+                                          disabled={index === (team.players?.length || 0) - 1}
+                                          className="text-gray-400 hover:text-white p-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                                          title="Move Down"
+                                        >
+                                          <ChevronDownIcon className="w-3 h-3" />
+                                        </button>
+                                      </div>
+
+                                      {/* Action buttons */}
+                                      <button
+                                        onClick={() => {
+                                          console.log('Edit button clicked for player:', player.name);
+                                          setEditingPlayer({
+                                            teamId: team.id!,
+                                            playerIndex: index,
+                                            player: { ...player }
+                                          });
+                                        }}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium"
+                                        title="Edit Player"
+                                      >
+                                        Edit
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeletePlayer(team.id!, index)}
+                                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm font-medium"
+                                        title="Remove Player"
+                                      >
+                                        Remove
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Achievements (comma separated)
-                  </label>
-                  <input
-                    type="text"
-                    value={newPlayer.achievements?.join(', ') || ''}
-                    onChange={(e) => setNewPlayer({
-                      ...newPlayer, 
-                      achievements: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-                    })}
-                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
-                    placeholder="e.g. FNCS Grand Finals, 2500+ Earnings, Top 10 Placement"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Twitter URL
-                    </label>
-                    <input
-                      type="text"
-                      value={newPlayer.socialLinks?.twitter || ''}
-                      onChange={(e) => setNewPlayer({
-                        ...newPlayer, 
-                        socialLinks: {...newPlayer.socialLinks, twitter: e.target.value}
-                      })}
-                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
-                      placeholder="Twitter profile URL"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Twitch URL
-                    </label>
-                    <input
-                      type="text"
-                      value={newPlayer.socialLinks?.twitch || ''}
-                      onChange={(e) => setNewPlayer({
-                        ...newPlayer, 
-                        socialLinks: {...newPlayer.socialLinks, twitch: e.target.value}
-                      })}
-                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
-                      placeholder="Twitch channel URL"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Instagram URL
-                  </label>
-                  <input
-                    type="text"
-                    value={newPlayer.socialLinks?.instagram || ''}
-                    onChange={(e) => setNewPlayer({
-                      ...newPlayer, 
-                      socialLinks: {...newPlayer.socialLinks, instagram: e.target.value}
-                    })}
-                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
-                    placeholder="Instagram profile URL"
-                  />
-                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {/* Ambassadors Tab */}
+        {activeTab === 'ambassadors' && (
+          <div className="space-y-6">
+            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <UserGroupIcon className="w-6 h-6" />
+                  Ambassadors Management
+                </h2>
+                <button
+                  onClick={openCreateAmbassadorModal}
+                  className="bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/30 text-blue-400 px-4 py-2 rounded-lg text-sm font-medium"
+                >
+                  Add Ambassador
+                </button>
+              </div>
 
-                <div className="flex gap-3 pt-4">
+              {loadingAmbassadors ? (
+                <div className="text-center py-8">
+                  <div className="text-white">Loading ambassadors...</div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {ambassadors.length === 0 ? (
+                    <p className="text-gray-400 col-span-full">No ambassadors found.</p>
+                  ) : (
+                    ambassadors.map((ambassador) => (
+                      <AnimatedCard key={ambassador.id} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-4">
+                        <div className="flex items-start gap-4">
+                          <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-black/40 flex-shrink-0">
+                            <img
+                              src={processExternalImageUrl(ambassador.image)}
+                              alt={ambassador.name}
+                              className="w-full h-full object-cover"
+                              crossOrigin="anonymous"
+                              referrerPolicy="no-referrer"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-white font-medium truncate">{ambassador.name}</h3>
+                            <p className="text-blue-400 text-xs">{ambassador.role}</p>
+                            <p className="text-gray-500 text-xs truncate">{ambassador.game}</p>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 flex gap-2">
+                          <button
+                            onClick={() => openEditAmbassadorModal(ambassador)}
+                            className="flex-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 py-1.5 rounded text-sm font-medium transition-colors"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteAmbassador(ambassador.id!)}
+                            className="flex-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 py-1.5 rounded text-sm font-medium transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </AnimatedCard>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+
+        {/* Add Player Modal */}
+        {showAddPlayer && selectedTeam && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-md w-full">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-white">
+                    Add Player to {selectedTeam.name}
+                  </h3>
                   <button
                     onClick={() => {
                       setShowAddPlayer(false);
@@ -1728,88 +1714,222 @@ export default function AdminDashboard() {
                         socialLinks: {}
                       });
                     }}
-                    className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg"
+                    className="text-gray-400 hover:text-white"
                   >
-                    Cancel
+                    <XMarkIcon className="w-6 h-6" />
                   </button>
-                  <button
-                    onClick={() => handleAddPlayer(selectedTeam.id!)}
-                    disabled={loadingTeams}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50"
-                  >
-                    {loadingTeams ? 'Adding...' : 'Add Player'}
-                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Player Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={newPlayer.name}
+                      onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                      placeholder="Enter player name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Role *
+                    </label>
+                    <input
+                      type="text"
+                      value={newPlayer.role}
+                      onChange={(e) => setNewPlayer({ ...newPlayer, role: e.target.value })}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                      placeholder="e.g. Entry Fragger, IGL, AWPer"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Game *
+                    </label>
+                    <input
+                      type="text"
+                      value={newPlayer.game}
+                      onChange={(e) => setNewPlayer({ ...newPlayer, game: e.target.value })}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                      placeholder="e.g. Fortnite, CS2, Valorant"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Image URL
+                    </label>
+                    <input
+                      type="text"
+                      value={newPlayer.image}
+                      onChange={(e) => setNewPlayer({ ...newPlayer, image: e.target.value })}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                      placeholder="Player image URL (Discord, Imgur, etc.)"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 Tip: For Discord images, right-click → "Copy image address" for best results
+                    </p>
+                    {newPlayer.image?.trim() && (
+                      <div className="mt-3 rounded-lg overflow-hidden border border-[#2A2A2A] bg-black/40">
+                        <div className="h-40 w-full flex items-center justify-center">
+                          <img
+                            src={processExternalImageUrl(newPlayer.image)}
+                            alt="Preview"
+                            className="object-contain w-full h-full"
+                            crossOrigin="anonymous"
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent && !parent.querySelector('.error-message')) {
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = 'error-message text-red-400 text-sm text-center p-4';
+                                if (newPlayer.image?.includes('discord')) {
+                                  errorDiv.innerHTML = `
+                                  <div>❌ Discord image failed to load</div>
+                                  <div class="text-xs mt-2">Try these alternatives:</div>
+                                  <div class="text-xs">• Upload to <a href="https://imgur.com" target="_blank" class="text-blue-400 underline">Imgur</a></div>
+                                  <div class="text-xs">• Use a different image host</div>
+                                  <div class="text-xs">• Right-click → "Copy image address" in Discord</div>
+                                `;
+                                } else {
+                                  errorDiv.innerHTML = `
+                                  <div>❌ External image failed to load</div>
+                                  <div class="text-xs mt-2">Suggestions:</div>
+                                  <div class="text-xs">• Check if URL is accessible</div>
+                                  <div class="text-xs">• Try uploading to <a href="https://imgur.com" target="_blank" class="text-blue-400 underline">Imgur</a></div>
+                                  <div class="text-xs">• Use a direct image link</div>
+                                `;
+                                }
+                                parent.appendChild(errorDiv);
+                              }
+                            }}
+                            onLoad={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              const parent = target.parentElement;
+                              const errorMsg = parent?.querySelector('.error-message');
+                              if (errorMsg) {
+                                errorMsg.remove();
+                              }
+                              target.style.display = 'block';
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Achievements (comma separated)
+                    </label>
+                    <input
+                      type="text"
+                      value={newPlayer.achievements?.join(', ') || ''}
+                      onChange={(e) => setNewPlayer({
+                        ...newPlayer,
+                        achievements: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                      })}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                      placeholder="e.g. FNCS Grand Finals, 2500+ Earnings, Top 10 Placement"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Twitter URL
+                      </label>
+                      <input
+                        type="text"
+                        value={newPlayer.socialLinks?.twitter || ''}
+                        onChange={(e) => setNewPlayer({
+                          ...newPlayer,
+                          socialLinks: { ...newPlayer.socialLinks, twitter: e.target.value }
+                        })}
+                        className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                        placeholder="Twitter profile URL"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Twitch URL
+                      </label>
+                      <input
+                        type="text"
+                        value={newPlayer.socialLinks?.twitch || ''}
+                        onChange={(e) => setNewPlayer({
+                          ...newPlayer,
+                          socialLinks: { ...newPlayer.socialLinks, twitch: e.target.value }
+                        })}
+                        className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                        placeholder="Twitch channel URL"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Instagram URL
+                    </label>
+                    <input
+                      type="text"
+                      value={newPlayer.socialLinks?.instagram || ''}
+                      onChange={(e) => setNewPlayer({
+                        ...newPlayer,
+                        socialLinks: { ...newPlayer.socialLinks, instagram: e.target.value }
+                      })}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                      placeholder="Instagram profile URL"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      onClick={() => {
+                        setShowAddPlayer(false);
+                        setSelectedTeam(null);
+                        setNewPlayer({
+                          name: '',
+                          role: '',
+                          image: '',
+                          game: '',
+                          achievements: [],
+                          socialLinks: {}
+                        });
+                      }}
+                      className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => handleAddPlayer(selectedTeam.id!)}
+                      disabled={loadingTeams}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50"
+                    >
+                      {loadingTeams ? 'Adding...' : 'Add Player'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Create Team Modal */}
-      {showCreateTeam && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-md w-full">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-white">Create New Team</h3>
-                <button
-                  onClick={() => {
-                    setShowCreateTeam(false);
-                    setNewTeam({
-                      name: '',
-                      image: '',
-                      description: '',
-                      achievements: [],
-                      players: []
-                    });
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <XMarkIcon className="w-6 h-6" />
-                </button>
-              </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Team Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={newTeam.name}
-                    onChange={(e) => setNewTeam({...newTeam, name: e.target.value})}
-                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
-                    placeholder="Enter team name"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Description *
-                  </label>
-                  <textarea
-                    value={newTeam.description}
-                    onChange={(e) => setNewTeam({...newTeam, description: e.target.value})}
-                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white h-20 resize-none"
-                    placeholder="Enter team description"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Team Logo URL
-                  </label>
-                  <input
-                    type="text"
-                    value={newTeam.image}
-                    onChange={(e) => setNewTeam({...newTeam, image: e.target.value})}
-                    className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
-                    placeholder="Team logo image URL"
-                  />
-                </div>
-                
-                <div className="flex gap-3 pt-4">
+        {/* Create Team Modal */}
+        {showCreateTeam && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-md w-full">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-white">Create New Team</h3>
                   <button
                     onClick={() => {
                       setShowCreateTeam(false);
@@ -1821,251 +1941,491 @@ export default function AdminDashboard() {
                         players: []
                       });
                     }}
-                    className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg"
+                    className="text-gray-400 hover:text-white"
                   >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleCreateTeam}
-                    disabled={loadingTeams}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50"
-                  >
-                    {loadingTeams ? 'Creating...' : 'Create Team'}
+                    <XMarkIcon className="w-6 h-6" />
                   </button>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Edit Team Modal */}
-      {showEditTeam && editingTeam && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-white">Edit Team: {editingTeam.name}</h3>
-                <button
-                  onClick={() => {
-                    setShowEditTeam(false);
-                    setEditingTeam(null);
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <XMarkIcon className="w-6 h-6" />
-                </button>
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Team Details */}
                 <div className="space-y-4">
-                  <h4 className="text-lg font-medium text-white">Team Details</h4>
-                  
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       Team Name *
                     </label>
                     <input
                       type="text"
-                      value={editingTeam.name}
-                      onChange={(e) => setEditingTeam({...editingTeam, name: e.target.value})}
+                      value={newTeam.name}
+                      onChange={(e) => setNewTeam({ ...newTeam, name: e.target.value })}
                       className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                      placeholder="Enter team name"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       Description *
                     </label>
                     <textarea
-                      value={editingTeam.description}
-                      onChange={(e) => setEditingTeam({...editingTeam, description: e.target.value})}
+                      value={newTeam.description}
+                      onChange={(e) => setNewTeam({ ...newTeam, description: e.target.value })}
                       className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white h-20 resize-none"
+                      placeholder="Enter team description"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       Team Logo URL
                     </label>
                     <input
                       type="text"
-                      value={editingTeam.image}
-                      onChange={(e) => setEditingTeam({...editingTeam, image: e.target.value})}
+                      value={newTeam.image}
+                      onChange={(e) => setNewTeam({ ...newTeam, image: e.target.value })}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                      placeholder="Team logo image URL"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      onClick={() => {
+                        setShowCreateTeam(false);
+                        setNewTeam({
+                          name: '',
+                          image: '',
+                          description: '',
+                          achievements: [],
+                          players: []
+                        });
+                      }}
+                      className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleCreateTeam}
+                      disabled={loadingTeams}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50"
+                    >
+                      {loadingTeams ? 'Creating...' : 'Create Team'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Team Modal */}
+        {showEditTeam && editingTeam && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-white">Edit Team: {editingTeam.name}</h3>
+                  <button
+                    onClick={() => {
+                      setShowEditTeam(false);
+                      setEditingTeam(null);
+                    }}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <XMarkIcon className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Team Details */}
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-medium text-white">Team Details</h4>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Team Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={editingTeam.name}
+                        onChange={(e) => setEditingTeam({ ...editingTeam, name: e.target.value })}
+                        className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Description *
+                      </label>
+                      <textarea
+                        value={editingTeam.description}
+                        onChange={(e) => setEditingTeam({ ...editingTeam, description: e.target.value })}
+                        className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white h-20 resize-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Team Logo URL
+                      </label>
+                      <input
+                        type="text"
+                        value={editingTeam.image}
+                        onChange={(e) => setEditingTeam({ ...editingTeam, image: e.target.value })}
+                        className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Players Management */}
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-medium text-white">Players Management</h4>
+
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {editingTeam.players.length === 0 ? (
+                        <p className="text-gray-400 text-sm">No players in this team yet.</p>
+                      ) : (
+                        editingTeam.players.map((player, index) => (
+                          <div key={index} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-white font-medium">{player.name}</span>
+                                  <span className="bg-blue-600/20 text-blue-400 px-2 py-1 rounded text-xs">
+                                    {player.role}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                  Game: {player.game}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1">
+                                {/* Move Up */}
+                                <button
+                                  onClick={() => movePlayer('up', index)}
+                                  disabled={index === 0}
+                                  className="text-gray-400 hover:text-white p-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                                  title="Move Up"
+                                >
+                                  <ChevronUpIcon className="w-4 h-4" />
+                                </button>
+
+                                {/* Move Down */}
+                                <button
+                                  onClick={() => movePlayer('down', index)}
+                                  disabled={index === editingTeam.players.length - 1}
+                                  className="text-gray-400 hover:text-white p-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                                  title="Move Down"
+                                >
+                                  <ChevronDownIcon className="w-4 h-4" />
+                                </button>
+
+                                {/* Remove Player */}
+                                <button
+                                  onClick={() => removePlayerFromTeam(index)}
+                                  className="text-red-400 hover:text-red-300 p-1 ml-2"
+                                  title="Remove Player"
+                                >
+                                  <TrashIcon className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    <div className="text-xs text-gray-500">
+                      Use the up/down arrows to reorder players. The first player will appear first on the team page.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-6 border-t border-[#2A2A2A] mt-6">
+                  <button
+                    onClick={() => {
+                      setShowEditTeam(false);
+                      setEditingTeam(null);
+                    }}
+                    className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleUpdateTeam}
+                    disabled={loadingTeams}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50"
+                  >
+                    {loadingTeams ? 'Updating...' : 'Update Team'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Order Details Modal */}
+        {showOrderDetails && selectedOrder && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-white">
+                    Order {formatOrderNumber(selectedOrder.id)}
+                  </h3>
+                  <button
+                    onClick={() => setShowOrderDetails(false)}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <XMarkIcon className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Customer Info */}
+                  <div>
+                    <h4 className="text-lg font-medium text-white mb-3">Customer Information</h4>
+                    <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-4 space-y-2">
+                      <p className="text-gray-300"><span className="text-gray-400">Name:</span> {selectedOrder.customerInfo.name}</p>
+                      <p className="text-gray-300"><span className="text-gray-400">Email:</span> {selectedOrder.customerInfo.email}</p>
+                      <p className="text-gray-300"><span className="text-gray-400">Phone:</span> {selectedOrder.customerInfo.phone}</p>
+                      <p className="text-gray-300"><span className="text-gray-400">Address:</span> {selectedOrder.customerInfo.address}</p>
+                      <p className="text-gray-300"><span className="text-gray-400">Zip Code:</span> {selectedOrder.customerInfo.zipCode}</p>
+                      <p className="text-gray-300"><span className="text-gray-400">Country:</span> {selectedOrder.customerInfo.country}</p>
+                    </div>
+                  </div>
+
+                  {/* Order Items */}
+                  <div>
+                    <h4 className="text-lg font-medium text-white mb-3">Order Items</h4>
+                    <div className="space-y-3">
+                      {selectedOrder.items.map((item, index) => (
+                        <div key={index} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-4 flex items-center gap-4">
+                          <div className="relative w-16 h-16 rounded-lg overflow-hidden">
+                            <Image
+                              src={item.image}
+                              alt={item.name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <h5 className="text-white font-medium">{item.name}</h5>
+                            <p className="text-gray-400 text-sm">Quantity: {item.quantity}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-white font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                            <p className="text-gray-400 text-sm">${item.price.toFixed(2)} each</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Order Summary */}
+                  <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-4">
+                    <div className="flex justify-between items-center text-lg font-bold text-white">
+                      <span>Total:</span>
+                      <span>${selectedOrder.total.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm text-gray-400 mt-2">
+                      <span>Status:</span>
+                      <span className={`px-2 py-1 rounded ${getStatusColor(selectedOrder.status)}`}>
+                        {selectedOrder.status}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm text-gray-400 mt-1">
+                      <span>Order Date:</span>
+                      <span>{new Date(selectedOrder.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Create/Edit Ambassador Modal */}
+        {showCreateAmbassador && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-white">
+                    {editingAmbassador ? 'Edit Ambassador' : 'Add Ambassador'}
+                  </h3>
+                  <button
+                    onClick={() => setShowCreateAmbassador(false)}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <XMarkIcon className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Name *</label>
+                    <input
+                      type="text"
+                      value={ambassadorForm.name}
+                      onChange={(e) => setAmbassadorForm({ ...ambassadorForm, name: e.target.value })}
                       className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
                     />
                   </div>
-                </div>
 
-                {/* Players Management */}
-                <div className="space-y-4">
-                  <h4 className="text-lg font-medium text-white">Players Management</h4>
-                  
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {editingTeam.players.length === 0 ? (
-                      <p className="text-gray-400 text-sm">No players in this team yet.</p>
-                    ) : (
-                      editingTeam.players.map((player, index) => (
-                        <div key={index} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-white font-medium">{player.name}</span>
-                                <span className="bg-blue-600/20 text-blue-400 px-2 py-1 rounded text-xs">
-                                  {player.role}
-                                </span>
-                              </div>
-                              <div className="text-xs text-gray-400">
-                                Game: {player.game}
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-1">
-                              {/* Move Up */}
-                              <button
-                                onClick={() => movePlayer('up', index)}
-                                disabled={index === 0}
-                                className="text-gray-400 hover:text-white p-1 disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Move Up"
-                              >
-                                <ChevronUpIcon className="w-4 h-4" />
-                              </button>
-                              
-                              {/* Move Down */}
-                              <button
-                                onClick={() => movePlayer('down', index)}
-                                disabled={index === editingTeam.players.length - 1}
-                                className="text-gray-400 hover:text-white p-1 disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Move Down"
-                              >
-                                <ChevronDownIcon className="w-4 h-4" />
-                              </button>
-                              
-                              {/* Remove Player */}
-                              <button
-                                onClick={() => removePlayerFromTeam(index)}
-                                className="text-red-400 hover:text-red-300 p-1 ml-2"
-                                title="Remove Player"
-                              >
-                                <TrashIcon className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Role</label>
+                    <input
+                      type="text"
+                      value={ambassadorForm.role}
+                      onChange={(e) => setAmbassadorForm({ ...ambassadorForm, role: e.target.value })}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                    />
                   </div>
-                  
-                  <div className="text-xs text-gray-500">
-                    Use the up/down arrows to reorder players. The first player will appear first on the team page.
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Game</label>
+                    <input
+                      type="text"
+                      value={ambassadorForm.game}
+                      onChange={(e) => setAmbassadorForm({ ...ambassadorForm, game: e.target.value })}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                    />
                   </div>
-                </div>
-              </div>
-              
-              <div className="flex gap-3 pt-6 border-t border-[#2A2A2A] mt-6">
-                <button
-                  onClick={() => {
-                    setShowEditTeam(false);
-                    setEditingTeam(null);
-                  }}
-                  className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleUpdateTeam}
-                  disabled={loadingTeams}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50"
-                >
-                  {loadingTeams ? 'Updating...' : 'Update Team'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Order Details Modal */}
-      {showOrderDetails && selectedOrder && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-white">
-                  Order {formatOrderNumber(selectedOrder.id)}
-                </h3>
-                <button
-                  onClick={() => setShowOrderDetails(false)}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <XMarkIcon className="w-6 h-6" />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                {/* Customer Info */}
-                <div>
-                  <h4 className="text-lg font-medium text-white mb-3">Customer Information</h4>
-                  <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-4 space-y-2">
-                    <p className="text-gray-300"><span className="text-gray-400">Name:</span> {selectedOrder.customerInfo.name}</p>
-                    <p className="text-gray-300"><span className="text-gray-400">Email:</span> {selectedOrder.customerInfo.email}</p>
-                    <p className="text-gray-300"><span className="text-gray-400">Phone:</span> {selectedOrder.customerInfo.phone}</p>
-                    <p className="text-gray-300"><span className="text-gray-400">Address:</span> {selectedOrder.customerInfo.address}</p>
-                    <p className="text-gray-300"><span className="text-gray-400">Zip Code:</span> {selectedOrder.customerInfo.zipCode}</p>
-                    <p className="text-gray-300"><span className="text-gray-400">Country:</span> {selectedOrder.customerInfo.country}</p>
-                  </div>
-                </div>
-
-                {/* Order Items */}
-                <div>
-                  <h4 className="text-lg font-medium text-white mb-3">Order Items</h4>
-                  <div className="space-y-3">
-                    {selectedOrder.items.map((item, index) => (
-                      <div key={index} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-4 flex items-center gap-4">
-                        <div className="relative w-16 h-16 rounded-lg overflow-hidden">
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            fill
-                            className="object-cover"
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Image URL</label>
+                    <input
+                      type="text"
+                      value={ambassadorForm.image}
+                      onChange={(e) => setAmbassadorForm({ ...ambassadorForm, image: e.target.value })}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                      placeholder="Ambassador image URL (Discord, Imgur, etc.)"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 Tip: For Discord images, right-click → "Copy image address" for best results
+                    </p>
+                    {ambassadorForm.image?.trim() && (
+                      <div className="mt-3 rounded-lg overflow-hidden border border-[#2A2A2A] bg-black/40">
+                        <div className="h-40 w-full flex items-center justify-center">
+                          <img
+                            src={processExternalImageUrl(ambassadorForm.image)}
+                            alt="Preview"
+                            className="object-contain w-full h-full"
+                            crossOrigin="anonymous"
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent && !parent.querySelector('.error-message')) {
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = 'error-message text-red-400 text-sm text-center p-4';
+                                if (ambassadorForm.image?.includes('discord')) {
+                                  errorDiv.innerHTML = `
+                                  <div>❌ Discord image failed to load</div>
+                                  <div class="text-xs mt-2">Try these alternatives:</div>
+                                  <div class="text-xs">• Upload to <a href="https://imgur.com" target="_blank" class="text-blue-400 underline">Imgur</a></div>
+                                  <div class="text-xs">• Use a different image host</div>
+                                  <div class="text-xs">• Right-click → "Copy image address" in Discord</div>
+                                `;
+                                } else {
+                                  errorDiv.innerHTML = `
+                                  <div>❌ External image failed to load</div>
+                                  <div class="text-xs mt-2">Suggestions:</div>
+                                  <div class="text-xs">• Check if URL is accessible</div>
+                                  <div class="text-xs">• Try uploading to <a href="https://imgur.com" target="_blank" class="text-blue-400 underline">Imgur</a></div>
+                                  <div class="text-xs">• Use a direct image link</div>
+                                `;
+                                }
+                                parent.appendChild(errorDiv);
+                              }
+                            }}
+                            onLoad={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              const parent = target.parentElement;
+                              const errorMsg = parent?.querySelector('.error-message');
+                              if (errorMsg) {
+                                errorMsg.remove();
+                              }
+                              target.style.display = 'block';
+                            }}
                           />
                         </div>
-                        <div className="flex-1">
-                          <h5 className="text-white font-medium">{item.name}</h5>
-                          <p className="text-gray-400 text-sm">Quantity: {item.quantity}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-white font-medium">${(item.price * item.quantity).toFixed(2)}</p>
-                          <p className="text-gray-400 text-sm">${item.price.toFixed(2)} each</p>
-                        </div>
                       </div>
-                    ))}
+                    )}
                   </div>
-                </div>
 
-                {/* Order Summary */}
-                <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-4">
-                  <div className="flex justify-between items-center text-lg font-bold text-white">
-                    <span>Total:</span>
-                    <span>${selectedOrder.total.toFixed(2)}</span>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Achievements (comma separated)</label>
+                    <input
+                      type="text"
+                      value={ambassadorForm.achievements?.join(', ') || ''}
+                      onChange={(e) => setAmbassadorForm({
+                        ...ambassadorForm,
+                        achievements: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                      })}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                    />
                   </div>
-                  <div className="flex justify-between items-center text-sm text-gray-400 mt-2">
-                    <span>Status:</span>
-                    <span className={`px-2 py-1 rounded ${getStatusColor(selectedOrder.status)}`}>
-                      {selectedOrder.status}
-                    </span>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Twitter</label>
+                      <input
+                        type="text"
+                        value={ambassadorForm.socialLinks?.twitter || ''}
+                        onChange={(e) => setAmbassadorForm({
+                          ...ambassadorForm,
+                          socialLinks: { ...ambassadorForm.socialLinks, twitter: e.target.value }
+                        })}
+                        className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Twitch</label>
+                      <input
+                        type="text"
+                        value={ambassadorForm.socialLinks?.twitch || ''}
+                        onChange={(e) => setAmbassadorForm({
+                          ...ambassadorForm,
+                          socialLinks: { ...ambassadorForm.socialLinks, twitch: e.target.value }
+                        })}
+                        className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                      />
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center text-sm text-gray-400 mt-1">
-                    <span>Order Date:</span>
-                    <span>{new Date(selectedOrder.createdAt).toLocaleDateString()}</span>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Instagram</label>
+                    <input
+                      type="text"
+                      value={ambassadorForm.socialLinks?.instagram || ''}
+                      onChange={(e) => setAmbassadorForm({
+                        ...ambassadorForm,
+                        socialLinks: { ...ambassadorForm.socialLinks, instagram: e.target.value }
+                      })}
+                      className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      onClick={() => setShowCreateAmbassador(false)}
+                      className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={editingAmbassador ? handleUpdateAmbassador : handleCreateAmbassador}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg"
+                    >
+                      {editingAmbassador ? 'Update' : 'Create'}
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
     </div>
   );
