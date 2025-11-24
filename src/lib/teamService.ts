@@ -1,4 +1,4 @@
-import { 
+import {
   collection,
   addDoc,
   getDocs,
@@ -21,6 +21,8 @@ export interface Player {
   role: string;
   image: string;
   game: string;
+  description?: string;
+  stats?: { label: string; value: string }[];
   achievements?: string[];
   socialLinks?: {
     twitter?: string;

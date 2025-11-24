@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { processExternalImageUrl, getFallbackImageUrl, isTrustedImageHost } from '@/lib/imageUtils';
 
@@ -15,25 +15,31 @@ interface SafeImageProps {
   onError?: () => void;
 }
 
-export default function SafeImage({ 
-  src, 
-  alt, 
-  className = '', 
-  fill = false, 
-  width, 
+export default function SafeImage({
+  src,
+  alt,
+  className = '',
+  fill = false,
+  width,
   height,
   sizes,
-  onError 
+  onError
 }: SafeImageProps) {
   const [currentSrc, setCurrentSrc] = useState(src);
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    setCurrentSrc(src);
+    setHasError(false);
+    setIsLoading(true);
+  }, [src]);
+
   const handleError = () => {
     console.warn(`Failed to load image: ${currentSrc}`);
     setHasError(true);
     setIsLoading(false);
-    
+
     if (currentSrc === src && src.startsWith('http')) {
       // Try processed external URL first
       const processedUrl = processExternalImageUrl(src);
@@ -45,7 +51,7 @@ export default function SafeImage({
         return;
       }
     }
-    
+
     // Fall back to default image
     const fallback = getFallbackImageUrl(src);
     if (currentSrc !== fallback) {
@@ -54,7 +60,7 @@ export default function SafeImage({
       setHasError(false);
       setIsLoading(true);
     }
-    
+
     onError?.();
   };
 
