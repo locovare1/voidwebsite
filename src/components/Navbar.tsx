@@ -13,12 +13,8 @@ const navigation = [
   { name: 'Home', href: '/' },
   { name: 'Teams', href: '/teams' },
   { name: 'News', href: '/news' },
-  { name: 'Placements', href: '/placements' },
-  { name: 'Schedule', href: '/schedule' },
-  { name: 'Live Stream', href: '/live-stream' },
   { name: 'Shop', href: '/shop' },
   { name: 'About', href: '/about' },
-  { name: 'Ambassadors', href: '/ambassadors' },
   // Removed Translation Test link
 ];
 
