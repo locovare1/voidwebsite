@@ -12,8 +12,8 @@ const socialLinks = [
 ];
 
 const footerLinks = [
-  { name: 'About Us', href: '/about' },
   { name: 'Contact', href: '/contact' },
+  { name: 'Ambassadors', href: '/ambassadors' },
   { name: 'Careers', href: '/careers' },
 ];
 
