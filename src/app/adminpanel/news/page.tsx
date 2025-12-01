@@ -25,7 +25,9 @@ export default function NewsPage() {
     date: '',
     image: '',
     description: '',
-    category: ''
+    category: '',
+    isEvent: false,
+    eventDate: ''
   });
   
   // Ref for file input
@@ -49,7 +51,7 @@ export default function NewsPage() {
   }, []);
 
   const resetNewsForm = () => {
-    setNewsForm({ title: '', date: '', image: '', description: '', category: '' });
+    setNewsForm({ title: '', date: '', image: '', description: '', category: '', isEvent: false, eventDate: '' });
     setEditingArticle(null);
     // Reset file input
     if (imageFileRef.current) imageFileRef.current.value = '';
@@ -70,24 +72,42 @@ export default function NewsPage() {
 
   const submitNews = async () => {
     try {
+      // Build payload, filtering out undefined values
+      const payload: any = {
+        title: newsForm.title,
+        image: newsForm.image,
+        description: newsForm.description,
+        category: newsForm.category,
+      };
+      
+      // Always set date - use provided date or default to today for new articles
+      if (editingArticle?.id) {
+        // For updates, only set date if provided
+        if (newsForm.date) {
+          payload.date = newsForm.date;
+        }
+      } else {
+        // For new articles, default to today if no date provided
+        payload.date = newsForm.date || new Date().toISOString().split('T')[0];
+      }
+      
+      // Only add isEvent if it's true
+      if (newsForm.isEvent) {
+        payload.isEvent = true;
+        // Only add eventDate if it's provided
+        if (newsForm.eventDate) {
+          payload.eventDate = newsForm.eventDate;
+        }
+      } else {
+        payload.isEvent = false;
+      }
+      
       if (editingArticle?.id) {
         // Update existing article
-        await newsService.update(editingArticle.id, {
-          title: newsForm.title,
-          image: newsForm.image,
-          description: newsForm.description,
-          category: newsForm.category,
-          date: newsForm.date || undefined // Pass the date string directly or undefined
-        } as any);
+        await newsService.update(editingArticle.id, payload);
       } else {
         // Create new article
-        await newsService.create({
-          title: newsForm.title,
-          image: newsForm.image,
-          description: newsForm.description,
-          category: newsForm.category,
-          date: newsForm.date || undefined // Pass the date string directly or undefined
-        } as any);
+        await newsService.create(payload);
       }
       await loadNews();
       resetNewsForm();
@@ -175,11 +195,22 @@ export default function NewsPage() {
                         <h3 className="text-white font-semibold truncate">{article.title}</h3>
                         <p className="text-gray-400 text-sm truncate">{article.description}</p>
                         <div className="flex items-center gap-2 mt-1">
+                          {article.isEvent && (
+                            <span className="text-xs px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full">Event</span>
+                          )}
                           <span className="text-xs text-gray-500">{article.category}</span>
                           <span className="text-xs text-gray-500">•</span>
                           <span className="text-xs text-gray-500">
                             {article.date ? new Date(article.date.seconds * 1000).toLocaleDateString() : 'N/A'}
                           </span>
+                          {article.isEvent && article.eventDate && (
+                            <>
+                              <span className="text-xs text-gray-500">•</span>
+                              <span className="text-xs text-purple-400">
+                                Event: {new Date(article.eventDate.seconds * 1000).toLocaleDateString()}
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                       <div className="flex gap-2 ml-4">
@@ -188,12 +219,15 @@ export default function NewsPage() {
                             setEditingArticle(article);
                             // Convert Firebase Timestamp to date string for form
                             const dateStr = article.date ? new Date(article.date.seconds * 1000).toISOString().split('T')[0] : '';
+                            const eventDateStr = article.eventDate ? new Date(article.eventDate.seconds * 1000).toISOString().split('T')[0] : '';
                             setNewsForm({
                               title: article.title,
                               date: dateStr,
                               image: article.image,
                               description: article.description,
-                              category: article.category
+                              category: article.category,
+                              isEvent: article.isEvent ?? false,
+                              eventDate: eventDateStr
                             });
                           }}
                           className="text-blue-400 hover:text-blue-300 p-1 rounded hover:bg-blue-400/10 transition-all duration-300"
@@ -245,6 +279,27 @@ export default function NewsPage() {
                 placeholder="Category" 
                 className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]" 
               />
+              <div className="md:col-span-2 flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isEvent"
+                  checked={newsForm.isEvent}
+                  onChange={e=>setNewsForm(p=>({...p,isEvent:e.target.checked}))}
+                  className="w-4 h-4 rounded border-[#2A2A2A] bg-[#0F0F0F] text-[#FFFFFF] focus:ring-2 focus:ring-[#FFFFFF]"
+                />
+                <label htmlFor="isEvent" className="text-sm text-gray-400">
+                  This is an upcoming event
+                </label>
+              </div>
+              {newsForm.isEvent && (
+                <input 
+                  type="date" 
+                  value={newsForm.eventDate} 
+                  onChange={e=>setNewsForm(p=>({...p,eventDate:e.target.value}))} 
+                  placeholder="Event Date" 
+                  className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] md:col-span-2" 
+                />
+              )}
               <div className="md:col-span-2">
                 <label className="block text-sm text-gray-400 mb-1">News Image URL</label>
                 <input 
@@ -280,7 +335,7 @@ export default function NewsPage() {
                 </div>
               </div>
               
-              {newsForm.image && (
+              {newsForm.image && newsForm.image.trim() && (newsForm.image.startsWith('/') || newsForm.image.startsWith('http://') || newsForm.image.startsWith('https://')) && (
                 <div className="md:col-span-2">
                   <div className="bg-gray-700 w-full h-32 rounded-lg flex items-center justify-center">
                     <Image 

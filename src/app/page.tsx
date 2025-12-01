@@ -207,25 +207,26 @@ export default function Home() {
       </section>
 
       {/* YouTube Videos Carousel */}
-      <section className="py-8 sm:py-12 lg:py-20 bg-[#0F0F0F] overflow-hidden">
-        <div className="void-container">
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-6 sm:mb-8 lg:mb-12 text-center text-purple-gradient px-4">Latest Videos</h2>
-          <div className="relative carousel-container">
-            <motion.div
-              className="flex gap-3 sm:gap-4 lg:gap-6 pl-4 sm:pl-6"
-              animate={{
-                x: [0, -((youtubeVideos.length * 230))],
-              }}
-              transition={{
-                x: {
-                  repeat: Infinity,
-                  repeatType: "loop",
-                  duration: 30,
-                  ease: "linear",
-                },
-              }}
-            >
-              {duplicatedYouTubeVideos.map((video, index) => (
+      {youtubeVideos.length > 0 && (
+        <section className="py-8 sm:py-12 lg:py-20 bg-[#0F0F0F] overflow-hidden">
+          <div className="void-container">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-6 sm:mb-8 lg:mb-12 text-center text-purple-gradient px-4">Latest Videos</h2>
+            <div className="relative carousel-container">
+              <motion.div
+                className="flex gap-3 sm:gap-4 lg:gap-6 pl-4 sm:pl-6"
+                animate={{
+                  x: [0, -((youtubeVideos.length * 230))],
+                }}
+                transition={{
+                  x: {
+                    repeat: Infinity,
+                    repeatType: "loop",
+                    duration: 30,
+                    ease: "linear",
+                  },
+                }}
+              >
+                {duplicatedYouTubeVideos.map((video, index) => (
                 <motion.div
                   key={`${video.id}-${index}`}
                   className="min-w-[180px] sm:min-w-[230px] lg:min-w-[300px] rounded-lg overflow-hidden shadow-lg cursor-pointer flex-shrink-0 void-card group"
@@ -271,10 +272,11 @@ export default function Home() {
                   </div>
                 </motion.div>
               ))}
-            </motion.div>
+              </motion.div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }

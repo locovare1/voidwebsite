@@ -13,6 +13,7 @@ const navigation = [
   { name: "News", href: "/news" },
   { name: "Shop", href: "/shop" },
   { name: "About", href: "/about" },
+  { name: "Contact", href: "/contact" },
 ];
 
 export default function Navbar() {

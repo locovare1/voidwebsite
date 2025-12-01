@@ -451,16 +451,20 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                 <Elements options={options} stripe={getStripe()}>
                   <CheckoutForm 
                     clientSecret={clientSecret}
-                        customerInfo={customerInfo}
-                        onSuccess={(order) => {
-                          setCompletedOrder(order);
-                          setOrderProcessed(true);
-                          setShowSuccessModal(true);
-                          // Close checkout modal immediately
-                          onClose();
-                        }}
-                        total={finalTotal}
-                      />
+                    customerInfo={customerInfo}
+                    onSuccess={(order: any) => {
+                      setCompletedOrder(order);
+                      setOrderProcessed(true);
+                      setShowSuccessModal(true);
+                      // Close checkout modal immediately
+                      onClose();
+                    }}
+                    onError={(error: string) => {
+                      console.error('Payment error:', error);
+                      alert(`Payment failed: ${error}`);
+                    }}
+                    total={finalTotal}
+                  />
                 </Elements>
               )}
             </>

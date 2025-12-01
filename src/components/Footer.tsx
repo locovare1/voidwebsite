@@ -1,15 +1,20 @@
 "use client";
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { FaTwitter, FaDiscord, FaTwitch, FaYoutube, FaInstagram } from 'react-icons/fa';
+import { FaTwitter, FaDiscord, FaTwitch, FaYoutube, FaInstagram, FaTiktok, FaFacebook, FaLinkedin } from 'react-icons/fa';
+import { socialService, type SocialLink } from '@/lib/socialService';
 
-const socialLinks = [
-  { name: 'Twitter', href: 'https://x.com/VoidEsports2x', icon: FaTwitter },
-  { name: 'Discord', href: 'https://discord.gg/voidesports2x', icon: FaDiscord },
-  { name: 'Twitch', href: 'https://www.twitch.tv/voidesports2x', icon: FaTwitch },
-  { name: 'YouTube', href: 'https://www.youtube.com/@VoidEsports1x', icon: FaYoutube },
-  { name: 'Instagram', href: 'https://www.instagram.com/voidesports2x/', icon: FaInstagram },
-];
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  twitter: FaTwitter,
+  discord: FaDiscord,
+  twitch: FaTwitch,
+  youtube: FaYoutube,
+  instagram: FaInstagram,
+  tiktok: FaTiktok,
+  facebook: FaFacebook,
+  linkedin: FaLinkedin,
+};
 
 const footerLinks = [
   { name: 'Contact', href: '/contact' },
@@ -18,9 +23,28 @@ const footerLinks = [
 ];
 
 export default function Footer() {
-  // Use original data without translation
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const links = await socialService.getAll();
+        if (!mounted) return;
+        setSocialLinks(links);
+      } catch (error) {
+        console.error('Error loading social links:', error);
+        // Fallback to empty array
+        setSocialLinks([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
   const translatedFooterLinks = footerLinks;
-  const translatedSocialLinks = socialLinks;
 
   return (
     <footer className="bg-gradient-to-t from-[#1a0f2e] to-[#0F0F0F] border-t border-purple-500/20">
@@ -67,17 +91,28 @@ export default function Footer() {
               Connect With Us
             </h4>
             <div className="flex flex-wrap gap-4">
-              {translatedSocialLinks.map((social) => (
-                <Link
-                  key={social.name}
-                  href={social.href}
-                  className="text-gray-400 hover:text-purple-300 transition-colors glow-on-hover min-h-[44px] min-w-[44px] flex items-center justify-center"
-                  aria-label={social.name}
-                >
-                  <span className="sr-only">{social.name}</span>
-                  <social.icon className="h-6 w-6 sm:h-7 sm:w-7" />
-                </Link>
-              ))}
+              {loading ? (
+                <div className="text-gray-400 text-sm">Loading social links...</div>
+              ) : socialLinks.length === 0 ? (
+                <div className="text-gray-400 text-sm">No social links available</div>
+              ) : (
+                socialLinks.map((social) => {
+                  const IconComponent = iconMap[social.icon.toLowerCase()] || FaTwitter;
+                  return (
+                    <Link
+                      key={social.id || social.name}
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-400 hover:text-purple-300 transition-colors glow-on-hover min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      aria-label={social.name}
+                    >
+                      <span className="sr-only">{social.name}</span>
+                      <IconComponent className="h-6 w-6 sm:h-7 sm:w-7" />
+                    </Link>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>

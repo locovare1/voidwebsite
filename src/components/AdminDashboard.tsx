@@ -33,7 +33,9 @@ import {
   TrophyIcon,
   CalendarIcon,
   ChartPieIcon,
-  UserGroupIcon
+  UserGroupIcon,
+  LinkIcon,
+  EnvelopeIcon
 } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 
@@ -51,7 +53,7 @@ export default function AdminDashboard() {
   const { orders, updateOrderStatus, deleteOrder } = useOrders();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'reviews' | 'products' | 'teams' | 'ambassadors' | 'news' | 'placements' | 'schedule' | 'advanced'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'reviews' | 'products' | 'teams' | 'ambassadors' | 'news' | 'placements' | 'schedule' | 'socials' | 'contact' | 'advanced'>('overview');
 
   // Team management state
   const [teams, setTeams] = useState<Team[]>([]);
@@ -674,6 +676,8 @@ export default function AdminDashboard() {
               { id: 'news', label: 'News', icon: NewspaperIcon },
               { id: 'placements', label: 'Placements', icon: TrophyIcon },
               { id: 'schedule', label: 'Schedule', icon: CalendarIcon },
+              { id: 'socials', label: 'Socials', icon: LinkIcon },
+              { id: 'contact', label: 'Contact', icon: EnvelopeIcon },
               { id: 'advanced', label: 'Advanced Analytics', icon: ChartPieIcon },
             ].map((tab) => (
               <button
@@ -1233,6 +1237,52 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* Socials Tab */}
+        {activeTab === 'socials' && (
+          <div className="space-y-6">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <LinkIcon className="w-6 h-6" />
+                  Social Media Management
+                </h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => router.push('/adminpanel/socials')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                  >
+                    Open Socials Manager
+                  </button>
+                </div>
+              </div>
+              <p className="text-gray-400 text-sm">Manage social media links displayed on the website footer and other pages.</p>
+            </AnimatedCard>
+          </div>
+        )}
+
+        {/* Contact Tab */}
+        {activeTab === 'contact' && (
+          <div className="space-y-6">
+            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <EnvelopeIcon className="w-6 h-6" />
+                  Contact Messages
+                </h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => router.push('/adminpanel/contact')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                  >
+                    Open Contact Manager
+                  </button>
+                </div>
+              </div>
+              <p className="text-gray-400 text-sm">View and manage contact form submissions from the website.</p>
+            </AnimatedCard>
+          </div>
+        )}
+
         {/* Products Tab */}
         {activeTab === 'products' && (
           <div className="space-y-6">
@@ -1653,13 +1703,19 @@ export default function AdminDashboard() {
                       <AnimatedCard key={ambassador.id} className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-4">
                         <div className="flex items-start gap-4">
                           <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-black/40 flex-shrink-0">
-                            <img
-                              src={processExternalImageUrl(ambassador.image)}
-                              alt={ambassador.name}
-                              className="w-full h-full object-cover"
-                              crossOrigin="anonymous"
-                              referrerPolicy="no-referrer"
-                            />
+                            {ambassador.image && ambassador.image.trim() ? (
+                              <img
+                                src={processExternalImageUrl(ambassador.image)}
+                                alt={ambassador.name}
+                                className="w-full h-full object-cover"
+                                crossOrigin="anonymous"
+                                referrerPolicy="no-referrer"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
+                                No Image
+                              </div>
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <h3 className="text-white font-medium truncate">{ambassador.name}</h3>

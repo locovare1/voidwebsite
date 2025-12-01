@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import AnimatedSection from '@/components/AnimatedSection';
+import NewsArticleModal from '@/components/NewsArticleModal';
 import { newsService, type NewsArticle as FSNews } from '@/lib/newsService';
 
 type DisplayArticle = {
@@ -11,10 +12,14 @@ type DisplayArticle = {
   image: string;
   description: string;
   category: string;
+  isEvent?: boolean;
+  eventDate?: string; // YYYY-MM-DD
 };
 
 export default function NewsPage() {
   const [articles, setArticles] = useState<DisplayArticle[]>([]);
+  const [selectedArticle, setSelectedArticle] = useState<DisplayArticle | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -23,14 +28,39 @@ export default function NewsPage() {
         const items = await newsService.getAll();
         if (!mounted) return;
         if (items && items.length > 0) {
-          const mapped: DisplayArticle[] = items.map((a: FSNews) => ({
-            title: a.title,
-            date: (a.date as any)?.toDate ? (a.date as any).toDate().toISOString().slice(0,10) : '',
-            image: a.image,
-            description: a.description,
-            category: a.category,
-          }));
-          setArticles(mapped);
+          const mapped: DisplayArticle[] = items.map((a: FSNews) => {
+            // Validate and sanitize image URL
+            let imageUrl = a.image || '';
+            if (imageUrl && !imageUrl.startsWith('/') && !imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+              imageUrl = ''; // Set to empty if invalid
+            }
+            
+            return {
+              title: a.title,
+              date: (a.date as any)?.toDate ? (a.date as any).toDate().toISOString().slice(0,10) : '',
+              image: imageUrl,
+              description: a.description,
+              category: a.category,
+              isEvent: a.isEvent ?? false,
+              eventDate: a.eventDate && (a.eventDate as any)?.toDate ? (a.eventDate as any).toDate().toISOString().slice(0,10) : undefined,
+            };
+          });
+          // Sort: upcoming events first, then by date
+          const sorted = mapped.sort((a, b) => {
+            const now = new Date();
+            const aEventDate = a.isEvent && a.eventDate ? new Date(a.eventDate) : null;
+            const bEventDate = b.isEvent && b.eventDate ? new Date(b.eventDate) : null;
+            
+            // Upcoming events first
+            if (aEventDate && aEventDate > now && (!bEventDate || bEventDate <= now)) return -1;
+            if (bEventDate && bEventDate > now && (!aEventDate || aEventDate <= now)) return 1;
+            
+            // Then sort by event date or regular date
+            const aSortDate = aEventDate || new Date(a.date);
+            const bSortDate = bEventDate || new Date(b.date);
+            return bSortDate.getTime() - aSortDate.getTime();
+          });
+          setArticles(sorted);
         }
       } catch {
         setArticles([
@@ -96,6 +126,19 @@ export default function NewsPage() {
     return () => { mounted = false; };
   }, []);
 
+  const upcomingEvents = articles.filter(a => a.isEvent && a.eventDate && new Date(a.eventDate) > new Date());
+  const regularArticles = articles.filter(a => !a.isEvent || !a.eventDate || new Date(a.eventDate) <= new Date());
+
+  const handleArticleClick = (article: DisplayArticle) => {
+    setSelectedArticle(article);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedArticle(null);
+  };
+
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F]">
       <div className="void-container py-8 sm:py-12">
@@ -105,18 +148,89 @@ export default function NewsPage() {
           </h1>
         </AnimatedSection>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-          {articles.map((article, index) => (
+        {/* Upcoming Events Section */}
+        {upcomingEvents.length > 0 && (
+          <AnimatedSection animationType="fadeIn" delay={150}>
+            <div className="mb-12">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-6 gradient-text">Upcoming Events</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+                {upcomingEvents.map((article, index) => (
+                  <AnimatedSection key={article.title} animationType="slideUp" delay={index * 100}>
+                    <div 
+                      className="void-card group cursor-pointer transition-transform duration-300 hover:-translate-y-1 border-2 border-purple-500/30 relative"
+                      onClick={() => handleArticleClick(article)}
+                    >
+                      <div className="absolute top-3 right-3 z-10">
+                        <span className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-xs font-semibold">
+                          Upcoming Event
+                        </span>
+                      </div>
+                      <div className="relative h-40 sm:h-48 mb-3 sm:mb-4 overflow-hidden rounded-lg">
+                        {article.image && (article.image.startsWith('/') || article.image.startsWith('http://') || article.image.startsWith('https://')) ? (
+                          <Image
+                            src={article.image}
+                            alt={article.title}
+                            fill
+                            className="object-cover transform group-hover:scale-110 transition-transform duration-300"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-purple-900/20 to-black flex items-center justify-center">
+                            <span className="text-gray-500 text-xs">No Image</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-2 sm:space-y-3">
+                        <div className="flex justify-between items-center text-xs sm:text-sm text-gray-400">
+                          <span>{article.eventDate || article.date}</span>
+                          <span className="px-2 py-1 bg-[#FFFFFF]/20 rounded-full text-[#FFFFFF] text-xs">
+                            {article.category}
+                          </span>
+                        </div>
+                        
+                        <h2 className="text-lg sm:text-xl font-bold group-hover:text-[#a2a2a2] transition-colors line-clamp-2">
+                          {article.title}
+                        </h2>
+                        
+                        <p className="text-sm sm:text-base text-purple-400 font-medium group-hover:text-purple-300 transition-colors">
+                          Click to read more →
+                        </p>
+                      </div>
+                    </div>
+                  </AnimatedSection>
+                ))}
+              </div>
+            </div>
+          </AnimatedSection>
+        )}
+        
+        {/* Regular News Section */}
+        <AnimatedSection animationType="fadeIn" delay={200}>
+          {upcomingEvents.length > 0 && (
+            <h2 className="text-2xl sm:text-3xl font-bold mb-6 gradient-text">Latest News</h2>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            {regularArticles.map((article, index) => (
             <AnimatedSection key={article.title} animationType="slideUp" delay={index * 100}>
-              <div className="void-card group cursor-pointer transition-transform duration-300 hover:-translate-y-1">
+              <div 
+                className="void-card group cursor-pointer transition-transform duration-300 hover:-translate-y-1"
+                onClick={() => handleArticleClick(article)}
+              >
                 <div className="relative h-40 sm:h-48 mb-3 sm:mb-4 overflow-hidden rounded-lg">
-                  <Image
-                    src={article.image}
-                    alt={article.title}
-                    fill
-                    className="object-cover transform group-hover:scale-110 transition-transform duration-300"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  />
+                  {article.image && (article.image.startsWith('/') || article.image.startsWith('http://') || article.image.startsWith('https://')) ? (
+                    <Image
+                      src={article.image}
+                      alt={article.title}
+                      fill
+                      className="object-cover transform group-hover:scale-110 transition-transform duration-300"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-purple-900/20 to-black flex items-center justify-center">
+                      <span className="text-gray-500 text-xs">No Image</span>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="space-y-2 sm:space-y-3">
@@ -131,15 +245,23 @@ export default function NewsPage() {
                     {article.title}
                   </h2>
                   
-                  <p className="text-sm sm:text-base text-gray-400 line-clamp-3">
-                    {article.description}
+                  <p className="text-sm sm:text-base text-purple-400 font-medium group-hover:text-purple-300 transition-colors">
+                    Click to read more →
                   </p>
                 </div>
               </div>
             </AnimatedSection>
           ))}
         </div>
+        </AnimatedSection>
       </div>
+
+      {/* News Article Modal */}
+      <NewsArticleModal
+        article={selectedArticle}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
