@@ -708,30 +708,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-
-        {/* Advanced Analytics Tab - REMOVED */}
-        {false && activeTab === 'advanced' && (
-          <div className="space-y-6">
-            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <ChartPieIcon className="w-6 h-6" />
-                  Advanced Analytics
-                </h2>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => router.push('/adminpanel/advanced-analytics')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                  >
-                    Open Advanced Analytics
-                  </button>
-                </div>
-              </div>
-              <p className="text-gray-400 text-sm">Dive into deeper insights: moving averages, funnels, rating distributions, and more.</p>
-            </AnimatedCard>
-          </div>
-        )}
-
         {/* Product Modal */}
         {showProductModal && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
