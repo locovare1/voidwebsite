@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, updateEmail, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import Link from 'next/link';
+import Navbar from '@/components/Navbar';
 
 export default function AdminLayout({
   children,
@@ -52,6 +53,7 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen bg-gray-900">
+      <Navbar />
       <main className="p-6 overflow-y-auto">
         {children}
       </main>

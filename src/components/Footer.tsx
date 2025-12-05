@@ -104,11 +104,11 @@ export default function Footer() {
                       href={social.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-gray-400 hover:text-purple-300 transition-colors glow-on-hover min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      className="text-gray-400 hover:text-purple-300 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center group"
                       aria-label={social.name}
                     >
                       <span className="sr-only">{social.name}</span>
-                      <IconComponent className="h-6 w-6 sm:h-7 sm:w-7" />
+                      <IconComponent className="h-6 w-6 sm:h-7 sm:w-7 group-hover:outline group-hover:outline-2 group-hover:outline-purple-300 group-hover:outline-offset-2 group-hover:rounded" />
                     </Link>
                   );
                 })

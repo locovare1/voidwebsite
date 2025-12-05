@@ -82,7 +82,7 @@ class YouTubeService {
   async getLatestVideos(maxResults: number = 10): Promise<YouTubeVideo[]> {
     if (!this.apiKey || !this.channelId) {
       console.warn('YouTube API key or channel ID not set. Please configure NEXT_PUBLIC_YOUTUBE_API_KEY and NEXT_PUBLIC_YOUTUBE_CHANNEL_ID environment variables.');
-      return []; // Return empty array instead of fallback videos
+      return this.getFallbackVideos(); // Return fallback videos
     }
 
     try {
@@ -141,7 +141,7 @@ class YouTubeService {
 
     } catch (error) {
       console.error('Error fetching YouTube videos:', error);
-      return []; // Return empty array on error instead of fallback videos
+      return this.getFallbackVideos(); // Return fallback videos on error
     }
   }
 
@@ -200,7 +200,7 @@ class YouTubeService {
   async searchVideos(query: string, maxResults: number = 10): Promise<YouTubeVideo[]> {
     if (!this.apiKey) {
       console.warn('YouTube API key not set');
-      return []; // Return empty array instead of fallback videos
+      return this.getFallbackVideos(); // Return fallback videos
     }
 
     try {
@@ -240,7 +240,7 @@ class YouTubeService {
 
     } catch (error) {
       console.error('Error searching YouTube videos:', error);
-      return []; // Return empty array on error instead of fallback videos
+      return this.getFallbackVideos(); // Return fallback videos on error
     }
   }
 }

@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScrollProgress } from "@/components/FramerAnimations";
+import ProductCard from "@/components/ProductCard";
 import { newsService, type NewsArticle } from "@/lib/newsService";
 import { youtubeService, type YouTubeVideo } from "@/lib/youtubeService";
+import { productService, type Product } from "@/lib/productService";
 import { PlayIcon } from "@heroicons/react/24/solid";
 
 type DisplayArticle = {
@@ -16,13 +18,6 @@ type DisplayArticle = {
   description: string;
 };
 
-const storeItems = [
-  { id: 1, name: "VOID Esports Premium Jersey", image: "/store/jersey.png", link: "/reviews/325553639?name=VOID%20Esports%20Premium%20Jersey" },
-  { id: 2, name: "Void Cobra Hoodie", image: "/store/CobraHoodie.png", link: "/reviews/1457167982?name=Void%20Cobra%20Hoodie" },
-  { id: 3, name: "Void Hoodie", image: "/store/hoodie.png", link: "/reviews/1407363371?name=Void%20Hoodie" },
-  { id: 4, name: "Void Hoodie (White Logo)", image: "/store/hoodie2.png", link: "/reviews/1077771209?name=Void%20Hoodie%20(White%20Logo)" },
-  { id: 5, name: "FREE Test Product", image: "/store/sticker.png", link: "/reviews/1286715026?name=FREE%20Test%20Product" },
-];
 
 
 
@@ -30,8 +25,9 @@ export default function Home() {
   const [newsIndex, setNewsIndex] = useState(0);
   const [latestNews, setLatestNews] = useState<DisplayArticle[]>([]);
   const [youtubeVideos, setYoutubeVideos] = useState<YouTubeVideo[]>([]);
+  const [storeItems, setStoreItems] = useState<Product[]>([]);
 
-  // Load latest news articles and YouTube videos
+  // Load latest news articles, YouTube videos, and Fourthwall products
   useEffect(() => {
     let mounted = true;
     
@@ -99,14 +95,54 @@ export default function Home() {
       }
     })();
 
-    // Load YouTube videos
+    // Load YouTube videos - get more to filter for long-form (4+ minutes)
     (async () => {
       try {
-        const videos = await youtubeService.getLatestVideos(6);
+        const allVideos = await youtubeService.getLatestVideos(50);
         if (!mounted) return;
-        setYoutubeVideos(videos);
+        // Filter for long-form videos (4+ minutes) and take first 5
+        const longFormVideos = allVideos.filter(video => {
+          // Parse duration (format: "H:MM:SS" or "M:SS")
+          const parts = video.duration.split(':');
+          let totalSeconds = 0;
+          
+          if (parts.length === 3) {
+            // Has hours: "H:MM:SS"
+            const hours = parseInt(parts[0], 10) || 0;
+            const minutes = parseInt(parts[1], 10) || 0;
+            const seconds = parseInt(parts[2], 10) || 0;
+            totalSeconds = hours * 3600 + minutes * 60 + seconds;
+          } else if (parts.length === 2) {
+            // Minutes and seconds only: "M:SS"
+            const minutes = parseInt(parts[0], 10) || 0;
+            const seconds = parseInt(parts[1], 10) || 0;
+            totalSeconds = minutes * 60 + seconds;
+          } else {
+            // Invalid format, skip
+            return false;
+          }
+          
+          return totalSeconds >= 240; // 4 minutes = 240 seconds
+        }).slice(0, 5);
+        setYoutubeVideos(longFormVideos);
       } catch (error) {
         console.error('Error loading YouTube videos:', error);
+      }
+    })();
+
+    // Load products from Firestore that are marked to display on home page
+    (async () => {
+      try {
+        const allProducts = await productService.getAll();
+        if (!mounted) return;
+        // Filter products that should display on home page and limit to 5
+        const homePageProducts = allProducts
+          .filter(p => p.displayOnHomePage)
+          .slice(0, 5);
+        setStoreItems(homePageProducts);
+      } catch (error) {
+        console.error('Error loading products:', error);
+        setStoreItems([]);
       }
     })();
 
@@ -122,11 +158,6 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [latestNews]);
 
-  // Duplicate store items for seamless infinite loop
-  const duplicatedStoreItems = [...storeItems, ...storeItems, ...storeItems];
-  
-  // Duplicate YouTube videos for seamless infinite loop
-  const duplicatedYouTubeVideos = [...youtubeVideos, ...youtubeVideos, ...youtubeVideos];
 
   return (
     <div className="min-h-screen relative">
@@ -159,90 +190,98 @@ export default function Home() {
         )}
       </section>
 
-      {/* Store Carousel - Continuous Loop */}
-      <section className="py-8 sm:py-12 lg:py-20 bg-[#1A1A1A] overflow-hidden">
-        <div className="void-container">
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-6 sm:mb-8 lg:mb-12 text-center text-purple-gradient px-4">Shop Now</h2>
-          <div className="relative carousel-container">
-            <motion.div
-              className="flex gap-3 sm:gap-4 lg:gap-6 pl-4 sm:pl-6"
-              animate={{
-                x: [0, -((storeItems.length * 160))],
-              }}
-              transition={{
-                x: {
-                  repeat: Infinity,
-                  repeatType: "loop",
-                  duration: 25,
-                  ease: "linear",
-                },
-              }}
+      {/* Store Grid - Static */}
+      <section className="py-12 sm:py-16 lg:py-24 bg-gradient-to-b from-[#0F0F0F] via-[#1A1A1A] to-[#0F0F0F] relative overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="void-container relative z-10">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 sm:mb-12 lg:mb-16 px-4 gap-4">
+            <div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-200 to-purple-400 mb-2">
+                Shop Now
+              </h2>
+              <p className="text-gray-400 text-sm sm:text-base">
+                Discover exclusive VOID merchandise
+              </p>
+            </div>
+            <a 
+              href="https://shop.voidesports.org" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="void-button pulse-glow text-sm sm:text-base inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300"
             >
-              {duplicatedStoreItems.map((item, index) => (
-                <Link key={`${item.id}-${index}`} href={item.link} className="block">
-                  <motion.div
-                    className="min-w-[130px] sm:min-w-[160px] lg:min-w-[200px] rounded-lg overflow-hidden shadow-lg cursor-pointer flex-shrink-0 void-card"
-                    whileHover={{ scale: 1.05, y: -10 }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <div className="relative h-[130px] w-[130px] sm:h-[160px] sm:w-[160px] lg:h-[200px] lg:w-[200px]">
-                      <Image 
-                        src={item.image} 
-                        alt={item.name} 
-                        fill 
-                        className="object-cover" 
-                        sizes="(max-width: 640px) 130px, (max-width: 1024px) 160px, 200px"
-                      />
-                    </div>
-                    <div className="bg-gradient-to-t from-black/80 to-transparent p-2 sm:p-3 text-white text-center font-semibold text-xs sm:text-sm leading-tight min-h-[44px] flex items-center justify-center">
-                      <span className="line-clamp-2">{item.name}</span>
-                    </div>
-                  </motion.div>
-                </Link>
-              ))}
-            </motion.div>
+              Visit Store
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </a>
           </div>
+          
+          {storeItems.length > 0 ? (
+            <div className={`grid gap-6 sm:gap-8 px-4 ${
+              storeItems.length === 1 
+                ? 'grid-cols-1 max-w-md mx-auto'
+                : storeItems.length === 2
+                ? 'grid-cols-1 sm:grid-cols-2 max-w-4xl mx-auto'
+                : storeItems.length === 3
+                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+                : storeItems.length === 4
+                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-5'
+            }`}>
+              {storeItems.map((item, index) => (
+                <motion.div 
+                  key={`${item.id}-${index}`} 
+                  className="h-80 sm:h-96 lg:h-[480px]"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <ProductCard item={item} index={index} />
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 px-4">
+              <p className="text-gray-400 text-sm sm:text-base">
+                No items displayed at this moment. Please check back later.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* YouTube Videos Carousel */}
+      {/* YouTube Videos Grid */}
       {youtubeVideos.length > 0 && (
-        <section className="py-8 sm:py-12 lg:py-20 bg-[#0F0F0F] overflow-hidden">
+        <section className="py-8 sm:py-12 lg:py-20 bg-[#0F0F0F]">
           <div className="void-container">
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-6 sm:mb-8 lg:mb-12 text-center text-purple-gradient px-4">Latest Videos</h2>
-            <div className="relative carousel-container">
-              <motion.div
-                className="flex gap-3 sm:gap-4 lg:gap-6 pl-4 sm:pl-6"
-                animate={{
-                  x: [0, -((youtubeVideos.length * 230))],
-                }}
-                transition={{
-                  x: {
-                    repeat: Infinity,
-                    repeatType: "loop",
-                    duration: 30,
-                    ease: "linear",
-                  },
-                }}
-              >
-                {duplicatedYouTubeVideos.map((video, index) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 px-4">
+              {youtubeVideos.map((video, index) => (
                 <motion.div
                   key={`${video.id}-${index}`}
-                  className="min-w-[180px] sm:min-w-[230px] lg:min-w-[300px] rounded-lg overflow-hidden shadow-lg cursor-pointer flex-shrink-0 void-card group"
+                  className="rounded-lg overflow-hidden shadow-lg cursor-pointer void-card group"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
                   whileHover={{ scale: 1.05, y: -10 }}
                   whileTap={{ scale: 0.95 }}
                   transition={{ duration: 0.3 }}
                   onClick={() => window.open(`https://www.youtube.com/watch?v=${video.videoId}`, '_blank')}
                 >
                   <div className="relative">
-                    <div className="relative h-[101px] w-[180px] sm:h-[129px] sm:w-[230px] lg:h-[169px] lg:w-[300px]">
+                    <div className="relative w-full aspect-video">
                       <Image 
                         src={video.thumbnail} 
                         alt={video.title} 
                         fill 
                         className="object-cover" 
-                        sizes="(max-width: 640px) 180px, (max-width: 1024px) 230px, 300px"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
                       />
                       {/* Play button overlay */}
                       <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center">
@@ -251,12 +290,12 @@ export default function Home() {
                         </div>
                       </div>
                       {/* Duration badge */}
-                      <div className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 bg-black/80 text-white text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 rounded font-medium">
+                      <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded font-medium">
                         {video.duration}
                       </div>
                     </div>
-                    <div className="p-2.5 sm:p-3 lg:p-4">
-                      <h3 className="text-white font-semibold text-xs sm:text-sm lg:text-base mb-1.5 sm:mb-2 line-clamp-2 group-hover:text-purple-300 transition-colors leading-tight min-h-[32px]">
+                    <div className="p-3 sm:p-4">
+                      <h3 className="text-white font-semibold text-sm sm:text-base mb-2 line-clamp-2 group-hover:text-purple-300 transition-colors leading-tight min-h-[2.5rem]">
                         {video.title}
                       </h3>
                       <div className="flex items-center justify-between text-gray-400 text-xs">
@@ -272,7 +311,6 @@ export default function Home() {
                   </div>
                 </motion.div>
               ))}
-              </motion.div>
             </div>
           </div>
         </section>

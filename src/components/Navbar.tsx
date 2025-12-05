@@ -5,13 +5,11 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import CartIcon from "./CartIcon";
 
 const navigation = [
   { name: "Home", href: "/" },
   { name: "Teams", href: "/teams" },
   { name: "News", href: "/news" },
-  { name: "Shop", href: "/shop" },
   { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
 ];
@@ -26,8 +24,8 @@ export default function Navbar() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Hide on admin panel
-  if (pathname?.startsWith("/adminpanel")) return null;
+  // Show on admin panel but with different styling
+  const isAdminPanel = pathname?.startsWith("/adminpanel");
 
   return (
     <header
@@ -81,9 +79,16 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* RIGHT COLUMN — Cart icon (desktop only) */}
-        <div className="hidden lg:flex justify-end">
-          <CartIcon />
+        {/* RIGHT COLUMN — Shop button (desktop only) */}
+        <div className="hidden lg:flex justify-end items-center gap-4">
+          <a
+            href="https://shop.voidesports.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg hover:from-purple-500 hover:to-purple-700 transition duration-300 shadow-lg hover:shadow-purple-500/50"
+          >
+            Shop
+          </a>
         </div>
       </nav>
 
@@ -113,10 +118,16 @@ export default function Navbar() {
                 </Link>
               ))}
 
-              {/* Cart icon within mobile menu */}
-              <div className="pt-6 border-t border-white/10">
-                <CartIcon />
-              </div>
+              {/* Mobile Shop Button */}
+              <a
+                href="https://shop.voidesports.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block px-4 py-2 text-lg font-semibold text-white bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg hover:from-purple-500 hover:to-purple-700 transition duration-300 text-center"
+              >
+                Shop
+              </a>
+
             </div>
           </div>
         </div>

@@ -19,9 +19,11 @@ export interface Product {
   name: string;
   price: number;
   image: string;
+  hoverImage?: string;
   category: string;
   description: string;
   link: string;
+  displayOnHomePage?: boolean;
   createdAt: Timestamp;
 }
 

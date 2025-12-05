@@ -30,20 +30,21 @@ export default function SafeImage({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setCurrentSrc(src);
-    setHasError(false);
-    setIsLoading(true);
-  }, [src]);
+    if (src !== currentSrc) {
+      setCurrentSrc(src);
+      setHasError(false);
+      setIsLoading(true);
+    }
+  }, [src, currentSrc]);
 
   const handleError = () => {
     console.warn(`Failed to load image: ${currentSrc}`);
-    setHasError(true);
     setIsLoading(false);
 
     if (currentSrc === src && src.startsWith('http')) {
       // Try processed external URL first
       const processedUrl = processExternalImageUrl(src);
-      if (processedUrl !== src) {
+      if (processedUrl !== src && currentSrc !== processedUrl) {
         console.log('Trying processed external URL:', processedUrl);
         setCurrentSrc(processedUrl);
         setHasError(false);
@@ -54,14 +55,15 @@ export default function SafeImage({
 
     // Fall back to default image
     const fallback = getFallbackImageUrl(src);
-    if (currentSrc !== fallback) {
+    if (currentSrc !== fallback && currentSrc !== src) {
       console.log('Falling back to:', fallback);
       setCurrentSrc(fallback);
       setHasError(false);
       setIsLoading(true);
+    } else {
+      setHasError(true);
+      onError?.();
     }
-
-    onError?.();
   };
 
   const handleLoad = () => {
@@ -104,9 +106,9 @@ export default function SafeImage({
 
   // For non-Discord URLs, use Next.js Image component
   return (
-    <>
+    <div className={fill ? "relative w-full h-full" : ""}>
       {isLoading && (
-        <div className={`absolute inset-0 bg-gray-800 animate-pulse flex items-center justify-center ${className}`}>
+        <div className={`absolute inset-0 bg-gray-800 animate-pulse flex items-center justify-center z-10`}>
           <div className="text-gray-400 text-sm">Loading...</div>
         </div>
       )}
@@ -122,6 +124,6 @@ export default function SafeImage({
         onLoad={handleLoad}
         unoptimized={src.includes('discord')}
       />
-    </>
+    </div>
   );
 }

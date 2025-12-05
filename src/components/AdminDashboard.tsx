@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useOrders, Order } from '@/contexts/OrderContext';
 import { reviewService, Review } from '@/lib/reviewService';
 import { formatOrderNumber } from '@/lib/orderUtils';
-import { products, Product as StaticProduct } from '@/data/products';
 import { productService, type Product } from '@/lib/productService';
 import { newsService, type NewsArticle } from '@/lib/newsService';
 import { placementService, type Placement } from '@/lib/placementService';
@@ -53,7 +52,7 @@ export default function AdminDashboard() {
   const { orders, updateOrderStatus, deleteOrder } = useOrders();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'reviews' | 'products' | 'teams' | 'ambassadors' | 'news' | 'placements' | 'schedule' | 'socials' | 'contact' | 'advanced'>('overview');
+  const [activeTab, setActiveTab] = useState<'products' | 'teams' | 'ambassadors' | 'news' | 'placements' | 'schedule' | 'socials'>('products');
 
   // Team management state
   const [teams, setTeams] = useState<Team[]>([]);
@@ -98,13 +97,15 @@ export default function AdminDashboard() {
   const [filterStatus, setFilterStatus] = useState<Order['status'] | 'all'>('all');
   const [selectedReviews, setSelectedReviews] = useState<Set<string>>(new Set());
   const [showBulkActions, setShowBulkActions] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
   // Products modal state
   const [showProductModal, setShowProductModal] = useState(false);
   const [productMode, setProductMode] = useState<'create' | 'edit'>('create');
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [productForm, setProductForm] = useState<Omit<Product, 'id' | 'createdAt'>>({
-    name: '', price: 0, image: '', category: '', description: '', link: ''
+    name: '', price: 0, image: '', hoverImage: '', category: '', description: '', link: '', displayOnHomePage: false
   });
 
   // News modal state
@@ -136,14 +137,16 @@ export default function AdminDashboard() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [reviewsData, teamsData, ambassadorsData] = await Promise.all([
+        const [reviewsData, teamsData, ambassadorsData, productsData] = await Promise.all([
           reviewService.getAllReviews(),
           teamService.getAll(),
-          ambassadorService.getAll()
+          ambassadorService.getAll(),
+          productService.getAll()
         ]);
         setReviews(reviewsData);
         setTeams(teamsData);
         setAmbassadors(ambassadorsData);
+        setProducts(productsData);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -154,17 +157,30 @@ export default function AdminDashboard() {
     loadData();
   }, []);
 
+  // Reload products when they're updated
+  const reloadProducts = async () => {
+    try {
+      setLoadingProducts(true);
+      const productsData = await productService.getAll();
+      setProducts(productsData);
+    } catch (error) {
+      console.error('Error loading products:', error);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
   // Helpers: reset and open modals
   const openCreateProduct = () => {
     setProductMode('create');
     setEditingProductId(null);
-    setProductForm({ name: '', price: 0, image: '', category: '', description: '', link: '' });
+    setProductForm({ name: '', price: 0, image: '', hoverImage: '', category: '', description: '', link: '', displayOnHomePage: false });
     setShowProductModal(true);
   };
   const openEditProduct = (p: Product) => {
     setProductMode('edit');
     setEditingProductId(p.id!);
-    setProductForm({ name: p.name, price: p.price, image: p.image, category: p.category, description: p.description, link: p.link });
+    setProductForm({ name: p.name, price: p.price, image: p.image, hoverImage: p.hoverImage || '', category: p.category, description: p.description, link: p.link || '', displayOnHomePage: p.displayOnHomePage || false });
     setShowProductModal(true);
   };
 
@@ -219,6 +235,7 @@ export default function AdminDashboard() {
       } else if (editingProductId) {
         await productService.update(editingProductId, productForm);
       }
+      await reloadProducts();
       setShowProductModal(false);
     } catch (e) { console.error(e); }
   };
@@ -667,9 +684,6 @@ export default function AdminDashboard() {
         <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-1">
           <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
             {[
-              { id: 'overview', label: 'Overview', icon: ChartBarIcon },
-              { id: 'orders', label: 'Orders', icon: ShoppingBagIcon },
-              { id: 'reviews', label: 'Reviews', icon: StarIcon },
               { id: 'products', label: 'Products', icon: UserIcon },
               { id: 'teams', label: 'Teams', icon: UserIcon },
               { id: 'ambassadors', label: 'Ambassadors', icon: UserGroupIcon },
@@ -677,8 +691,6 @@ export default function AdminDashboard() {
               { id: 'placements', label: 'Placements', icon: TrophyIcon },
               { id: 'schedule', label: 'Schedule', icon: CalendarIcon },
               { id: 'socials', label: 'Socials', icon: LinkIcon },
-              { id: 'contact', label: 'Contact', icon: EnvelopeIcon },
-              { id: 'advanced', label: 'Advanced Analytics', icon: ChartPieIcon },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -696,129 +708,9 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Overview Tab */}
-        {activeTab === 'overview' && (
-          <div className="space-y-6">
-            {/* Enhanced Statistics Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-gray-400 text-xs sm:text-sm font-medium">Total Revenue</p>
-                    <p className="text-2xl sm:text-3xl font-bold text-white mt-1 sm:mt-2 truncate">${totalRevenue.toFixed(2)}</p>
-                    <div className="flex items-center gap-1 mt-1 sm:mt-2">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="text-green-400 text-xs">Active</span>
-                    </div>
-                  </div>
-                  <div className="bg-green-500/20 p-2 sm:p-3 rounded-xl group-hover:bg-green-500/30 transition-colors flex-shrink-0">
-                    <CurrencyDollarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" />
-                  </div>
-                </div>
-              </AnimatedCard>
 
-              <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-gray-400 text-xs sm:text-sm font-medium">Total Orders</p>
-                    <p className="text-2xl sm:text-3xl font-bold text-white mt-1 sm:mt-2">{totalOrders}</p>
-                    <div className="flex items-center gap-1 mt-1 sm:mt-2">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                      <span className="text-blue-400 text-xs">{pendingOrders} pending</span>
-                    </div>
-                  </div>
-                  <div className="bg-blue-500/20 p-2 sm:p-3 rounded-xl group-hover:bg-blue-500/30 transition-colors flex-shrink-0">
-                    <ShoppingBagIcon className="w-6 h-6 sm:w-8 sm:h-8 text-blue-400" />
-                  </div>
-                </div>
-              </AnimatedCard>
-
-              <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-gray-400 text-xs sm:text-sm font-medium">Avg Order Value</p>
-                    <p className="text-2xl sm:text-3xl font-bold text-white mt-1 sm:mt-2 truncate">${averageOrderValue.toFixed(2)}</p>
-                    <div className="flex items-center gap-1 mt-1 sm:mt-2">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-                      <span className="text-purple-400 text-xs">Per order</span>
-                    </div>
-                  </div>
-                  <div className="bg-purple-500/20 p-2 sm:p-3 rounded-xl group-hover:bg-purple-500/30 transition-colors flex-shrink-0">
-                    <ChartBarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
-                  </div>
-                </div>
-              </AnimatedCard>
-
-              <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-gray-400 text-xs sm:text-sm font-medium">Avg Rating</p>
-                    <p className="text-2xl sm:text-3xl font-bold text-white mt-1 sm:mt-2">{averageRating.toFixed(1)}/5</p>
-                    <div className="flex items-center gap-1 mt-1 sm:mt-2">
-                      <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                      <span className="text-yellow-400 text-xs">{reviews.length} reviews</span>
-                    </div>
-                  </div>
-                  <div className="bg-yellow-500/20 p-2 sm:p-3 rounded-xl group-hover:bg-yellow-500/30 transition-colors flex-shrink-0">
-                    <StarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400" />
-                  </div>
-                </div>
-              </AnimatedCard>
-            </div>
-
-            {/* Enhanced Quick Stats */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
-                <h3 className="text-base sm:text-lg font-bold text-white mb-4 sm:mb-6 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                  Order Status
-                </h3>
-                <div className="space-y-3 sm:space-y-4">
-                  <div className="flex justify-between items-center p-2 sm:p-3 bg-[#0F0F0F]/50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                      <span className="text-gray-300 text-sm sm:text-base">Pending</span>
-                    </div>
-                    <span className="text-yellow-400 font-bold text-base sm:text-lg">{pendingOrders}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-2 sm:p-3 bg-[#0F0F0F]/50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                      <span className="text-gray-300 text-sm sm:text-base">Completed</span>
-                    </div>
-                    <span className="text-green-400 font-bold text-base sm:text-lg">{completedOrders}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-2 sm:p-3 bg-[#0F0F0F]/50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
-                      <span className="text-gray-300 text-sm sm:text-base">Total Reviews</span>
-                    </div>
-                    <span className="text-blue-400 font-bold text-base sm:text-lg">{reviews.length}</span>
-                  </div>
-                </div>
-              </AnimatedCard>
-
-              <AnimatedCard enableTilt className="admin-card shine-hover p-4 sm:p-6">
-                <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Recent Activity</h3>
-                <div className="space-y-2 sm:space-y-3">
-                  {orders.slice(0, 3).map((order) => (
-                    <div key={order.id} className="flex justify-between items-center gap-2">
-                      <span className="text-gray-400 text-xs sm:text-sm truncate">
-                        Order {formatOrderNumber(order.id)}
-                      </span>
-                      <span className={`px-2 py-1 rounded text-xs flex-shrink-0 ${getStatusColor(order.status)}`}>
-                        {order.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </AnimatedCard>
-            </div>
-          </div>
-        )}
-
-        {/* Advanced Analytics Tab */}
-        {activeTab === 'advanced' && (
+        {/* Advanced Analytics Tab - REMOVED */}
+        {false && activeTab === 'advanced' && (
           <div className="space-y-6">
             <AnimatedCard enableTilt className="admin-card shine-hover p-6">
               <div className="flex items-center justify-between mb-4">
@@ -856,6 +748,10 @@ export default function AdminDashboard() {
                   <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Image URL" value={productForm.image} onChange={e => setProductForm({ ...productForm, image: e.target.value })} />
                   {productForm.image?.trim() && (
                     <div className="h-40 rounded border border-[#2A2A2A] overflow-hidden"><img src={productForm.image} className="object-contain w-full h-full" /></div>
+                  )}
+                  <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Hover Image URL (Optional)" value={productForm.hoverImage || ''} onChange={e => setProductForm({ ...productForm, hoverImage: e.target.value })} />
+                  {productForm.hoverImage?.trim() && (
+                    <div className="h-40 rounded border border-[#2A2A2A] overflow-hidden"><img src={productForm.hoverImage} className="object-contain w-full h-full" /></div>
                   )}
                   <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Product Link" value={productForm.link} onChange={e => setProductForm({ ...productForm, link: e.target.value })} />
                   <textarea className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white h-24" placeholder="Description" value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} />
@@ -951,8 +847,8 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Orders Tab */}
-        {activeTab === 'orders' && (
+        {/* Orders Tab - REMOVED */}
+        {false && activeTab === 'orders' && (
           <div className="space-y-6">
             {/* Orders Header */}
             <AnimatedCard enableTilt className="admin-card shine-hover p-6">
@@ -1063,8 +959,8 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Reviews Tab */}
-        {activeTab === 'reviews' && (
+        {/* Reviews Tab - REMOVED */}
+        {false && activeTab === 'reviews' && (
           <div className="space-y-6">
             <AnimatedCard enableTilt className="admin-card shine-hover p-6">
               <div className="flex justify-between items-center mb-6">
@@ -1156,7 +1052,7 @@ export default function AdminDashboard() {
         {/* News Tab */}
         {activeTab === 'news' && (
           <div className="space-y-6">
-            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+            <AnimatedCard className="admin-card p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
                   Manage News
@@ -1184,7 +1080,7 @@ export default function AdminDashboard() {
         {/* Placements Tab */}
         {activeTab === 'placements' && (
           <div className="space-y-6">
-            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+            <AnimatedCard className="admin-card p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
                   Manage Placements
@@ -1212,7 +1108,7 @@ export default function AdminDashboard() {
         {/* Schedule Tab */}
         {activeTab === 'schedule' && (
           <div className="space-y-6">
-            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+            <AnimatedCard className="admin-card p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
                   Manage Schedule
@@ -1240,7 +1136,7 @@ export default function AdminDashboard() {
         {/* Socials Tab */}
         {activeTab === 'socials' && (
           <div className="space-y-6">
-            <AnimatedCard enableTilt className="admin-card shine-hover p-6">
+            <AnimatedCard className="admin-card p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
                   <LinkIcon className="w-6 h-6" />
@@ -1260,8 +1156,8 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Contact Tab */}
-        {activeTab === 'contact' && (
+        {/* Contact Tab - REMOVED */}
+        {false && activeTab === 'contact' && (
           <div className="space-y-6">
             <AnimatedCard enableTilt className="admin-card shine-hover p-6">
               <div className="flex items-center justify-between mb-4">
@@ -1298,39 +1194,50 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((product) => (
-                  <AnimatedCard key={product.id} className="admin-card p-4">
-                    <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
-                      <Image
-                        src={product.image}
-                        alt={product.name}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <h3 className="text-white font-medium mb-2">{product.name}</h3>
-                    <p className="text-gray-400 text-sm mb-3 line-clamp-2">{product.description}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-green-400 font-bold">${product.price.toFixed(2)}</span>
-                      <span className="text-gray-500 text-xs bg-[#2A2A2A] px-2 py-1 rounded">
-                        {product.category}
-                      </span>
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-[#2A2A2A]">
-                      <p className="text-gray-500 text-xs">Product ID: {product.id}</p>
-                    </div>
-                    <div className="mt-3 flex gap-2">
-                      <button
-                        onClick={() => openEditProduct({ id: String(product.id), name: product.name, price: product.price, image: product.image, category: product.category, description: product.description, link: product.link, createdAt: undefined as any })}
-                        className="bg-yellow-600/20 hover:bg-yellow-600/30 border border-yellow-600/30 text-yellow-400 px-3 py-1 rounded text-sm"
-                      >
-                        Edit (Modal)
-                      </button>
-                    </div>
-                  </AnimatedCard>
-                ))}
-              </div>
+              {loadingProducts ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#FFFFFF] mx-auto mb-2"></div>
+                  <p className="text-gray-400">Loading products...</p>
+                </div>
+              ) : products.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-400">No products found</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {products.map((product) => (
+                    <AnimatedCard key={product.id} className="admin-card p-4">
+                      <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
+                        <Image
+                          src={product.image}
+                          alt={product.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <h3 className="text-white font-medium mb-2">{product.name}</h3>
+                      <p className="text-gray-400 text-sm mb-3 line-clamp-2">{product.description}</p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-green-400 font-bold">${product.price.toFixed(2)}</span>
+                        <span className="text-gray-500 text-xs bg-[#2A2A2A] px-2 py-1 rounded">
+                          {product.category}
+                        </span>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-[#2A2A2A]">
+                        <p className="text-gray-500 text-xs">Product ID: {product.id}</p>
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          onClick={() => openEditProduct({ id: String(product.id), name: product.name, price: product.price, image: product.image, category: product.category, description: product.description, link: product.link || '', hoverImage: product.hoverImage || '', displayOnHomePage: product.displayOnHomePage || false, createdAt: product.createdAt || undefined as any })}
+                          className="bg-yellow-600/20 hover:bg-yellow-600/30 border border-yellow-600/30 text-yellow-400 px-3 py-1 rounded text-sm"
+                        >
+                          Edit (Modal)
+                        </button>
+                      </div>
+                    </AnimatedCard>
+                  ))}
+                </div>
+              )}
             </AnimatedCard>
           </div>
         )}
