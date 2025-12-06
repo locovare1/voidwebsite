@@ -452,6 +452,12 @@ export default function TeamsPage() {
                   placeholder="Twitch URL"
                   className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
                 />
+                <input
+                  value={playerDraft.socialLinks?.youtube || ''}
+                  onChange={e => setPlayerDraft(p => ({ ...p, socialLinks: { ...(p.socialLinks || {}), youtube: e.target.value } }))}
+                  placeholder="YouTube URL"
+                  className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
+                />
               </div>
 
               {/* Player Description */}

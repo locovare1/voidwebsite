@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import AnimatedSection from '@/components/AnimatedSection';
-import AdPlaceholder from '@/components/AdPlaceholder';
 import PlayerCard from '@/components/PlayerCard';
 import PlayerDetailModal from '@/components/PlayerDetailModal';
 import { teamService, type Team as FSTeam, type Player } from '@/lib/teamService';
-import { db } from '@/lib/firebase';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 type DisplayTeam = {
   id?: string;
@@ -19,7 +19,7 @@ type DisplayTeam = {
   achievements: string[];
 };
 
-// Fallback to previous hardcoded teams data when Firestore is unavailable or empty
+// Fallback teams data
 const fallbackTeams: DisplayTeam[] = [
   {
     name: 'Fortnite',
@@ -177,47 +177,105 @@ const fallbackTeams: DisplayTeam[] = [
   },
 ];
 
-export default function TeamsPage() {
+export default function TeamDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const teamId = params?.teamId as string;
+  const [team, setTeam] = useState<DisplayTeam | null>(null);
+  const [loading, setLoading] = useState(true);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [currentTeamPlayers, setCurrentTeamPlayers] = useState<Player[]>([]);
-  const [teams, setTeams] = useState<DisplayTeam[]>(fallbackTeams);
-  const [refreshKey, setRefreshKey] = useState(0);
 
-  const loadTeams = useCallback(async () => {
+  const loadTeam = useCallback(async () => {
     try {
-      const items = await teamService.getAll().catch(error => {
-        console.error('Firebase getAll error:', error);
-        return [];
-      });
-
-      if (items && items.length > 0) {
-        const mapped: DisplayTeam[] = items.map((t: FSTeam) => ({
-          id: t.id,
-          name: t.name,
-          image: t.image,
-          description: t.description,
-          achievements: t.achievements || [],
-          players: (t.players || []).map(p => ({
-            ...p,
-            achievements: p.achievements || [],
-            socialLinks: p.socialLinks || {},
-            stats: p.stats || [],
-            description: p.description || ''
-          })),
-        }));
-        setTeams(mapped);
-      } else {
-        setTeams(fallbackTeams);
+      setLoading(true);
+      // Try to get team by ID first
+      let foundTeam: DisplayTeam | null = null;
+      
+      if (teamId) {
+        // First, try to get team by Firebase ID (Firebase IDs are alphanumeric)
+        // Try this first regardless of length, as Firebase IDs can vary
+        if (/^[a-zA-Z0-9]+$/.test(teamId)) {
+          try {
+            const firebaseTeam = await teamService.getById(teamId);
+            if (firebaseTeam) {
+              foundTeam = {
+                id: firebaseTeam.id,
+                name: firebaseTeam.name,
+                image: firebaseTeam.image,
+                description: firebaseTeam.description,
+                achievements: firebaseTeam.achievements || [],
+                players: (firebaseTeam.players || []).map(p => ({
+                  ...p,
+                  achievements: p.achievements || [],
+                  socialLinks: p.socialLinks || {},
+                  stats: p.stats || [],
+                  description: p.description || ''
+                })),
+              };
+            }
+          } catch (error) {
+            // If getById fails, continue to try by name
+            console.log('Team not found by ID, trying by name...');
+          }
+        }
+        
+        // If not found by ID, try to find by name slug
+        if (!foundTeam) {
+          try {
+            const allTeams = await teamService.getAll();
+            const teamName = teamId.replace(/-/g, ' ');
+            const matchedTeam = allTeams.find((t: FSTeam) => 
+              t.name.toLowerCase() === teamName.toLowerCase()
+            );
+            
+            if (matchedTeam) {
+              foundTeam = {
+                id: matchedTeam.id,
+                name: matchedTeam.name,
+                image: matchedTeam.image,
+                description: matchedTeam.description,
+                achievements: matchedTeam.achievements || [],
+                players: (matchedTeam.players || []).map(p => ({
+                  ...p,
+                  achievements: p.achievements || [],
+                  socialLinks: p.socialLinks || {},
+                  stats: p.stats || [],
+                  description: p.description || ''
+                })),
+              };
+            }
+          } catch (error) {
+            console.log('Error fetching teams, will try fallback...');
+          }
+        }
       }
+      
+      // Fallback to hardcoded teams if not found
+      if (!foundTeam) {
+        const teamName = teamId?.replace(/-/g, ' ') || '';
+        foundTeam = fallbackTeams.find(t => 
+          t.name.toLowerCase() === teamName.toLowerCase()
+        ) || null;
+      }
+      
+      setTeam(foundTeam);
     } catch (error) {
-      console.error('❌ Error loading teams:', error);
-      setTeams(fallbackTeams);
+      console.error('Error loading team:', error);
+      // Try fallback
+      const teamName = teamId?.replace(/-/g, ' ') || '';
+      const fallbackTeam = fallbackTeams.find(t => 
+        t.name.toLowerCase() === teamName.toLowerCase()
+      );
+      setTeam(fallbackTeam || null);
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [teamId]);
 
   useEffect(() => {
-    loadTeams();
-  }, [refreshKey, loadTeams]);
+    loadTeam();
+  }, [loadTeam]);
 
   const openPlayerModal = (player: Player, teamPlayers: Player[]) => {
     setSelectedPlayer(player);
@@ -240,6 +298,30 @@ export default function TeamsPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="pt-20 min-h-screen bg-[#0F0F0F] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    );
+  }
+
+  if (!team) {
+    return (
+      <div className="pt-20 min-h-screen bg-[#0F0F0F]">
+        <div className="void-container py-8 sm:py-12">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold gradient-text mb-4">Team Not Found</h1>
+            <p className="text-gray-400 mb-6">The team you're looking for doesn't exist.</p>
+            <Link href="/teams" className="void-button inline-block">
+              Back to Teams
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F] relative">
       {/* Player Detail Modal */}
@@ -256,75 +338,78 @@ export default function TeamsPage() {
       )}
 
       <div className="void-container py-8 sm:py-12">
+        {/* Back Button */}
+        <AnimatedSection animationType="fadeIn" delay={50}>
+          <Link 
+            href="/teams"
+            className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6"
+          >
+            <ArrowLeftIcon className="w-5 h-5" />
+            <span>Back to Teams</span>
+          </Link>
+        </AnimatedSection>
+
+        {/* Team Header */}
         <AnimatedSection animationType="fadeIn" delay={100}>
-          <div className="text-center mb-12 sm:mb-16">
-            <h1 className="text-4xl sm:text-5xl font-bold gradient-text mb-4">Our Rosters</h1>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Meet the elite players and staff representing Void Esports across various titles.
-            </p>
+          <div className="mb-12">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-6">
+              <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden border border-white/10 shadow-lg">
+                <Image
+                  src={team.image}
+                  alt={team.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div>
+                <h1 className="text-4xl sm:text-5xl font-bold gradient-text mb-3">
+                  {team.name}
+                </h1>
+                <p className="text-gray-400 text-lg max-w-2xl">
+                  {team.description}
+                </p>
+              </div>
+            </div>
+            
+            {team.achievements.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {team.achievements.map((achievement, idx) => (
+                  <span
+                    key={idx}
+                    className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm font-medium"
+                  >
+                    {achievement}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </AnimatedSection>
 
-        {/* Ad Spot - Banner at top of teams page */}
-        <div className="mb-8">
-          <AdPlaceholder size="banner" />
-        </div>
-
-        <div className="flex flex-wrap justify-center gap-6 sm:gap-8 max-w-6xl mx-auto">
-          {teams.map((team, idx) => {
-            // Create a URL-friendly slug from team name
-            const teamSlug = team.name.toLowerCase().replace(/\s+/g, '-');
-            const teamId = (team as any).id || teamSlug;
-            
-            return (
-              <AnimatedSection key={team.name} animationType="slideUp" delay={idx * 100}>
-                <Link 
-                  href={`/teams/${teamId}`}
-                  className="block group"
-                >
-                  <div className="bg-[#111] border border-white/5 rounded-2xl overflow-hidden transition-all duration-300 hover:border-white/10 hover:scale-105 aspect-square relative w-[280px] sm:w-[320px] lg:w-[340px]">
-                    {/* Background Image with Overlay */}
-                    <div className="absolute inset-0 z-0">
-                      <Image
-                        src={team.image}
-                        alt={team.name}
-                        fill
-                        className="object-cover opacity-40 group-hover:opacity-50 transition-opacity duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-[#111]/60 to-transparent"></div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="relative z-10 h-full flex flex-col justify-end p-6 sm:p-8">
-                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-white/10 shadow-lg mb-4">
-                        <Image
-                          src={team.image}
-                          alt={team.name}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <h2 className="text-2xl sm:text-3xl font-bold text-white group-hover:text-blue-400 transition-colors mb-2">
-                        {team.name}
-                      </h2>
-                      <p className="text-gray-400 text-sm sm:text-base mb-3 line-clamp-2">
-                        {team.description}
-                      </p>
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <span>{team.players.length} Members</span>
-                        <span>•</span>
-                        <span className="text-purple-400 group-hover:text-purple-300 transition-colors">
-                          View Roster →
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+        {/* Players Grid */}
+        <AnimatedSection animationType="fadeIn" delay={150}>
+          <h2 className="text-2xl sm:text-3xl font-bold gradient-text mb-6">
+            Roster
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {team.players.map((player, pIdx) => (
+              <AnimatedSection key={player.name} animationType="slideUp" delay={pIdx * 100}>
+                <div onClick={() => openPlayerModal(player, team.players)}>
+                  <PlayerCard
+                    name={player.name}
+                    role={player.role}
+                    image={player.image}
+                    game={player.game}
+                    achievements={player.achievements}
+                    socialLinks={player.socialLinks}
+                  />
+                </div>
               </AnimatedSection>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        </AnimatedSection>
       </div>
     </div>
   );
 }
+

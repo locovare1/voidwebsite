@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { TrashIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import CheckoutModal from '@/components/CheckoutModal';
+import AdPlaceholder from '@/components/AdPlaceholder';
 
 export default function CartPage() {
   const { items, total, updateQuantity, removeItem, clearCart } = useCart();
@@ -19,6 +20,11 @@ export default function CartPage() {
     return (
       <div className="pt-20 min-h-screen bg-[#0F0F0F]">
         <div className="container mx-auto px-4 py-12">
+          {/* Ad Spot - Banner at top */}
+          <div className="mb-8">
+            <AdPlaceholder size="banner" />
+          </div>
+
           <div className="text-center">
             <div className="max-w-md mx-auto">
               <div className="text-gray-400 mb-8">
@@ -35,6 +41,11 @@ export default function CartPage() {
               </Link>
             </div>
           </div>
+
+          {/* Ad Spot - Banner at bottom */}
+          <div className="mt-12">
+            <AdPlaceholder size="banner" />
+          </div>
         </div>
       </div>
     );
@@ -43,6 +54,11 @@ export default function CartPage() {
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F]">
       <div className="container mx-auto px-4 py-12">
+        {/* Ad Spot - Banner at top */}
+        <div className="mb-8">
+          <AdPlaceholder size="banner" />
+        </div>
+
         <div className="mb-8">
           <h1 className="text-4xl font-bold gradient-text mb-2">Shopping Cart</h1>
           <p className="text-gray-400">Review your items and proceed to checkout</p>
@@ -196,6 +212,11 @@ export default function CartPage() {
             image: item.image,
           }))}
         />
+
+        {/* Ad Spot - Banner at bottom */}
+        <div className="mt-12">
+          <AdPlaceholder size="banner" />
+        </div>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { useCart } from '@/contexts/CartContext';
+import AdPlaceholder from '@/components/AdPlaceholder';
 
 export default function PaymentSuccessPage() {
   const { clearCart } = useCart();
@@ -15,6 +16,11 @@ export default function PaymentSuccessPage() {
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F]">
       <div className="container mx-auto px-4 py-12">
+        {/* Ad Spot - Banner at top */}
+        <div className="mb-8">
+          <AdPlaceholder size="banner" />
+        </div>
+
         <div className="text-center max-w-md mx-auto">
           <div className="text-green-400 mb-8">
             <svg className="w-24 h-24 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,6 +40,11 @@ export default function PaymentSuccessPage() {
             <Link href="/" className="block text-gray-400 hover:text-white transition-colors duration-300">
               Back to Home
             </Link>
+          </div>
+
+          {/* Ad Spot - Banner at bottom */}
+          <div className="mt-12">
+            <AdPlaceholder size="banner" />
           </div>
         </div>
       </div>

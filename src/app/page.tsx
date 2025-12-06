@@ -9,9 +9,11 @@ import ProductCard from "@/components/ProductCard";
 import { newsService, type NewsArticle } from "@/lib/newsService";
 import { youtubeService, type YouTubeVideo } from "@/lib/youtubeService";
 import { productService, type Product } from "@/lib/productService";
-import { PlayIcon } from "@heroicons/react/24/solid";
+import { PlayIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
+import AdPlaceholder from "@/components/AdPlaceholder";
 
 type DisplayArticle = {
+  id?: string;
   title: string;
   date: string;
   image: string;
@@ -40,6 +42,7 @@ export default function Home() {
         if (articles && articles.length > 0) {
           // Get latest 5 articles and convert to display format
           const latest5 = articles.slice(0, 5).map((article: NewsArticle) => ({
+            id: article.id,
             title: article.title,
             date: (article.date as any)?.toDate ? (article.date as any).toDate().toISOString().slice(0, 10) : '',
             image: article.image,
@@ -158,6 +161,18 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [latestNews]);
 
+  const goToNext = () => {
+    setNewsIndex((prev) => (prev + 1) % latestNews.length);
+  };
+
+  const goToPrev = () => {
+    setNewsIndex((prev) => (prev - 1 + latestNews.length) % latestNews.length);
+  };
+
+  const goToArticle = (index: number) => {
+    setNewsIndex(index);
+  };
+
 
   return (
     <div className="min-h-screen relative">
@@ -166,28 +181,74 @@ export default function Home() {
       {/* Hero News Carousel */}
       <section className="relative h-[70vh] sm:h-[80vh] lg:h-screen w-full overflow-hidden">
         {latestNews.length > 0 && (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={newsIndex}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1 }}
-              className="absolute inset-0 w-full h-full flex"
-            >
-              <Image src={latestNews[newsIndex].image} alt={latestNews[newsIndex].title} fill className="object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30 sm:bg-gradient-to-r sm:from-black/80 sm:via-black/50 sm:to-transparent"></div>
-              <div className="absolute inset-0 flex items-end sm:items-center px-4 pb-8 sm:px-8 md:px-16 lg:px-24">
-                <div className="max-w-xl text-left w-full">
-                  <p className="text-xs sm:text-sm text-gray-300 mb-2">{latestNews[newsIndex].date}</p>
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 leading-tight">{latestNews[newsIndex].title}</h1>
-                  <p className="text-sm sm:text-base md:text-lg text-gray-200 mb-4 sm:mb-6 line-clamp-3 sm:line-clamp-none">{latestNews[newsIndex].description}</p>
-                  <Link href="/news" className="void-button pulse-glow text-sm sm:text-base inline-block min-h-[44px] flex items-center justify-center px-6">Read More</Link>
+          <>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={newsIndex}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1 }}
+                className="absolute inset-0 w-full h-full flex"
+              >
+                <Image src={latestNews[newsIndex].image} alt={latestNews[newsIndex].title} fill className="object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30 sm:bg-gradient-to-r sm:from-black/80 sm:via-black/50 sm:to-transparent"></div>
+                <div className="absolute inset-0 flex items-end sm:items-center px-4 pb-8 sm:px-8 md:px-16 lg:px-24">
+                  <div className="max-w-xl text-left w-full">
+                    <p className="text-xs sm:text-sm text-gray-300 mb-2">{latestNews[newsIndex].date}</p>
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 leading-tight">{latestNews[newsIndex].title}</h1>
+                    <p className="text-sm sm:text-base md:text-lg text-gray-200 mb-4 sm:mb-6 line-clamp-3 sm:line-clamp-none">{latestNews[newsIndex].description}</p>
+                    <Link href={latestNews[newsIndex].id ? `/news?id=${latestNews[newsIndex].id}` : "/news"} className="void-button pulse-glow text-sm sm:text-base inline-block min-h-[44px] flex items-center justify-center px-6">Read More</Link>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Navigation Controls */}
+            {latestNews.length > 1 && (
+              <>
+                {/* Previous/Next Buttons */}
+                <button
+                  onClick={goToPrev}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-all border border-white/10 hover:border-white/20"
+                  aria-label="Previous article"
+                >
+                  <ChevronLeftIcon className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={goToNext}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-all border border-white/10 hover:border-white/20"
+                  aria-label="Next article"
+                >
+                  <ChevronRightIcon className="w-6 h-6" />
+                </button>
+
+                {/* Dot Indicators */}
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+                  {latestNews.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => goToArticle(index)}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        index === newsIndex
+                          ? 'bg-white w-8'
+                          : 'bg-white/40 hover:bg-white/60'
+                      }`}
+                      aria-label={`Go to article ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </>
         )}
+      </section>
+
+      {/* Ad Spot 1 - Banner after Hero */}
+      <section className="py-6 bg-[#0F0F0F]">
+        <div className="void-container">
+          <AdPlaceholder size="banner" />
+        </div>
       </section>
 
       {/* Store Grid - Static */}
@@ -253,6 +314,13 @@ export default function Home() {
               </p>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Ad Spot 2 - Rectangle between Store and Videos */}
+      <section className="py-8 bg-[#0F0F0F]">
+        <div className="void-container">
+          <AdPlaceholder size="rectangle" />
         </div>
       </section>
 

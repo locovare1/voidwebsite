@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import AnimatedSection from '@/components/AnimatedSection';
 import NewsArticleModal from '@/components/NewsArticleModal';
+import AdPlaceholder from '@/components/AdPlaceholder';
 import { newsService, type NewsArticle as FSNews } from '@/lib/newsService';
 
 type DisplayArticle = {
+  id?: string;
   title: string;
   date: string; // YYYY-MM-DD
   image: string;
@@ -17,6 +20,8 @@ type DisplayArticle = {
 };
 
 export default function NewsPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [articles, setArticles] = useState<DisplayArticle[]>([]);
   const [selectedArticle, setSelectedArticle] = useState<DisplayArticle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,6 +41,7 @@ export default function NewsPage() {
             }
             
             return {
+              id: a.id,
               title: a.title,
               date: (a.date as any)?.toDate ? (a.date as any).toDate().toISOString().slice(0,10) : '',
               image: imageUrl,
@@ -126,6 +132,18 @@ export default function NewsPage() {
     return () => { mounted = false; };
   }, []);
 
+  // Handle query parameter to open specific article
+  useEffect(() => {
+    const articleId = searchParams?.get('id');
+    if (articleId && articles.length > 0) {
+      const article = articles.find(a => a.id === articleId);
+      if (article) {
+        setSelectedArticle(article);
+        setIsModalOpen(true);
+      }
+    }
+  }, [searchParams, articles]);
+
   const upcomingEvents = articles.filter(a => a.isEvent && a.eventDate && new Date(a.eventDate) > new Date());
   const regularArticles = articles.filter(a => !a.isEvent || !a.eventDate || new Date(a.eventDate) <= new Date());
 
@@ -137,6 +155,10 @@ export default function NewsPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedArticle(null);
+    // Clear the query parameter when closing modal
+    if (searchParams?.get('id')) {
+      router.push('/news', { scroll: false });
+    }
   };
 
   return (
@@ -147,15 +169,20 @@ export default function NewsPage() {
             Latest News
           </h1>
         </AnimatedSection>
+
+        {/* Ad Spot - Banner at top of news page */}
+        <div className="mb-8">
+          <AdPlaceholder size="banner" />
+        </div>
         
         {/* Upcoming Events Section */}
         {upcomingEvents.length > 0 && (
           <AnimatedSection animationType="fadeIn" delay={150}>
             <div className="mb-12">
               <h2 className="text-2xl sm:text-3xl font-bold mb-6 gradient-text">Upcoming Events</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
                 {upcomingEvents.map((article, index) => (
-                  <AnimatedSection key={article.title} animationType="slideUp" delay={index * 100}>
+                  <AnimatedSection key={article.id || article.title} animationType="slideUp" delay={index * 100}>
                     <div 
                       className="void-card group cursor-pointer transition-transform duration-300 hover:-translate-y-1 border-2 border-purple-500/30 relative"
                       onClick={() => handleArticleClick(article)}
@@ -165,14 +192,14 @@ export default function NewsPage() {
                           Upcoming Event
                         </span>
                       </div>
-                      <div className="relative h-40 sm:h-48 mb-3 sm:mb-4 overflow-hidden rounded-lg">
+                      <div className="relative h-64 sm:h-80 mb-4 overflow-hidden rounded-lg">
                         {article.image && (article.image.startsWith('/') || article.image.startsWith('http://') || article.image.startsWith('https://')) ? (
                           <Image
                             src={article.image}
                             alt={article.title}
                             fill
                             className="object-cover transform group-hover:scale-110 transition-transform duration-300"
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 50vw"
                           />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-purple-900/20 to-black flex items-center justify-center">
@@ -181,7 +208,7 @@ export default function NewsPage() {
                         )}
                       </div>
                       
-                      <div className="space-y-2 sm:space-y-3">
+                      <div className="space-y-3">
                         <div className="flex justify-between items-center text-xs sm:text-sm text-gray-400">
                           <span>{article.eventDate || article.date}</span>
                           <span className="px-2 py-1 bg-[#FFFFFF]/20 rounded-full text-[#FFFFFF] text-xs">
@@ -189,9 +216,13 @@ export default function NewsPage() {
                           </span>
                         </div>
                         
-                        <h2 className="text-lg sm:text-xl font-bold group-hover:text-[#a2a2a2] transition-colors line-clamp-2">
+                        <h2 className="text-xl sm:text-2xl font-bold group-hover:text-[#a2a2a2] transition-colors">
                           {article.title}
                         </h2>
+                        
+                        <p className="text-sm sm:text-base text-gray-300 line-clamp-3">
+                          {article.description}
+                        </p>
                         
                         <p className="text-sm sm:text-base text-purple-400 font-medium group-hover:text-purple-300 transition-colors">
                           Click to read more →
@@ -205,54 +236,86 @@ export default function NewsPage() {
           </AnimatedSection>
         )}
         
+        {/* Ad Spot - Banner between sections */}
+        {upcomingEvents.length > 0 && (
+          <div className="mb-8">
+            <AdPlaceholder size="banner" />
+          </div>
+        )}
+        
         {/* Regular News Section */}
         <AnimatedSection animationType="fadeIn" delay={200}>
           {upcomingEvents.length > 0 && (
             <h2 className="text-2xl sm:text-3xl font-bold mb-6 gradient-text">Latest News</h2>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {regularArticles.map((article, index) => (
-            <AnimatedSection key={article.title} animationType="slideUp" delay={index * 100}>
-              <div 
-                className="void-card group cursor-pointer transition-transform duration-300 hover:-translate-y-1"
-                onClick={() => handleArticleClick(article)}
-              >
-                <div className="relative h-40 sm:h-48 mb-3 sm:mb-4 overflow-hidden rounded-lg">
-                  {article.image && (article.image.startsWith('/') || article.image.startsWith('http://') || article.image.startsWith('https://')) ? (
-                    <Image
-                      src={article.image}
-                      alt={article.title}
-                      fill
-                      className="object-cover transform group-hover:scale-110 transition-transform duration-300"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-purple-900/20 to-black flex items-center justify-center">
-                      <span className="text-gray-500 text-xs">No Image</span>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="space-y-2 sm:space-y-3">
-                  <div className="flex justify-between items-center text-xs sm:text-sm text-gray-400">
-                    <span>{article.date}</span>
-                    <span className="px-2 py-1 bg-[#FFFFFF]/20 rounded-full text-[#FFFFFF] text-xs">
-                      {article.category}
-                    </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+            {regularArticles.flatMap((article, index) => {
+              const items: React.ReactNode[] = [];
+              
+              // Add ad before article if needed (after every 4th article)
+              if (index > 0 && index % 4 === 0) {
+                items.push(
+                  <div key={`ad-${index}`} className="sm:col-span-2 mb-4">
+                    <AdPlaceholder size="banner" />
                   </div>
-                  
-                  <h2 className="text-lg sm:text-xl font-bold group-hover:text-[#a2a2a2] transition-colors line-clamp-2">
-                    {article.title}
-                  </h2>
-                  
-                  <p className="text-sm sm:text-base text-purple-400 font-medium group-hover:text-purple-300 transition-colors">
-                    Click to read more →
-                  </p>
-                </div>
-              </div>
-            </AnimatedSection>
-          ))}
-        </div>
+                );
+              }
+              
+              // Add the article
+              items.push(
+                <AnimatedSection key={article.id || article.title} animationType="slideUp" delay={index * 100}>
+                  <div 
+                    className="void-card group cursor-pointer transition-transform duration-300 hover:-translate-y-1"
+                    onClick={() => handleArticleClick(article)}
+                  >
+                    <div className="relative h-64 sm:h-80 mb-4 overflow-hidden rounded-lg">
+                      {article.image && (article.image.startsWith('/') || article.image.startsWith('http://') || article.image.startsWith('https://')) ? (
+                        <Image
+                          src={article.image}
+                          alt={article.title}
+                          fill
+                          className="object-cover transform group-hover:scale-110 transition-transform duration-300"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 50vw"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-purple-900/20 to-black flex items-center justify-center">
+                          <span className="text-gray-500 text-xs">No Image</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center text-xs sm:text-sm text-gray-400">
+                        <span>{article.date}</span>
+                        <span className="px-2 py-1 bg-[#FFFFFF]/20 rounded-full text-[#FFFFFF] text-xs">
+                          {article.category}
+                        </span>
+                      </div>
+                      
+                      <h2 className="text-xl sm:text-2xl font-bold group-hover:text-[#a2a2a2] transition-colors">
+                        {article.title}
+                      </h2>
+                      
+                      <p className="text-sm sm:text-base text-gray-300 line-clamp-3">
+                        {article.description}
+                      </p>
+                      
+                      <p className="text-sm sm:text-base text-purple-400 font-medium group-hover:text-purple-300 transition-colors">
+                        Click to read more →
+                      </p>
+                    </div>
+                  </div>
+                </AnimatedSection>
+              );
+              
+              return items;
+            })}
+          </div>
+          
+          {/* Ad Spot - Banner at bottom of news section */}
+          <div className="mt-12">
+            <AdPlaceholder size="banner" />
+          </div>
         </AnimatedSection>
       </div>
 

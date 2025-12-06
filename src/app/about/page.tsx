@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import AnimatedSection from '@/components/AnimatedSection';
 import Link from 'next/link';
+import AdPlaceholder from '@/components/AdPlaceholder';
 import { AnimatedHeroSection, AnimatedCard, StaggeredList, StaggeredItem, ParallaxText, FadeInSection } from '@/components/FramerAnimations';
 
 const values = [
@@ -10,7 +11,7 @@ const values = [
   },
   {
     title: 'Innovation',
-    description: 'We push our players to higher standards and help them become the best versions of themselves.',
+    description: 'We push our players to higher standards and help them become the best versions of themselves on all fronts.',
   },
   {
     title: 'Community',
@@ -22,18 +23,15 @@ const values = [
   },
 ];
 
-const achievements = [
-  'Sign 2 more Fortnite professionals',
-  'Have a player compete in FNCS Grand Finals',
-  'Have a player compete at a LAN event',
-  'Grow our community and content presence',
-  'Win an organization-hosted tournament',
-];
-
 export default function AboutPage() {
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F]">
       <div className="void-container py-12">
+        {/* Ad Spot - Banner at top */}
+        <div className="mb-8">
+          <AdPlaceholder size="banner" />
+        </div>
+
         {/* Hero Section */}
         <AnimatedHeroSection>
           <div className="text-center mb-16">
@@ -42,7 +40,7 @@ export default function AboutPage() {
             </ParallaxText>
             <FadeInSection>
               <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-                A professional esports organization dedicated to excellence, innovation, and community building in competitive gaming.
+              A professional esports organization shooting for excellence and innovation in all aspects of gaming. Void isn't a clan, we are the future.
               </p>
             </FadeInSection>
           </div>
@@ -63,10 +61,10 @@ export default function AboutPage() {
               <div className="space-y-4">
                 <h2 className="text-3xl font-bold gradient-text">Our Mission</h2>
                 <p className="text-gray-300">
-                  At Void, we are driven to redefine the standards of excellence in esports. Our mission is to find new talent, improve it,  and lead them to success . With that we will create content and cultivate a thriving community that celebrates success in gaming.
+                  At Void, we are focused on redefining the standards in the esports industry. Our mission here is to find talent and give it the platform they need to shoot for the stars. We create Content to let every person view the excellence and community we have here at Void. Void holds pride in the community we have cultivated over the years and want all of you to experience it.
                 </p>
                 <p className="text-gray-300">
-                  Through experience, coaching and practice we will lead our players to success and give them their best possible opportunity to win major events in the near future
+                  Through experience, coaching, and practice we lead our players into an environment to succeed on all fronts from competitive too content creation. Void doesn't just exist in a endless Void- we shoot through it like a hand chasing a shooting star. 
                 </p>
               </div>
             </div>
@@ -90,23 +88,13 @@ export default function AboutPage() {
           </div>
         </AnimatedSection>
 
-        {/* Achievements */}
-        <AnimatedSection animationType="slideUp" delay={250}>
-          <AnimatedCard className="void-card">
-            <h2 className="text-3xl font-bold mb-8 gradient-text">Our Goals</h2>
-            <ul className="grid gap-4">
-              {achievements.map((achievement) => (
-                <li key={achievement} className="flex items-center gap-3 text-gray-300">
-                  <span className="h-2 w-2 rounded-full bg-[#a2a2a2]" />
-                  {achievement}
-                </li>
-              ))}
-            </ul>
-          </AnimatedCard>
-        </AnimatedSection>
+        {/* Ad Spot - Banner before CTA */}
+        <div className="mt-16 mb-8">
+          <AdPlaceholder size="banner" />
+        </div>
 
         {/* CTA Section */}
-        <div className="mt-16 text-center">
+        <div className="mt-8 text-center">
           <h2 className="text-2xl font-bold mb-6 text-white">Join the Void Community</h2>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/teams" className="void-button">
@@ -116,6 +104,11 @@ export default function AboutPage() {
               Contact Us
             </Link>
           </div>
+        </div>
+
+        {/* Ad Spot - Banner at bottom */}
+        <div className="mt-16">
+          <AdPlaceholder size="banner" />
         </div>
       </div>
     </div>

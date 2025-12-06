@@ -47,7 +47,9 @@ export default function AdminPanelPage() {
       console.error('Login error:', err);
       let errorMessage = 'Invalid credentials';
       
-      if (err.code === 'auth/user-not-found') {
+      if (err.code === 'auth/invalid-credential') {
+        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (err.code === 'auth/user-not-found') {
         errorMessage = 'No user found with this email';
       } else if (err.code === 'auth/wrong-password') {
         errorMessage = 'Incorrect password';
@@ -55,6 +57,10 @@ export default function AdminPanelPage() {
         errorMessage = 'Invalid email format';
       } else if (err.code === 'auth/too-many-requests') {
         errorMessage = 'Too many failed attempts. Try again later.';
+      } else if (err.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your connection.';
+      } else if (err.message) {
+        errorMessage = err.message;
       }
       
       setError(errorMessage);

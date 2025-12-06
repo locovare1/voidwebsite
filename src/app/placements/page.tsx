@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import PlacementGrid from '@/components/PlacementGrid';
+import AdPlaceholder from '@/components/AdPlaceholder';
 import { ParallaxText, AnimatedCard, ScrollProgress, FadeInSection } from '@/components/FramerAnimations';
 import { placementService } from '@/lib/placementService';
 
@@ -139,6 +140,11 @@ export default function Placements() {
     <div className="min-h-screen bg-[#0F0F0F] pt-20 sm:pt-24 pb-16 sm:pb-20">
       <ScrollProgress />
       <div className="void-container">
+        {/* Ad Spot - Banner at top */}
+        <div className="mb-8">
+          <AdPlaceholder size="banner" />
+        </div>
+
         <div className="text-center mb-8 sm:mb-12">
           <ParallaxText speed={0.2}>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4">
@@ -171,8 +177,18 @@ export default function Placements() {
           </div>
         </AnimatedCard>
 
+        {/* Ad Spot - Banner before placements */}
+        <div className="mb-8">
+          <AdPlaceholder size="banner" />
+        </div>
+
         <div>
           <PlacementGrid placements={filteredPlacements} itemsPerPage={6} />
+        </div>
+
+        {/* Ad Spot - Banner at bottom */}
+        <div className="mt-12">
+          <AdPlaceholder size="banner" />
         </div>
       </div>
     </div>

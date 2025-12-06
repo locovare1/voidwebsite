@@ -54,7 +54,7 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen bg-gray-900">
       <Navbar />
-      <main className="p-6 overflow-y-auto">
+      <main className="pt-24 p-6 overflow-y-auto">
         {children}
       </main>
     </div>

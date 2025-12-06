@@ -13,6 +13,8 @@ import { teamService, Team, Player } from '@/lib/teamService';
 import { ambassadorService, Ambassador } from '@/lib/ambassadorService';
 import { AnimatedCard } from '@/components/FramerAnimations';
 import { processExternalImageUrl } from '@/lib/imageUtils';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 import {
   TrashIcon,
@@ -34,7 +36,9 @@ import {
   ChartPieIcon,
   UserGroupIcon,
   LinkIcon,
-  EnvelopeIcon
+  EnvelopeIcon,
+  UserPlusIcon,
+  KeyIcon
 } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 
@@ -52,7 +56,15 @@ export default function AdminDashboard() {
   const { orders, updateOrderStatus, deleteOrder } = useOrders();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'products' | 'teams' | 'ambassadors' | 'news' | 'placements' | 'schedule' | 'socials'>('products');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'teams' | 'ambassadors' | 'news' | 'placements' | 'schedule' | 'socials' | 'users'>('dashboard');
+  
+  // User management state
+  const [adminUsers, setAdminUsers] = useState<any[]>([]);
+  const [showCreateUser, setShowCreateUser] = useState(false);
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [creatingUser, setCreatingUser] = useState(false);
 
   // Team management state
   const [teams, setTeams] = useState<Team[]>([]);
@@ -155,7 +167,69 @@ export default function AdminDashboard() {
     };
 
     loadData();
+    
+    // Get current user
+    if (auth) {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        setCurrentUser(user);
+      });
+      return () => unsubscribe();
+    }
   }, []);
+
+  const handleCreateUser = async () => {
+    if (!auth || !currentUser) {
+      alert('You must be logged in to create users');
+      return;
+    }
+    
+    if (!newUserEmail || !newUserPassword) {
+      alert('Please enter both email and password');
+      return;
+    }
+    
+    if (newUserPassword.length < 6) {
+      alert('Password must be at least 6 characters');
+      return;
+    }
+    
+    setCreatingUser(true);
+    const originalEmail = currentUser.email;
+    
+    try {
+      // Create the new user (this will automatically sign them in)
+      const userCredential = await createUserWithEmailAndPassword(auth, newUserEmail, newUserPassword);
+      console.log('User created:', userCredential.user.email);
+      
+      // Immediately sign out the newly created user
+      await signOut(auth);
+      
+      alert(`User ${newUserEmail} created successfully! They can now log in with their credentials. You will need to log back in.`);
+      setNewUserEmail('');
+      setNewUserPassword('');
+      setShowCreateUser(false);
+      
+      // Redirect to login page
+      window.location.href = '/adminpanel';
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      let errorMessage = 'Failed to create user';
+      
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email is already registered';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email format';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(errorMessage);
+    } finally {
+      setCreatingUser(false);
+    }
+  };
 
   // Reload products when they're updated
   const reloadProducts = async () => {
@@ -684,6 +758,7 @@ export default function AdminDashboard() {
         <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-1">
           <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
             {[
+              { id: 'dashboard', label: 'Dashboard', icon: ChartBarIcon, link: '/adminpanel/dashboard' },
               { id: 'products', label: 'Products', icon: UserIcon },
               { id: 'teams', label: 'Teams', icon: UserIcon },
               { id: 'ambassadors', label: 'Ambassadors', icon: UserGroupIcon },
@@ -691,19 +766,36 @@ export default function AdminDashboard() {
               { id: 'placements', label: 'Placements', icon: TrophyIcon },
               { id: 'schedule', label: 'Schedule', icon: CalendarIcon },
               { id: 'socials', label: 'Socials', icon: LinkIcon },
+              { id: 'users', label: 'Users', icon: UserPlusIcon },
             ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-300 whitespace-nowrap text-sm sm:text-base ${activeTab === tab.id
-                  ? 'bg-[#FFFFFF] text-black'
-                  : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]'
+              tab.link ? (
+                <button
+                  key={tab.id}
+                  onClick={() => router.push(tab.link!)}
+                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-300 whitespace-nowrap text-sm sm:text-base ${
+                    activeTab === tab.id
+                      ? 'bg-[#FFFFFF] text-black'
+                      : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]'
                   }`}
-              >
-                <tab.icon className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
-              </button>
+                >
+                  <tab.icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                </button>
+              ) : (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-300 whitespace-nowrap text-sm sm:text-base ${activeTab === tab.id
+                    ? 'bg-[#FFFFFF] text-black'
+                    : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]'
+                    }`}
+                >
+                  <tab.icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                </button>
+              )
             ))}
           </div>
         </div>
@@ -931,6 +1023,95 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* Users Tab */}
+        {activeTab === 'users' && (
+          <div className="space-y-6">
+            <AnimatedCard className="admin-card p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <UserPlusIcon className="w-6 h-6" />
+                  Admin User Management
+                </h2>
+                <button
+                  onClick={() => setShowCreateUser(!showCreateUser)}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
+                >
+                  <UserPlusIcon className="w-4 h-4" />
+                  {showCreateUser ? 'Cancel' : 'Create New User'}
+                </button>
+              </div>
+
+              {showCreateUser && (
+                <div className="bg-[#0F0F0F] rounded-lg p-6 border border-[#2A2A2A] mb-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">Create New Admin User</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={newUserEmail}
+                        onChange={(e) => setNewUserEmail(e.target.value)}
+                        className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
+                        placeholder="user@example.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Password (minimum 6 characters)
+                      </label>
+                      <input
+                        type="password"
+                        value={newUserPassword}
+                        onChange={(e) => setNewUserPassword(e.target.value)}
+                        className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
+                        placeholder="Enter password"
+                      />
+                    </div>
+                    <button
+                      onClick={handleCreateUser}
+                      disabled={creatingUser}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {creatingUser ? 'Creating...' : 'Create User'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-[#0F0F0F] rounded-lg p-6 border border-[#2A2A2A]">
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <KeyIcon className="w-5 h-5" />
+                  Current User
+                </h3>
+                {currentUser ? (
+                  <div className="space-y-2">
+                    <p className="text-gray-300">
+                      <span className="font-medium">Email:</span> {currentUser.email}
+                    </p>
+                    <p className="text-gray-400 text-sm">
+                      <span className="font-medium">User ID:</span> {currentUser.uid}
+                    </p>
+                    <p className="text-gray-400 text-sm">
+                      All authenticated Firebase users can access the admin panel. Create new users above to give them access.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-gray-400">Not logged in</p>
+                )}
+              </div>
+
+              <div className="mt-6 p-4 bg-blue-900/20 border border-blue-500/20 rounded-lg">
+                <p className="text-blue-300 text-sm">
+                  <strong>Note:</strong> All users created here will have full admin access to the admin panel. 
+                  Make sure to only create accounts for trusted team members. Each user will need to log in with 
+                  their own email and password at the admin panel login page.
+                </p>
+              </div>
+            </AnimatedCard>
+          </div>
+        )}
 
         {/* Products Tab */}
         {activeTab === 'products' && (

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import AnimatedSection from '@/components/AnimatedSection';
 import PlayerCard from '@/components/PlayerCard';
+import AdPlaceholder from '@/components/AdPlaceholder';
 import { ambassadorService, type Ambassador } from '@/lib/ambassadorService';
 
 export default function AmbassadorsPage() {
@@ -32,6 +33,10 @@ export default function AmbassadorsPage() {
       <meta name="description" content="Join the Void Outreach Program and become an official brand ambassador! Help Void grow in every game you play." />
 
       <div className="void-container py-8 sm:py-12">
+        {/* Ad Spot - Banner at top */}
+        <div className="mb-8">
+          <AdPlaceholder size="banner" />
+        </div>
 
         {/* Hero Section */}
         <AnimatedSection animationType="fadeIn" delay={100}>
@@ -129,6 +134,11 @@ export default function AmbassadorsPage() {
           </div>
         </div>
 
+        {/* Ad Spot - Banner before ambassadors */}
+        <div className="mb-12">
+          <AdPlaceholder size="banner" />
+        </div>
+
         {/* Current Ambassadors Section */}
         <div className="mb-20">
           <AnimatedSection animationType="fadeIn" delay={200}>
@@ -161,6 +171,11 @@ export default function AmbassadorsPage() {
           </div>
         </div>
 
+        {/* Ad Spot - Banner before CTA */}
+        <div className="mb-12">
+          <AdPlaceholder size="banner" />
+        </div>
+
         {/* Final CTA */}
         <AnimatedSection animationType="scale" delay={200}>
           <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-2xl p-8 md:p-12 text-center border border-white/10 relative overflow-hidden">
@@ -179,6 +194,11 @@ export default function AmbassadorsPage() {
             </div>
           </div>
         </AnimatedSection>
+
+        {/* Ad Spot - Banner at bottom */}
+        <div className="mt-12">
+          <AdPlaceholder size="banner" />
+        </div>
 
       </div>
     </div>

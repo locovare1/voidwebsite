@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import AdPlaceholder from '@/components/AdPlaceholder';
 import { AnimatedHeroSection, AnimatedCard, StaggeredList, StaggeredItem, FadeInSection } from '@/components/FramerAnimations';
 
 export default function CareersPage() {
@@ -17,6 +18,13 @@ export default function CareersPage() {
       <meta property="og:image" content="https://www.voidesports.org/logo.png " />
 
       <main className="min-h-screen bg-black text-gray-100">
+        {/* Ad Spot - Banner at top */}
+        <div className="pt-20 pb-8 px-6">
+          <div className="max-w-7xl mx-auto">
+            <AdPlaceholder size="banner" />
+          </div>
+        </div>
+
         {/* Hero Section */}
         <section className="py-16 md:py-24 bg-black flex flex-col items-center justify-center min-h-[500px]">
           <AnimatedHeroSection>
@@ -80,6 +88,13 @@ export default function CareersPage() {
           </div>
         </section>
 
+        {/* Ad Spot - Banner before CTA */}
+        <div className="py-8 px-6 bg-[#0F0F0F]">
+          <div className="max-w-7xl mx-auto">
+            <AdPlaceholder size="banner" />
+          </div>
+        </div>
+
         {/* CTA Section */}
         <section className="py-16 px-6 bg-[#0F0F0F]">
           <div className="max-w-3xl mx-auto">
@@ -97,6 +112,13 @@ export default function CareersPage() {
             </AnimatedCard>
           </div>
         </section>
+
+        {/* Ad Spot - Banner at bottom */}
+        <div className="py-8 px-6 bg-black">
+          <div className="max-w-7xl mx-auto">
+            <AdPlaceholder size="banner" />
+          </div>
+        </div>
 
         {/* Footer Note */}
         <footer className="text-center text-sm text-gray-600 py-8">

@@ -28,6 +28,7 @@ export interface Player {
     twitter?: string;
     twitch?: string;
     instagram?: string;
+    youtube?: string;
   };
 }
 

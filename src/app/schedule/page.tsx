@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import AnimatedSection from '@/components/AnimatedSection';
+import AdPlaceholder from '@/components/AdPlaceholder';
 import { scheduleService, type Match, type Event } from '@/lib/scheduleService';
 
 const fallbackMatches = [
@@ -74,6 +75,11 @@ export default function SchedulePage() {
   return (
     <div className="pt-20 min-h-screen bg-[#0F0F0F]">
       <div className="void-container py-8 sm:py-12">
+        {/* Ad Spot - Banner at top */}
+        <div className="mb-8">
+          <AdPlaceholder size="banner" />
+        </div>
+
         <AnimatedSection animationType="fadeIn" delay={100}>
           <h1 className="text-3xl sm:text-4xl font-bold mb-8 sm:mb-12 gradient-text text-center">Schedule</h1>
         </AnimatedSection>
@@ -121,6 +127,11 @@ export default function SchedulePage() {
         </div>
         </AnimatedSection>
         
+        {/* Ad Spot - Banner between sections */}
+        <div className="my-8">
+          <AdPlaceholder size="banner" />
+        </div>
+
         {/* Upcoming Events */}
         <AnimatedSection animationType="slideUp" delay={250}>
         <div>
@@ -163,6 +174,11 @@ export default function SchedulePage() {
           </div>
         </div>
         </AnimatedSection>
+
+        {/* Ad Spot - Banner at bottom */}
+        <div className="mt-12">
+          <AdPlaceholder size="banner" />
+        </div>
       </div>
     </div>
   );

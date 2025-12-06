@@ -74,14 +74,6 @@ export default function Footer() {
                   </Link>
                 </li>
               ))}
-              <li>
-                <Link
-                  href="/track-order"
-                  className="text-sm sm:text-base text-gray-400 hover:text-purple-300 transition-colors inline-block min-h-[44px] flex items-center"
-                >
-                  Track Order
-                </Link>
-              </li>
             </ul>
           </div>
 

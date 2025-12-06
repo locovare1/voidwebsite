@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ProductGrid from '@/components/ProductGrid';
+import AdPlaceholder from '@/components/AdPlaceholder';
 import { products as fallbackProducts } from '@/data/products';
 import { productService, type Product as FSProduct } from '@/lib/productService';
 
@@ -74,6 +75,12 @@ export default function ShopPage() {
             Discover official VOID merchandise including apparel, accessories, and gaming gear for true esports enthusiasts.
           </p>
         </div>
+
+        {/* Ad Spot - Banner at top of shop */}
+        <div className="mb-8">
+          <AdPlaceholder size="banner" />
+        </div>
+
         <ProductGrid products={products} itemsPerPage={12} />
       </div>
     </div>
