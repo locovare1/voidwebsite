@@ -38,22 +38,62 @@ export const uploadService = {
       
       console.log('Upload timeout set to:', uploadTimeout / 1000, 'seconds');
       
-      // Upload file
-      let uploadTask: Promise<any>;
+      // Upload file with timeout handling
+      let timeoutHandle: NodeJS.Timeout | null = null;
+      let timeoutRejected = false;
+      
       try {
-        uploadTask = uploadBytes(storageRef, file);
+        const uploadPromise = uploadBytes(storageRef, file);
         
-        // Wait for upload with timeout
-        await Promise.race([
-          uploadTask,
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Upload timeout - the file may be too large or there is a network issue')), uploadTimeout)
-          )
-        ]);
-      } catch (uploadError) {
-        console.error('Upload error:', uploadError);
+        // Set up timeout
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutHandle = setTimeout(() => {
+            timeoutRejected = true;
+            reject(new Error('Upload timeout - the file may be too large or there is a network issue'));
+          }, uploadTimeout);
+        });
+        
+        // Wait for either upload or timeout
+        await Promise.race([uploadPromise, timeoutPromise]);
+        
+        // Clear timeout if upload succeeded
+        if (timeoutHandle) {
+          clearTimeout(timeoutHandle);
+        }
+      } catch (uploadError: any) {
+        // Clear timeout if it was set
+        if (timeoutHandle) {
+          clearTimeout(timeoutHandle);
+        }
+        
+        console.error('Upload error caught:', uploadError);
+        console.error('Error type:', typeof uploadError);
+        console.error('Error constructor:', uploadError?.constructor?.name);
+        console.error('Error keys:', Object.keys(uploadError || {}));
+        
+        // Try to extract all error properties
+        const errorDetails: any = {
+          message: uploadError?.message || String(uploadError),
+          name: uploadError?.name,
+          code: uploadError?.code,
+          serverResponse: uploadError?.serverResponse,
+          stack: uploadError?.stack
+        };
+        
+        // Try to get all properties (including non-enumerable)
+        if (uploadError) {
+          try {
+            errorDetails.allProperties = Object.getOwnPropertyNames(uploadError);
+            errorDetails.toString = uploadError.toString();
+          } catch (e) {
+            console.error('Error extracting properties:', e);
+          }
+        }
+        
+        console.error('Full error details:', errorDetails);
+        
         // Check if it's a timeout or other error
-        if (uploadError instanceof Error && uploadError.message.includes('timeout')) {
+        if (timeoutRejected || (uploadError instanceof Error && uploadError.message.includes('timeout'))) {
           throw uploadError;
         }
         throw uploadError;
@@ -71,31 +111,56 @@ export const uploadService = {
       
       console.log('Download URL obtained:', downloadURL);
       return downloadURL;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      console.error('Full error object:', {
-        message: error instanceof Error ? error.message : String(error),
-        code: (error as any)?.code,
-        serverResponse: (error as any)?.serverResponse,
-        stack: error instanceof Error ? error.stack : undefined
-      });
+    } catch (error: any) {
+      console.error('Error uploading image (outer catch):', error);
+      console.error('Error type:', typeof error);
+      console.error('Error constructor:', error?.constructor?.name);
+      
+      // Extract all possible error information
+      const errorInfo: any = {
+        message: error?.message || String(error),
+        name: error?.name,
+        code: error?.code,
+        serverResponse: error?.serverResponse,
+        stack: error?.stack,
+        toString: error?.toString?.()
+      };
+      
+      // Try to get all properties
+      if (error) {
+        try {
+          errorInfo.allProperties = Object.getOwnPropertyNames(error);
+          // Try to get prototype properties too
+          if (error.constructor && error.constructor.prototype) {
+            errorInfo.prototypeProperties = Object.getOwnPropertyNames(error.constructor.prototype);
+          }
+        } catch (e) {
+          console.error('Error extracting error properties:', e);
+        }
+      }
+      
+      console.error('Complete error information:', errorInfo);
+      console.error('Raw error object:', error);
       
       // Provide more specific error messages
-      if (error instanceof Error) {
-        const errorMsg = error.message.toLowerCase();
-        const errorCode = (error as any)?.code;
-        
-        // Check Firebase Storage error codes
-        if (errorCode === 'storage/unauthorized' || errorCode === 'storage/permission-denied' || 
-            errorMsg.includes('permission') || errorMsg.includes('unauthorized') || errorMsg.includes('403')) {
-          throw new Error('Permission denied. Firebase Storage security rules are blocking the upload. Please configure Storage rules in Firebase Console to allow authenticated users to write to the dashboard folder.');
-        } else if (errorCode === 'storage/quota-exceeded' || errorMsg.includes('quota') || errorMsg.includes('storage')) {
-          throw new Error('Storage quota exceeded. Please contact the administrator.');
-        } else if (errorCode === 'storage/network-request-failed' || errorMsg.includes('network') || errorMsg.includes('fetch') || errorMsg.includes('failed to fetch')) {
-          throw new Error('Network error. Please check your internet connection and try again.');
-        } else if (errorMsg.includes('timeout')) {
-          throw error; // Re-throw timeout errors as-is
-        }
+      const errorMsg = (error?.message || String(error) || '').toLowerCase();
+      const errorCode = error?.code;
+      
+      // Check Firebase Storage error codes
+      if (errorCode === 'storage/unauthorized' || errorCode === 'storage/permission-denied' || 
+          errorMsg.includes('permission') || errorMsg.includes('unauthorized') || errorMsg.includes('403')) {
+        throw new Error('Permission denied. Firebase Storage security rules are blocking the upload. Please configure Storage rules in Firebase Console to allow authenticated users to write to the dashboard folder.');
+      } else if (errorCode === 'storage/quota-exceeded' || errorMsg.includes('quota')) {
+        throw new Error('Storage quota exceeded. Please contact the administrator.');
+      } else if (errorCode === 'storage/network-request-failed' || errorCode === 'storage/retry-limit-exceeded' ||
+                 errorMsg.includes('network') || errorMsg.includes('fetch') || errorMsg.includes('failed to fetch') ||
+                 errorMsg.includes('network request failed') || errorMsg.includes('cors')) {
+        throw new Error('CORS/Network error. This usually means Firebase Storage security rules are not deployed. Please deploy the storage.rules file using: firebase deploy --only storage (or manually set rules in Firebase Console → Storage → Rules tab).');
+      } else if (errorMsg.includes('timeout')) {
+        throw error; // Re-throw timeout errors as-is
+      } else if (errorCode) {
+        // If we have a Firebase error code, include it in the message
+        throw new Error(`Upload failed: ${errorCode} - ${error?.message || 'Unknown error'}`);
       }
       
       throw error;

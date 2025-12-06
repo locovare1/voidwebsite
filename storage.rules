@@ -3,30 +3,35 @@ service firebase.storage {
   match /b/{bucket}/o {
     // Allow authenticated users to read and write to dashboard folder
     match /dashboard/{allPaths=**} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
     
     // Allow authenticated users to read and write to teams folder
     match /teams/{allPaths=**} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
     
     // Allow authenticated users to read and write to players folder
     match /players/{allPaths=**} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
     
     // Allow authenticated users to read and write to news folder
     match /news/{allPaths=**} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
     
     // Allow authenticated users to read and write to products folder
     match /products/{allPaths=**} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
     
-    // Allow public read access to all files (for displaying images on the site)
+    // Default: public read, authenticated write
     match /{allPaths=**} {
       allow read: if true;
       allow write: if request.auth != null;

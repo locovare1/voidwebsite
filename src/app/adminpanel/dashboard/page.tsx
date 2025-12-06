@@ -125,13 +125,22 @@ export default function DashboardPage() {
     try {
       console.log('Starting file upload:', file.name, file.size, 'bytes');
       
+      // Verify user is authenticated
+      if (!user) {
+        throw new Error('User not authenticated. Please log in again.');
+      }
+      console.log('User authenticated:', user.email);
+      
       // Check if storage is available
-      const { storage } = await import('@/lib/firebase');
+      const { storage, auth: authCheck } = await import('@/lib/firebase');
       if (!storage) {
         throw new Error('Firebase Storage is not initialized. Please refresh the page.');
       }
+      if (!authCheck || !authCheck.currentUser) {
+        throw new Error('Authentication expired. Please log in again.');
+      }
+      console.log('Storage and auth verified, uploading to dashboard folder...');
       
-      console.log('Storage available, uploading to dashboard folder...');
       const url = await uploadService.uploadDashboardFile(file);
       clearTimeout(timeoutId);
       
@@ -178,36 +187,52 @@ export default function DashboardPage() {
 
     try {
       if (editingItem && editingItem.id) {
-        // Update existing item
-        const updateData: Partial<DashboardItem> = {
+        // Update existing item - only include fields that have values
+        const updateData: any = {
           type: selectedType,
           title: formData.title,
           description: formData.description,
-          content: formData.content || undefined,
-          amount: selectedType === 'finance' && formData.amount ? parseFloat(formData.amount) : undefined,
-          category: formData.category || undefined,
         };
-        // Only include fileUrl if it has a value
+        
+        // Only include optional fields if they have values
+        if (formData.content && formData.content.trim()) {
+          updateData.content = formData.content.trim();
+        }
+        if (selectedType === 'finance' && formData.amount && formData.amount.trim()) {
+          updateData.amount = parseFloat(formData.amount);
+        }
+        if (formData.category && formData.category.trim()) {
+          updateData.category = formData.category.trim();
+        }
         if (formData.fileUrl && formData.fileUrl.trim()) {
           updateData.fileUrl = formData.fileUrl.trim();
         }
+        
         await updateDoc(doc(db, 'dashboardItems', editingItem.id), updateData);
       } else {
-        // Create new item
+        // Create new item - only include fields that have values
         const newItem: any = {
           type: selectedType,
           title: formData.title,
           description: formData.description,
-          content: formData.content || undefined,
-          amount: selectedType === 'finance' && formData.amount ? parseFloat(formData.amount) : undefined,
-          category: formData.category || undefined,
           createdAt: Timestamp.now(),
           createdBy: user.email || 'Unknown'
         };
-        // Only include fileUrl if it has a value
+        
+        // Only include optional fields if they have values
+        if (formData.content && formData.content.trim()) {
+          newItem.content = formData.content.trim();
+        }
+        if (selectedType === 'finance' && formData.amount && formData.amount.trim()) {
+          newItem.amount = parseFloat(formData.amount);
+        }
+        if (formData.category && formData.category.trim()) {
+          newItem.category = formData.category.trim();
+        }
         if (formData.fileUrl && formData.fileUrl.trim()) {
           newItem.fileUrl = formData.fileUrl.trim();
         }
+        
         await addDoc(collection(db, 'dashboardItems'), newItem);
       }
       
