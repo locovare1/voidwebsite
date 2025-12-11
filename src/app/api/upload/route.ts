@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getStorage } from 'firebase-admin/storage';
+import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
+import { getStorage, type Storage } from 'firebase-admin/storage';
 
 // Initialize Firebase Admin (server-side only)
-let adminApp;
-let adminStorage;
+let adminApp: App | null = null;
+let adminStorage: Storage | null = null;
 let adminInitialized = false;
 let adminInitError: string | null = null;
 
