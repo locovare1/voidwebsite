@@ -1384,6 +1384,22 @@ export default function AdminDashboard() {
                                         className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
                                         placeholder="Twitch URL"
                                       />
+                                      <input
+                                        type="text"
+                                        value={editingPlayer.player.socialLinks?.youtube || ''}
+                                        onChange={(e) => setEditingPlayer({
+                                          ...editingPlayer,
+                                          player: {
+                                            ...editingPlayer.player,
+                                            socialLinks: {
+                                              ...editingPlayer.player.socialLinks,
+                                              youtube: e.target.value
+                                            }
+                                          }
+                                        })}
+                                        className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
+                                        placeholder="YouTube URL"
+                                      />
                                     </div>
 
                                     {/* Instagram Link */}
@@ -1438,7 +1454,7 @@ export default function AdminDashboard() {
                                         {player.achievements && player.achievements.length > 0 && (
                                           <div>Achievements: {player.achievements.slice(0, 2).join(', ')}{player.achievements.length > 2 ? '...' : ''}</div>
                                         )}
-                                        {(player.socialLinks?.twitter || player.socialLinks?.twitch || player.socialLinks?.instagram) && (
+                                        {(player.socialLinks?.twitter || player.socialLinks?.twitch || player.socialLinks?.youtube || player.socialLinks?.instagram) && (
                                           <div className="flex gap-2 mt-1">
                                             {player.socialLinks?.twitter && (
                                               <a href={player.socialLinks.twitter} target="_blank" rel="noopener noreferrer"
@@ -1447,6 +1463,10 @@ export default function AdminDashboard() {
                                             {player.socialLinks?.twitch && (
                                               <a href={player.socialLinks.twitch} target="_blank" rel="noopener noreferrer"
                                                 className="text-purple-400 hover:text-purple-300 text-xs">Twitch</a>
+                                            )}
+                                            {player.socialLinks?.youtube && (
+                                              <a href={player.socialLinks.youtube} target="_blank" rel="noopener noreferrer"
+                                                className="text-red-400 hover:text-red-300 text-xs">YouTube</a>
                                             )}
                                             {player.socialLinks?.instagram && (
                                               <a href={player.socialLinks.instagram} target="_blank" rel="noopener noreferrer"
@@ -1768,6 +1788,22 @@ export default function AdminDashboard() {
                         })}
                         className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
                         placeholder="Twitch channel URL"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        YouTube URL
+                      </label>
+                      <input
+                        type="text"
+                        value={newPlayer.socialLinks?.youtube || ''}
+                        onChange={(e) => setNewPlayer({
+                          ...newPlayer,
+                          socialLinks: { ...newPlayer.socialLinks, youtube: e.target.value }
+                        })}
+                        className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white"
+                        placeholder="YouTube channel URL"
                       />
                     </div>
                   </div>

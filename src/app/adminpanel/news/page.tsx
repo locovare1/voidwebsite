@@ -66,7 +66,8 @@ export default function NewsPage() {
       setNewsForm(prev => ({ ...prev, image: downloadURL }));
     } catch (error) {
       console.error('Error uploading news image:', error);
-      alert('Failed to upload image. Please try again.');
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to upload image: ${errorMsg}\n\n💡 Tip: Use the News Image URL field above instead! Upload to Imgur (imgur.com) and paste the direct image URL.`);
     }
   };
 

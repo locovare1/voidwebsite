@@ -47,7 +47,7 @@ export default function Footer() {
   const translatedFooterLinks = footerLinks;
 
   return (
-    <footer className="bg-gradient-to-t from-[#1a0f2e] to-[#0F0F0F] border-t border-purple-500/20">
+    <footer className="bg-gradient-to-t from-[#2a1a3a] to-[#1a0a2e] border-t border-purple-500/20">
       <div className="void-container py-8 sm:py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Brand Section */}

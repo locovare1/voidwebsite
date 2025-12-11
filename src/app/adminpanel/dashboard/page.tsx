@@ -163,15 +163,15 @@ export default function DashboardPage() {
         errorMessage = error.message;
         // Check for common Firebase errors
         if (errorMessage.includes('permission') || errorMessage.includes('unauthorized') || errorMessage.includes('403') || (error as any)?.code === 'storage/unauthorized') {
-          errorMessage = 'Permission denied. Firebase Storage security rules are blocking the upload. Please configure Storage rules to allow authenticated users to write to the dashboard folder.';
+          errorMessage = 'Permission denied. File upload failed.\n\n💡 Tip: Use the URL input field above instead! Upload your file to a hosting service and paste the URL.';
         } else if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('Failed to fetch')) {
-          errorMessage = 'Network error. Please check your internet connection.';
+          errorMessage = 'Network error. File upload failed.\n\n💡 Tip: Use the URL input field above instead!';
         } else if (errorMessage.includes('timeout')) {
-          errorMessage = 'Upload timed out. The file may be too large or there is a network issue.';
+          errorMessage = 'Upload timed out. The file may be too large.\n\n💡 Tip: Use the URL input field above for large files!';
         }
       }
       
-      alert(`Failed to upload file: ${errorMessage}\n\nCheck the browser console for more details.`);
+      alert(`Failed to upload file:\n\n${errorMessage}\n\nYou can use the URL input field above as an alternative.`);
     } finally {
       setUploading(false);
       // Reset the file input after upload attempt

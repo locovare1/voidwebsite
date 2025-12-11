@@ -241,7 +241,7 @@ export default function TeamsPage() {
   };
 
   return (
-    <div className="pt-20 min-h-screen bg-[#0F0F0F] relative">
+    <div className="pt-20 min-h-screen bg-[#1a0a2e] relative">
       {/* Player Detail Modal */}
       {selectedPlayer && (
         <PlayerDetailModal

@@ -162,7 +162,7 @@ export default function NewsPage() {
   };
 
   return (
-    <div className="pt-20 min-h-screen bg-[#0F0F0F]">
+    <div className="pt-20 min-h-screen bg-[#1a0a2e]">
       <div className="void-container py-8 sm:py-12">
         <AnimatedSection animationType="fadeIn" delay={100}>
           <h1 className="text-3xl sm:text-4xl font-bold mb-8 sm:mb-12 gradient-text text-center">

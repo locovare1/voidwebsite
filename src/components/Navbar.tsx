@@ -8,7 +8,7 @@ import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 
 const navigation = [
   { name: "Home", href: "/" },
-  { name: "Teams", href: "/teams" },
+  { name: "Roster", href: "/teams" },
   { name: "News", href: "/news" },
   { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
@@ -29,7 +29,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 bg-gradient-to-r from-[#0F0F0F]/95 via-[#0F0F0F]/95 to-[#1a0f2e]/95 backdrop-blur-sm z-[100] border-b border-purple-500/10 transition-all duration-700 ${
+      className={`fixed top-0 left-0 right-0 bg-gradient-to-r from-[#1a0a2e]/95 via-[#2a1a3a]/95 to-[#740FA8]/30 backdrop-blur-sm z-[100] border-b border-purple-500/10 transition-all duration-700 ${
         isVisible ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0"
       }`}
     >
@@ -64,16 +64,17 @@ export default function Navbar() {
         </div>
 
         {/* CENTER COLUMN — Logo */}
-        <div className="flex justify-center">
+        <div className="flex justify-center items-center">
           <Link
             href="/"
-            className="p-1.5 -m-1.5 hover:scale-105 transition duration-300"
+            className="hover:scale-105 transition duration-300"
           >
             <Image
-              src="/logo.png"
+              src="/logos/icon-512.png"
               alt="Void"
-              width={70}
-              height={70}
+              width={250}
+              height={250}
+              className="h-16 w-auto object-contain"
               priority
             />
           </Link>
@@ -95,7 +96,7 @@ export default function Navbar() {
       {/* MOBILE MENU OVERLAY */}
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm">
-          <div className="fixed right-0 top-0 h-full w-64 bg-[#0F0F0F]/95 p-6 shadow-xl">
+          <div className="fixed right-0 top-0 h-full w-64 bg-[#1a0a2e]/95 p-6 shadow-xl">
             {/* Close Button */}
             <button
               type="button"

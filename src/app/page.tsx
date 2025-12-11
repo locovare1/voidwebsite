@@ -245,14 +245,14 @@ export default function Home() {
       </section>
 
       {/* Ad Spot 1 - Banner after Hero */}
-      <section className="py-6 bg-[#0F0F0F]">
+      <section className="py-6 bg-[#1a0a2e]">
         <div className="void-container">
           <AdPlaceholder size="banner" />
         </div>
       </section>
 
       {/* Store Grid - Static */}
-      <section className="py-12 sm:py-16 lg:py-24 bg-gradient-to-b from-[#0F0F0F] via-[#1A1A1A] to-[#0F0F0F] relative overflow-hidden">
+      <section className="py-12 sm:py-16 lg:py-24 bg-gradient-to-b from-[#1a0a2e] via-[#2a1a3a] to-[#1a0a2e] relative overflow-hidden">
         {/* Decorative background elements */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
@@ -262,7 +262,7 @@ export default function Home() {
         <div className="void-container relative z-10">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 sm:mb-12 lg:mb-16 px-4 gap-4">
             <div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-200 to-purple-400 mb-2">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-300 to-purple-500 mb-2">
                 Shop Now
               </h2>
               <p className="text-gray-400 text-sm sm:text-base">
@@ -318,7 +318,7 @@ export default function Home() {
       </section>
 
       {/* Ad Spot 2 - Rectangle between Store and Videos */}
-      <section className="py-8 bg-[#0F0F0F]">
+      <section className="py-8 bg-[#1a0a2e]">
         <div className="void-container">
           <AdPlaceholder size="rectangle" />
         </div>
@@ -326,7 +326,7 @@ export default function Home() {
 
       {/* YouTube Videos Grid */}
       {youtubeVideos.length > 0 && (
-        <section className="py-8 sm:py-12 lg:py-20 bg-[#0F0F0F]">
+        <section className="py-8 sm:py-12 lg:py-20 bg-[#1a0a2e]">
           <div className="void-container">
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-6 sm:mb-8 lg:mb-12 text-center text-purple-gradient px-4">Latest Videos</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 px-4">

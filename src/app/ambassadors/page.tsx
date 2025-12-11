@@ -27,7 +27,7 @@ export default function AmbassadorsPage() {
   }, []);
 
   return (
-    <div className="pt-20 min-h-screen bg-[#0F0F0F] relative">
+    <div className="pt-20 min-h-screen bg-[#1a0a2e] relative">
       {/* SEO / Meta Tags */}
       <title>Void Outreach Program | Void Esports</title>
       <meta name="description" content="Join the Void Outreach Program and become an official brand ambassador! Help Void grow in every game you play." />

@@ -67,7 +67,8 @@ export default function ProductsPage() {
       setProductForm(prev => ({ ...prev, image: downloadURL }));
     } catch (error) {
       console.error('Error uploading product image:', error);
-      alert('Failed to upload image. Please try again.');
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to upload image: ${errorMsg}\n\n💡 Tip: Use the Image URL field above instead! Upload to Imgur (imgur.com) and paste the direct image URL.`);
     }
   };
 
@@ -80,7 +81,8 @@ export default function ProductsPage() {
       setProductForm(prev => ({ ...prev, hoverImage: downloadURL || '' }));
     } catch (error) {
       console.error('Error uploading hover image:', error);
-      alert('Failed to upload hover image. Please try again.');
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to upload hover image: ${errorMsg}\n\n💡 Tip: Use the Hover Image URL field above instead! Upload to Imgur (imgur.com) and paste the direct image URL.`);
     }
   };
 
