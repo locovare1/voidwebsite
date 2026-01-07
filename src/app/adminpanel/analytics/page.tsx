@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { collection, getDocs, query, orderBy, limit, where, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import LoadingScreen from '@/components/LoadingScreen';
 
 interface AnalyticsData {
   totalNewsArticles: number;
@@ -56,7 +57,7 @@ export default function AnalyticsPage() {
           limit(5)
         );
         const recentNewsSnap = await getDocs(recentNewsQuery);
-        
+
         const recentActivity = recentNewsSnap.docs.map(doc => {
           const data = doc.data();
           return {
@@ -90,11 +91,7 @@ export default function AnalyticsPage() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FFFFFF]"></div>
-      </div>
-    );
+    return <LoadingScreen message="ANALYZING DATA" />;
   }
 
   if (!analytics) {

@@ -15,6 +15,7 @@ import { AnimatedCard } from '@/components/FramerAnimations';
 import { processExternalImageUrl } from '@/lib/imageUtils';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import LoadingScreen from './LoadingScreen';
 
 import {
   TrashIcon,
@@ -57,7 +58,7 @@ export default function AdminDashboard() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'teams' | 'ambassadors' | 'news' | 'placements' | 'schedule' | 'socials' | 'users'>('dashboard');
-  
+
   // User management state
   const [adminUsers, setAdminUsers] = useState<any[]>([]);
   const [showCreateUser, setShowCreateUser] = useState(false);
@@ -167,7 +168,7 @@ export default function AdminDashboard() {
     };
 
     loadData();
-    
+
     // Get current user
     if (auth) {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -182,39 +183,39 @@ export default function AdminDashboard() {
       alert('You must be logged in to create users');
       return;
     }
-    
+
     if (!newUserEmail || !newUserPassword) {
       alert('Please enter both email and password');
       return;
     }
-    
+
     if (newUserPassword.length < 6) {
       alert('Password must be at least 6 characters');
       return;
     }
-    
+
     setCreatingUser(true);
     const originalEmail = currentUser.email;
-    
+
     try {
       // Create the new user (this will automatically sign them in)
       const userCredential = await createUserWithEmailAndPassword(auth, newUserEmail, newUserPassword);
       console.log('User created:', userCredential.user.email);
-      
+
       // Immediately sign out the newly created user
       await signOut(auth);
-      
+
       alert(`User ${newUserEmail} created successfully! They can now log in with their credentials. You will need to log back in.`);
       setNewUserEmail('');
       setNewUserPassword('');
       setShowCreateUser(false);
-      
+
       // Redirect to login page
       window.location.href = '/adminpanel';
     } catch (error: any) {
       console.error('Error creating user:', error);
       let errorMessage = 'Failed to create user';
-      
+
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'This email is already registered';
       } else if (error.code === 'auth/invalid-email') {
@@ -224,7 +225,7 @@ export default function AdminDashboard() {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       alert(errorMessage);
     } finally {
       setCreatingUser(false);
@@ -744,11 +745,7 @@ export default function AdminDashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-white">Loading...</div>
-      </div>
-    );
+    return <LoadingScreen message="SYNCING DASHBOARD" />;
   }
 
   return (
@@ -772,11 +769,10 @@ export default function AdminDashboard() {
                 <button
                   key={tab.id}
                   onClick={() => router.push(tab.link!)}
-                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-300 whitespace-nowrap text-sm sm:text-base ${
-                    activeTab === tab.id
-                      ? 'bg-[#FFFFFF] text-black'
-                      : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]'
-                  }`}
+                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-300 whitespace-nowrap text-sm sm:text-base ${activeTab === tab.id
+                    ? 'bg-[#FFFFFF] text-black'
+                    : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]'
+                    }`}
                 >
                   <tab.icon className="w-4 h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">{tab.label}</span>
@@ -1104,8 +1100,8 @@ export default function AdminDashboard() {
 
               <div className="mt-6 p-4 bg-blue-900/20 border border-blue-500/20 rounded-lg">
                 <p className="text-blue-300 text-sm">
-                  <strong>Note:</strong> All users created here will have full admin access to the admin panel. 
-                  Make sure to only create accounts for trusted team members. Each user will need to log in with 
+                  <strong>Note:</strong> All users created here will have full admin access to the admin panel.
+                  Make sure to only create accounts for trusted team members. Each user will need to log in with
                   their own email and password at the admin panel login page.
                 </p>
               </div>

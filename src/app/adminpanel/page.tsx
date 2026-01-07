@@ -5,25 +5,27 @@ import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import AdminDashboard from '@/components/AdminDashboard';
+import LoadingScreen from '@/components/LoadingScreen';
 
 export default function AdminPanelPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   // Check authentication state on component mount
   useEffect(() => {
     if (!auth) return;
-    
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setIsAuthenticated(true);
       } else {
         setIsAuthenticated(false);
       }
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -46,7 +48,7 @@ export default function AdminPanelPage() {
     } catch (err: any) {
       console.error('Login error:', err);
       let errorMessage = 'Invalid credentials';
-      
+
       if (err.code === 'auth/invalid-credential') {
         errorMessage = 'Invalid email or password. Please check your credentials and try again.';
       } else if (err.code === 'auth/user-not-found') {
@@ -62,7 +64,7 @@ export default function AdminPanelPage() {
       } else if (err.message) {
         errorMessage = err.message;
       }
-      
+
       setError(errorMessage);
       setPassword('');
     } finally {
@@ -72,7 +74,7 @@ export default function AdminPanelPage() {
 
   const handleLogout = async () => {
     if (!auth) return;
-    
+
     try {
       await signOut(auth);
       setIsAuthenticated(false);
@@ -82,6 +84,10 @@ export default function AdminPanelPage() {
       console.error('Logout error:', err);
     }
   };
+
+  if (loading && !isAuthenticated) {
+    return <LoadingScreen message="VERIFYING ACCESS" />;
+  }
 
   if (!isAuthenticated) {
     return (

@@ -7,6 +7,7 @@ import { collection, addDoc, getDocs, query, orderBy, Timestamp, deleteDoc, doc,
 import { auth, db } from '@/lib/firebase';
 import { DocumentIcon, CurrencyDollarIcon, FolderIcon, LightBulbIcon, XMarkIcon, PencilIcon, MagnifyingGlassIcon, ChartBarIcon, CloudArrowUpIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { uploadService } from '@/lib/uploadService';
+import LoadingScreen from '@/components/LoadingScreen';
 
 // Accessible to all authenticated admin users
 
@@ -97,9 +98,9 @@ export default function DashboardPage() {
       }
       return;
     }
-    
+
     console.log('File selected:', file.name, 'Size:', file.size, 'bytes', 'Type:', file.type);
-    
+
     // Prevent multiple simultaneous uploads
     if (uploading) {
       console.log('Upload already in progress, ignoring');
@@ -111,7 +112,7 @@ export default function DashboardPage() {
 
     setUploading(true);
     console.log('Starting upload process...');
-    
+
     // Add timeout to prevent infinite hanging (30 minutes to allow for very large files up to 3GB)
     const timeoutId = setTimeout(() => {
       console.error('Upload timeout reached');
@@ -121,16 +122,16 @@ export default function DashboardPage() {
       }
       alert('Upload timed out. Please check your connection and try again.');
     }, 1800000); // 30 minute timeout for large files
-    
+
     try {
       console.log('Starting file upload:', file.name, file.size, 'bytes');
-      
+
       // Verify user is authenticated
       if (!user) {
         throw new Error('User not authenticated. Please log in again.');
       }
       console.log('User authenticated:', user.email);
-      
+
       // Check if storage is available
       const { storage, auth: authCheck } = await import('@/lib/firebase');
       if (!storage) {
@@ -140,10 +141,10 @@ export default function DashboardPage() {
         throw new Error('Authentication expired. Please log in again.');
       }
       console.log('Storage and auth verified, uploading to dashboard folder...');
-      
+
       const url = await uploadService.uploadDashboardFile(file);
       clearTimeout(timeoutId);
-      
+
       console.log('Upload successful, URL:', url);
       setFormData(prev => ({ ...prev, fileUrl: url }));
       alert('File uploaded successfully!');
@@ -157,7 +158,7 @@ export default function DashboardPage() {
         code: (error as any)?.code,
         serverResponse: (error as any)?.serverResponse
       });
-      
+
       let errorMessage = 'Unknown error occurred';
       if (error instanceof Error) {
         errorMessage = error.message;
@@ -170,7 +171,7 @@ export default function DashboardPage() {
           errorMessage = 'Upload timed out. The file may be too large.\n\n💡 Tip: Use the URL input field above for large files!';
         }
       }
-      
+
       alert(`Failed to upload file:\n\n${errorMessage}\n\nYou can use the URL input field above as an alternative.`);
     } finally {
       setUploading(false);
@@ -193,7 +194,7 @@ export default function DashboardPage() {
           title: formData.title,
           description: formData.description,
         };
-        
+
         // Only include optional fields if they have values
         if (formData.content && formData.content.trim()) {
           updateData.content = formData.content.trim();
@@ -207,7 +208,7 @@ export default function DashboardPage() {
         if (formData.fileUrl && formData.fileUrl.trim()) {
           updateData.fileUrl = formData.fileUrl.trim();
         }
-        
+
         await updateDoc(doc(db, 'dashboardItems', editingItem.id), updateData);
       } else {
         // Create new item - only include fields that have values
@@ -218,7 +219,7 @@ export default function DashboardPage() {
           createdAt: Timestamp.now(),
           createdBy: user.email || 'Unknown'
         };
-        
+
         // Only include optional fields if they have values
         if (formData.content && formData.content.trim()) {
           newItem.content = formData.content.trim();
@@ -232,10 +233,10 @@ export default function DashboardPage() {
         if (formData.fileUrl && formData.fileUrl.trim()) {
           newItem.fileUrl = formData.fileUrl.trim();
         }
-        
+
         await addDoc(collection(db, 'dashboardItems'), newItem);
       }
-      
+
       setFormData({ title: '', description: '', content: '', fileUrl: '', amount: '', category: '' });
       setShowForm(false);
       setEditingItem(null);
@@ -317,7 +318,7 @@ export default function DashboardPage() {
     const totalFinance = items
       .filter(item => item.type === 'finance' && item.amount)
       .reduce((sum, item) => sum + (item.amount || 0), 0);
-    
+
     return {
       total: items.length,
       contracts: items.filter(i => i.type === 'contract').length,
@@ -332,7 +333,7 @@ export default function DashboardPage() {
   // Filter items by type and search query
   const filteredItems = useMemo(() => {
     let filtered = items.filter(item => item.type === selectedType);
-    
+
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(item =>
@@ -342,16 +343,12 @@ export default function DashboardPage() {
         item.category?.toLowerCase().includes(query)
       );
     }
-    
+
     return filtered;
   }, [items, selectedType, searchQuery]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FFFFFF]"></div>
-      </div>
-    );
+    return <LoadingScreen message="ACCESSING HUB" />;
   }
 
   if (!hasAccess) {
@@ -444,11 +441,10 @@ export default function DashboardPage() {
             <button
               key={type}
               onClick={() => setSelectedType(type)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                selectedType === type
-                  ? 'bg-[#FFFFFF] text-black'
-                  : 'bg-[#1A1A1A] text-gray-300 hover:bg-[#2A2A2A]'
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${selectedType === type
+                ? 'bg-[#FFFFFF] text-black'
+                : 'bg-[#1A1A1A] text-gray-300 hover:bg-[#2A2A2A]'
+                }`}
             >
               <Icon className="w-5 h-5" />
               {config.label}
@@ -618,7 +614,7 @@ export default function DashboardPage() {
                           </button>
                         </div>
                       ) : (
-                        <h3 
+                        <h3
                           className={`text-xl font-semibold text-white ${['contract', 'asset', 'file'].includes(item.type) ? 'cursor-pointer hover:text-blue-400 transition-colors' : ''}`}
                           onClick={() => ['contract', 'asset', 'file'].includes(item.type) && item.id && startInlineEdit(item.id, 'title', item.title)}
                           title={['contract', 'asset', 'file'].includes(item.type) ? 'Click to edit' : ''}
@@ -654,7 +650,7 @@ export default function DashboardPage() {
                         </div>
                       ) : (
                         item.category && (
-                          <span 
+                          <span
                             className={`text-xs text-gray-400 ${['contract', 'asset', 'file'].includes(item.type) ? 'cursor-pointer hover:text-blue-400 transition-colors' : ''}`}
                             onClick={() => ['contract', 'asset', 'file'].includes(item.type) && item.id && startInlineEdit(item.id, 'category', item.category || '')}
                             title={['contract', 'asset', 'file'].includes(item.type) ? 'Click to edit' : ''}
@@ -712,7 +708,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ) : (
-                  <p 
+                  <p
                     className={`text-gray-300 mb-3 ${['contract', 'asset', 'file'].includes(item.type) ? 'cursor-pointer hover:text-blue-400 transition-colors' : ''}`}
                     onClick={() => ['contract', 'asset', 'file'].includes(item.type) && item.id && startInlineEdit(item.id, 'description', item.description)}
                     title={['contract', 'asset', 'file'].includes(item.type) ? 'Click to edit' : ''}
@@ -749,7 +745,7 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   item.content && (
-                    <div 
+                    <div
                       className={`bg-[#0F0F0F] rounded p-3 mb-3 ${['contract', 'asset', 'file'].includes(item.type) ? 'cursor-pointer hover:border border-[#2A2A2A] transition-colors' : ''}`}
                       onClick={() => ['contract', 'asset', 'file'].includes(item.type) && item.id && startInlineEdit(item.id, 'content', item.content || '')}
                       title={['contract', 'asset', 'file'].includes(item.type) ? 'Click to edit' : ''}
@@ -834,7 +830,7 @@ export default function DashboardPage() {
           })
         ) : (
           <div className="text-center py-12 text-gray-400">
-            {searchQuery 
+            {searchQuery
               ? `No ${typeConfig[selectedType].label.toLowerCase()} found matching "${searchQuery}".`
               : `No ${typeConfig[selectedType].label.toLowerCase()} found. Add one to get started.`
             }

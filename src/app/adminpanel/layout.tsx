@@ -6,6 +6,7 @@ import { signInWithEmailAndPassword, signOut, onAuthStateChanged, updateEmail, u
 import { auth } from '@/lib/firebase';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
+import LoadingScreen from '@/components/LoadingScreen';
 
 export default function AdminLayout({
   children,
@@ -14,12 +15,13 @@ export default function AdminLayout({
 }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   // Check authentication state on component mount
   useEffect(() => {
     if (!auth) return;
-    
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setIsAuthenticated(true);
@@ -29,6 +31,7 @@ export default function AdminLayout({
         setUser(null);
         router.push('/adminpanel');
       }
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -36,7 +39,7 @@ export default function AdminLayout({
 
   const handleLogout = async () => {
     if (!auth) return;
-    
+
     try {
       await signOut(auth);
       setIsAuthenticated(false);
@@ -46,6 +49,10 @@ export default function AdminLayout({
       console.error('Logout error:', err);
     }
   };
+
+  if (loading) {
+    return <LoadingScreen message="SECURING CONNECTION" />;
+  }
 
   if (!isAuthenticated) {
     return <>{children}</>;

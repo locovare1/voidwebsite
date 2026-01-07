@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Player } from '@/lib/teamService';
 import SafeImage from './SafeImage';
 
@@ -51,17 +52,25 @@ export default function PlayerDetailModal({
     if (!isOpen) return null;
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl p-0 sm:p-4 overflow-hidden cursor-pointer"
-            onClick={onClose}
-        >
-            <div
-                ref={modalRef}
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-0 sm:p-4 overflow-hidden">
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/95 backdrop-blur-xl cursor-pointer"
+                onClick={onClose}
+            />
+            <motion.div
+                layoutId={`player-card-${player.name}`}
+                className="relative w-full h-full sm:h-[90vh] max-w-7xl bg-[#0a0a0a] border border-white/10 sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col lg:flex-row cursor-default"
                 onClick={(e) => e.stopPropagation()}
-                className="relative w-full h-full sm:h-[90vh] max-w-7xl bg-[#0a0a0a] border border-white/10 sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col lg:flex-row animate-in fade-in zoom-in-95 duration-300 cursor-default"
             >
                 {/* Close Button */}
-                <button
+                <motion.button
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ delay: 0.2, duration: 0.3 }}
                     onClick={onClose}
                     className="absolute top-4 right-4 z-50 p-3 bg-black/40 hover:bg-white/10 backdrop-blur-md rounded-full text-white/80 hover:text-white transition-all border border-white/5 hover:border-white/20 group"
                     aria-label="Close"
@@ -69,22 +78,34 @@ export default function PlayerDetailModal({
                     <svg className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                </button>
+                </motion.button>
 
-                {/* Left Side: Image - Enhanced */}
+                {/* Left Side: Image */}
                 <div className="w-full lg:w-[45%] relative h-[40vh] lg:h-full bg-[#050505] overflow-hidden">
-                    {/* Background blurred image for atmosphere */}
-                    <div key={`bg-${player.name}`} className="absolute inset-0 opacity-30 blur-3xl scale-110 animate-in fade-in duration-1000">
+                    {/* Background blurred image */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 1.2 }}
+                        animate={{ opacity: 0.3, scale: 1.1 }}
+                        transition={{ duration: 1 }}
+                        key={`bg-${player.name}`}
+                        className="absolute inset-0 blur-3xl"
+                    >
                         <SafeImage
                             src={player.image || '/logo.png'}
                             alt=""
                             fill
                             className="object-cover"
                         />
-                    </div>
+                    </motion.div>
 
                     {/* Main Image */}
-                    <div key={`img-${player.name}`} className="relative h-full w-full z-10 animate-in slide-in-from-bottom-8 fade-in duration-700">
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.7, delay: 0.2 }}
+                        key={`img-${player.name}`}
+                        className="relative h-full w-full z-10"
+                    >
                         <SafeImage
                             src={player.image || '/logo.png'}
                             alt={player.name}
@@ -92,13 +113,19 @@ export default function PlayerDetailModal({
                             className="object-cover object-center lg:object-top"
                             sizes="(max-width: 1024px) 100vw, 45vw"
                         />
-                    </div>
+                    </motion.div>
 
                     {/* Gradient Overlays */}
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-black/40 lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-[#0a0a0a] z-20"></div>
 
                     {/* Mobile Header Overlay */}
-                    <div key={`mobile-header-${player.name}`} className="absolute bottom-0 left-0 right-0 p-8 lg:hidden z-30 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent animate-in slide-in-from-bottom-4 fade-in duration-500 delay-100">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        key={`mobile-header-${player.name}`}
+                        className="absolute bottom-0 left-0 right-0 p-8 lg:hidden z-30 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent"
+                    >
                         <h2 className="text-5xl font-bold text-white mb-2 tracking-tight">{player.name}</h2>
                         <div className="flex items-center gap-3">
                             <span className="px-3 py-1 bg-blue-600/20 border border-blue-500/30 text-blue-400 rounded-full text-sm font-medium uppercase tracking-wider">
@@ -107,13 +134,19 @@ export default function PlayerDetailModal({
                             <span className="text-gray-400 font-medium">•</span>
                             <span className="text-gray-300 font-medium">{player.game}</span>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
 
-                {/* Right Side: Content - Enhanced */}
+                {/* Right Side: Content */}
                 <div className="w-full lg:w-[55%] flex flex-col relative bg-[#0a0a0a]">
                     {/* Desktop Header */}
-                    <div key={`header-${player.name}`} className="hidden lg:block pt-12 px-12 pb-6 border-b border-white/5 animate-in slide-in-from-right-8 fade-in duration-500">
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.3 }}
+                        key={`header-${player.name}`}
+                        className="hidden lg:block pt-12 px-12 pb-6 border-b border-white/5"
+                    >
                         <h2 className="text-6xl font-bold text-white mb-4 tracking-tight">{player.name}</h2>
                         <div className="flex items-center gap-4">
                             <span className="px-4 py-1.5 bg-blue-600/10 border border-blue-500/20 text-blue-400 rounded-full text-sm font-semibold uppercase tracking-wider shadow-[0_0_15px_rgba(37,99,235,0.1)]">
@@ -122,20 +155,28 @@ export default function PlayerDetailModal({
                             <span className="text-gray-500 text-lg">•</span>
                             <span className="text-gray-300 text-lg font-medium">{player.game}</span>
                         </div>
-                    </div>
+                    </motion.div>
 
                     <div key={`content-${player.name}`} className="flex-grow overflow-y-auto custom-scrollbar p-6 sm:p-12 space-y-10">
                         {/* Description */}
-                        <div className="animate-in slide-in-from-bottom-4 duration-500 delay-100">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                        >
                             <h3 className="text-xl font-medium text-white/40 uppercase tracking-widest mb-4">About</h3>
                             <p className="text-gray-300 text-lg leading-relaxed font-light">
                                 {player.description || "No description available for this player."}
                             </p>
-                        </div>
+                        </motion.div>
 
-                        {/* Stats Grid - Enhanced */}
+                        {/* Stats Grid */}
                         {player.stats && player.stats.length > 0 && (
-                            <div className="animate-in slide-in-from-bottom-4 duration-500 delay-200">
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.5 }}
+                            >
                                 <h3 className="text-xl font-medium text-white/40 uppercase tracking-widest mb-4">Statistics</h3>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                     {player.stats.map((stat, idx) => (
@@ -145,12 +186,16 @@ export default function PlayerDetailModal({
                                         </div>
                                     ))}
                                 </div>
-                            </div>
+                            </motion.div>
                         )}
 
-                        {/* Achievements - Enhanced */}
+                        {/* Achievements */}
                         {player.achievements && player.achievements.length > 0 && (
-                            <div className="animate-in slide-in-from-bottom-4 duration-500 delay-300">
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.6 }}
+                            >
                                 <h3 className="text-xl font-medium text-white/40 uppercase tracking-widest mb-4">Achievements</h3>
                                 <div className="space-y-3">
                                     {player.achievements.map((achievement, idx) => (
@@ -160,12 +205,16 @@ export default function PlayerDetailModal({
                                         </div>
                                     ))}
                                 </div>
-                            </div>
+                            </motion.div>
                         )}
 
-                        {/* Social Links - Enhanced */}
+                        {/* Social Links */}
                         {player.socialLinks && Object.keys(player.socialLinks).length > 0 && (
-                            <div className="animate-in slide-in-from-bottom-4 duration-500 delay-400">
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.7 }}
+                            >
                                 <h3 className="text-xl font-medium text-white/40 uppercase tracking-widest mb-4">Connect</h3>
                                 <div className="flex gap-4">
                                     {player.socialLinks.twitter && (
@@ -191,23 +240,23 @@ export default function PlayerDetailModal({
                                     {player.socialLinks.youtube && (
                                         <a href={player.socialLinks.youtube} target="_blank" rel="noopener noreferrer"
                                             className="flex items-center gap-3 px-6 py-3 bg-[#FF0000]/10 text-[#FF0000] rounded-xl border border-[#FF0000]/20 hover:bg-[#FF0000]/20 hover:scale-105 transition-all duration-300">
-                                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
                                             <span className="font-medium">YouTube</span>
                                         </a>
                                     )}
                                 </div>
-                            </div>
+                            </motion.div>
                         )}
                     </div>
 
-                    {/* Navigation Buttons - Enhanced */}
+                    {/* Navigation Buttons */}
                     <div className="p-6 sm:p-8 border-t border-white/5 flex justify-between items-center bg-[#0a0a0a]">
                         <button
                             onClick={onPrev}
                             disabled={!hasPrev}
                             className={`flex items-center gap-3 text-lg font-medium transition-all duration-300 px-4 py-2 rounded-lg ${hasPrev
-                                    ? 'text-gray-400 hover:text-white hover:bg-white/5'
-                                    : 'text-gray-800 cursor-not-allowed'
+                                ? 'text-gray-400 hover:text-white hover:bg-white/5'
+                                : 'text-gray-800 cursor-not-allowed'
                                 }`}
                         >
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -224,8 +273,8 @@ export default function PlayerDetailModal({
                             onClick={onNext}
                             disabled={!hasNext}
                             className={`flex items-center gap-3 text-lg font-medium transition-all duration-300 px-4 py-2 rounded-lg ${hasNext
-                                    ? 'text-white hover:bg-white/5'
-                                    : 'text-gray-800 cursor-not-allowed'
+                                ? 'text-white hover:bg-white/5'
+                                : 'text-gray-800 cursor-not-allowed'
                                 }`}
                         >
                             <span className="hidden sm:inline">Next Player</span>
@@ -235,7 +284,7 @@ export default function PlayerDetailModal({
                         </button>
                     </div>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }

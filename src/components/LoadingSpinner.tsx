@@ -8,12 +8,12 @@ interface LoadingSpinnerProps {
   className?: string;
 }
 
-export default function LoadingSpinner({ 
-  size = 'md', 
-  color = 'white', 
+export default function LoadingSpinner({
+  size = 'md',
+  color = 'white',
   customColor,
   text,
-  className = '' 
+  className = ''
 }: LoadingSpinnerProps) {
   const sizeClasses = {
     sm: 'w-4 h-4',
@@ -23,7 +23,7 @@ export default function LoadingSpinner({
   };
 
   const colorClasses = {
-    white: 'border-white/20 border-t-white',
+    white: 'border-purple-500/20 border-t-purple-500',
     gray: 'border-gray-400/20 border-t-gray-400',
     custom: `border-${customColor}/20 border-t-${customColor}`
   };
@@ -37,7 +37,7 @@ export default function LoadingSpinner({
 
   return (
     <div className={`flex flex-col items-center justify-center ${className}`}>
-      <div 
+      <div
         className={`${sizeClasses[size]} border-3 rounded-full animate-spin ${colorClasses[color]}`}
         style={customColor ? {
           borderColor: `${customColor}20`,

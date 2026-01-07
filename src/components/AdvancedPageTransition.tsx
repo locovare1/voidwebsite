@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import LoadingSpinner from './LoadingSpinner';
+import LoadingScreen from './LoadingScreen';
 
 interface AdvancedPageTransitionProps {
   children: React.ReactNode;
@@ -22,7 +22,7 @@ const pageVariants = {
     scale: 1,
     transition: {
       duration: 0.6,
-      
+
     }
   },
   out: {
@@ -31,7 +31,7 @@ const pageVariants = {
     scale: 0.98,
     transition: {
       duration: 0.4,
-      
+
     }
   }
 } as const satisfies Variants;
@@ -44,14 +44,14 @@ const overlayVariants = {
     y: 0,
     transition: {
       duration: 0.6,
-      
+
     }
   },
   exit: {
     y: '-100%',
     transition: {
       duration: 0.6,
-      
+
     }
   }
 } as const satisfies Variants;
@@ -66,7 +66,7 @@ const loadingVariants = {
     scale: 1,
     transition: {
       duration: 0.5,
-      
+
     }
   },
   exit: {
@@ -74,7 +74,7 @@ const loadingVariants = {
     scale: 0.8,
     transition: {
       duration: 0.3,
-      
+
     }
   }
 } as const satisfies Variants;
@@ -88,7 +88,7 @@ export default function AdvancedPageTransition({ children }: AdvancedPageTransit
     // Initial page load
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1000);
+    }, 1450);
 
     return () => clearTimeout(timer);
   }, []);
@@ -96,72 +96,28 @@ export default function AdvancedPageTransition({ children }: AdvancedPageTransit
   useEffect(() => {
     // Route change transition
     setIsTransitioning(true);
-    
+
     const timer = setTimeout(() => {
       setIsTransitioning(false);
-    }, 600);
+    }, 1450);
 
     return () => clearTimeout(timer);
   }, [pathname]);
 
   return (
     <>
-      {/* Initial Loading Screen */}
+      {/* Universal Loading Screen for Initial Load and Transitions */}
       <AnimatePresence>
-        {isLoading && (
+        {(isLoading || isTransitioning) && (
           <motion.div
-            key="loading"
-            variants={loadingVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            className="fixed inset-0 bg-[#0F0F0F] z-[9999] flex items-center justify-center"
+            key="loading-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[9999]"
           >
-            <div className="text-center">
-              <LoadingSpinner size="lg" text="Loading..." />
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                className="text-white text-lg font-semibold mt-4"
-              >
-                VOID ESPORTS
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6, duration: 0.5 }}
-                className="text-gray-400 text-sm mt-2"
-              >
-                Enter the void...
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Route Change Overlay */}
-      <AnimatePresence>
-        {isTransitioning && (
-          <motion.div
-            key="transition"
-            variants={overlayVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            className="fixed inset-0 bg-gradient-to-br from-[#0F0F0F] via-[#1A1A1A] to-[#0F0F0F] z-[9998] flex items-center justify-center"
-          >
-            <div className="text-center">
-              <LoadingSpinner size="lg" />
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="text-white text-lg font-semibold mt-4"
-              >
-                VOID ESPORTS
-              </motion.div>
-            </div>
+            <LoadingScreen message={isLoading ? "SYSTEM BOOT" : "SYNCING DATA"} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -174,7 +130,7 @@ export default function AdvancedPageTransition({ children }: AdvancedPageTransit
           initial="initial"
           animate="in"
           exit="out"
-          className={`${isLoading ? 'hidden' : ''} ${isTransitioning ? 'opacity-0 pointer-events-none' : ''}`}
+          className={`${isLoading ? 'hidden' : ''} ${isTransitioning ? 'invisible h-0 overflow-hidden' : ''}`}
         >
           {children}
         </motion.div>

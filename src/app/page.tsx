@@ -32,13 +32,13 @@ export default function Home() {
   // Load latest news articles, YouTube videos, and Fourthwall products
   useEffect(() => {
     let mounted = true;
-    
+
     // Load news articles
     (async () => {
       try {
         const articles = await newsService.getAll();
         if (!mounted) return;
-        
+
         if (articles && articles.length > 0) {
           // Get latest 5 articles and convert to display format
           const latest5 = articles.slice(0, 5).map((article: NewsArticle) => ({
@@ -103,31 +103,28 @@ export default function Home() {
       try {
         const allVideos = await youtubeService.getLatestVideos(50);
         if (!mounted) return;
-        // Filter for long-form videos (4+ minutes) and take first 5
-        const longFormVideos = allVideos.filter(video => {
-          // Parse duration (format: "H:MM:SS" or "M:SS")
+
+        // Filter for long-form videos (4+ minutes) 
+        let filteredVideos = allVideos.filter(video => {
           const parts = video.duration.split(':');
           let totalSeconds = 0;
-          
           if (parts.length === 3) {
-            // Has hours: "H:MM:SS"
-            const hours = parseInt(parts[0], 10) || 0;
-            const minutes = parseInt(parts[1], 10) || 0;
-            const seconds = parseInt(parts[2], 10) || 0;
-            totalSeconds = hours * 3600 + minutes * 60 + seconds;
+            totalSeconds = (parseInt(parts[0], 10) || 0) * 3600 + (parseInt(parts[1], 10) || 0) * 60 + (parseInt(parts[2], 10) || 0);
           } else if (parts.length === 2) {
-            // Minutes and seconds only: "M:SS"
-            const minutes = parseInt(parts[0], 10) || 0;
-            const seconds = parseInt(parts[1], 10) || 0;
-            totalSeconds = minutes * 60 + seconds;
-          } else {
-            // Invalid format, skip
-            return false;
+            totalSeconds = (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
           }
-          
-          return totalSeconds >= 240; // 4 minutes = 240 seconds
-        }).slice(0, 5);
-        setYoutubeVideos(longFormVideos);
+          return totalSeconds >= 240;
+        });
+
+        // If no long-form videos, just take the latest videos available
+        if (filteredVideos.length === 0 && allVideos.length > 0) {
+          console.warn('No long-form YouTube videos found, displaying latest videos instead.');
+          filteredVideos = allVideos.slice(0, 5);
+        } else {
+          filteredVideos = filteredVideos.slice(0, 5);
+        }
+
+        setYoutubeVideos(filteredVideos);
       } catch (error) {
         console.error('Error loading YouTube videos:', error);
       }
@@ -229,11 +226,10 @@ export default function Home() {
                     <button
                       key={index}
                       onClick={() => goToArticle(index)}
-                      className={`w-2 h-2 rounded-full transition-all ${
-                        index === newsIndex
+                      className={`w-2 h-2 rounded-full transition-all ${index === newsIndex
                           ? 'bg-white w-8'
                           : 'bg-white/40 hover:bg-white/60'
-                      }`}
+                        }`}
                       aria-label={`Go to article ${index + 1}`}
                     />
                   ))}
@@ -258,7 +254,7 @@ export default function Home() {
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
         </div>
-        
+
         <div className="void-container relative z-10">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 sm:mb-12 lg:mb-16 px-4 gap-4">
             <div>
@@ -269,9 +265,9 @@ export default function Home() {
                 Discover exclusive VOID merchandise
               </p>
             </div>
-            <a 
-              href="https://shop.voidesports.org" 
-              target="_blank" 
+            <a
+              href="https://shop.voidesports.org"
+              target="_blank"
               rel="noopener noreferrer"
               className="void-button pulse-glow text-sm sm:text-base inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300"
             >
@@ -281,22 +277,21 @@ export default function Home() {
               </svg>
             </a>
           </div>
-          
+
           {storeItems.length > 0 ? (
-            <div className={`grid gap-6 sm:gap-8 px-4 ${
-              storeItems.length === 1 
+            <div className={`grid gap-6 sm:gap-8 px-4 ${storeItems.length === 1
                 ? 'grid-cols-1 max-w-md mx-auto'
                 : storeItems.length === 2
-                ? 'grid-cols-1 sm:grid-cols-2 max-w-4xl mx-auto'
-                : storeItems.length === 3
-                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-                : storeItems.length === 4
-                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
-                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-5'
-            }`}>
+                  ? 'grid-cols-1 sm:grid-cols-2 max-w-4xl mx-auto'
+                  : storeItems.length === 3
+                    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+                    : storeItems.length === 4
+                      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+                      : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-5'
+              }`}>
               {storeItems.map((item, index) => (
-                <motion.div 
-                  key={`${item.id}-${index}`} 
+                <motion.div
+                  key={`${item.id}-${index}`}
                   className="h-80 sm:h-96 lg:h-[480px]"
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -344,11 +339,11 @@ export default function Home() {
                 >
                   <div className="relative">
                     <div className="relative w-full aspect-video">
-                      <Image 
-                        src={video.thumbnail} 
-                        alt={video.title} 
-                        fill 
-                        className="object-cover" 
+                      <Image
+                        src={video.thumbnail}
+                        alt={video.title}
+                        fill
+                        className="object-cover"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
                       />
                       {/* Play button overlay */}
@@ -370,7 +365,7 @@ export default function Home() {
                         <span className="truncate">{video.views} views</span>
                         <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                           <svg className="w-3 h-3 sm:w-4 sm:h-4 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                           </svg>
                           <span className="text-xs">YT</span>
                         </div>
