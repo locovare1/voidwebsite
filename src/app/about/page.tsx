@@ -52,7 +52,7 @@ export default function AboutPage() {
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div className="relative h-64 md:h-full min-h-[300px] rounded-lg overflow-hidden">
                 <Image
-                  src="/logo.png"
+                  src="/logos/new-logo.png"
                   alt="Void Esports Mission"
                   fill
                   className="object-cover"

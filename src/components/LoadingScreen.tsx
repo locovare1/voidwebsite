@@ -65,7 +65,7 @@ export default function LoadingScreen({ message = "LOADING", fullScreen = true }
                         className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-black border border-white/10 flex items-center justify-center overflow-hidden shadow-2xl relative"
                     >
                         <Image
-                            src="/logo.png"
+                            src="/logos/new-logo.png"
                             alt="Void Logo"
                             width={80}
                             height={80}

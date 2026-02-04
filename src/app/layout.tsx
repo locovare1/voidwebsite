@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   description: "Professional Esports Organization",
   metadataBase: new URL("https://voidwebsite-smoky.vercel.app"),
   icons: {
-    icon: '/void.ico',
+    icon: '/logos/new-logo.png',
     apple: [
       { url: '/logos/apple-icon.png', sizes: '180x180' },
     ],
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     url: "https://voidwebsite-smoky.vercel.app",
     siteName: "Void Esports",
     images: [
-      { url: "/logos/icon-512.png", width: 512, height: 512, alt: "Void" },
+      { url: "/logos/new-logo.png", width: 512, height: 512, alt: "Void" }
     ],
     locale: "en_US",
     type: "website",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Void Esports",
     description: "Professional Esports Organization",
-    images: ["/logos/icon-512.png"],
+    images: ["/logos/new-logo.png"]
   },
   manifest: "/manifest.webmanifest",
 };

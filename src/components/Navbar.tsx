@@ -70,7 +70,7 @@ export default function Navbar() {
             className="hover:scale-105 transition duration-300"
           >
             <Image
-              src="/logos/icon-512.png"
+              src="/logos/new-logo.png"
               alt="Void"
               width={250}
               height={250}

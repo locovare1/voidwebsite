@@ -8,13 +8,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Recent Placements • Void Esports',
     description: 'Explore recent placements and achievements across our esports teams.',
-    images: [{ url: '/logos/icon-512.png', width: 512, height: 512, alt: 'Void' }],
+    images: [{ url: '/logos/new-logo.png', width: 512, height: 512, alt: 'Void' }]
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Recent Placements • Void Esports',
     description: 'Explore recent placements and achievements across our esports teams.',
-    images: ['/logos/icon-512.png'],
+    images: ['/logos/new-logo.png']
   },
 };
 
