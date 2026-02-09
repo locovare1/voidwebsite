@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import CartIcon from "./CartIcon";
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -26,6 +27,16 @@ export default function Navbar() {
 
   // Show on admin panel but with different styling
   const isAdminPanel = pathname?.startsWith("/adminpanel");
+  
+  // Hide navbar during checkout
+  const isCheckoutActive = pathname?.includes("/checkout") || 
+                          (typeof window !== 'undefined' && 
+                           (document.body.classList.contains('checkout-open') ||
+                            document.querySelector('[data-checkout-modal="true"]')));
+  
+  if (isCheckoutActive) {
+    return null; // Don't render navbar during checkout
+  }
 
   return (
     <header
@@ -80,16 +91,15 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* RIGHT COLUMN — Shop button (desktop only) */}
+        {/* RIGHT COLUMN — Cart and Shop button (desktop only) */}
         <div className="hidden lg:flex justify-end items-center gap-4">
-          <a
-            href="https://shop.voidesports.org"
-            target="_blank"
-            rel="noopener noreferrer"
+          <CartIcon />
+          <Link
+            href="/shop"
             className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg hover:from-purple-500 hover:to-purple-700 transition duration-300 shadow-lg hover:shadow-purple-500/50"
           >
             Shop
-          </a>
+          </Link>
         </div>
       </nav>
 
@@ -119,15 +129,21 @@ export default function Navbar() {
                 </Link>
               ))}
 
-              {/* Mobile Shop Button */}
-              <a
-                href="https://shop.voidesports.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block px-4 py-2 text-lg font-semibold text-white bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg hover:from-purple-500 hover:to-purple-700 transition duration-300 text-center"
-              >
-                Shop
-              </a>
+              {/* Mobile Cart and Shop Buttons */}
+              <div className="flex flex-col gap-3">
+                <Link
+                  href="/cart"
+                  className="block px-4 py-2 text-lg font-semibold text-white bg-gradient-to-r from-gray-600 to-gray-800 rounded-lg hover:from-gray-500 hover:to-gray-700 transition duration-300 text-center"
+                >
+                  Cart
+                </Link>
+                <Link
+                  href="/shop"
+                  className="block px-4 py-2 text-lg font-semibold text-white bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg hover:from-purple-500 hover:to-purple-700 transition duration-300 text-center"
+                >
+                  Shop
+                </Link>
+              </div>
 
             </div>
           </div>

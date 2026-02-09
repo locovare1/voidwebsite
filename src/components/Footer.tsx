@@ -20,6 +20,7 @@ const footerLinks = [
   { name: 'Contact', href: '/contact' },
   { name: 'Ambassadors', href: '/ambassadors' },
   { name: 'Careers', href: '/careers' },
+  { name: 'Track Order', href: '/track-order' },
 ];
 
 export default function Footer() {

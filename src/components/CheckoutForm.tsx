@@ -19,12 +19,13 @@ interface CustomerInfo {
 interface CheckoutFormProps {
   clientSecret: string;
   customerInfo: CustomerInfo;
+  items: any[];
   total: number;
   onSuccess: (order: any) => void;
   onError: (error: string) => void;
 }
 
-export default function CheckoutForm({ clientSecret, customerInfo, total, onSuccess, onError }: CheckoutFormProps) {
+export default function CheckoutForm({ clientSecret, customerInfo, items, total, onSuccess, onError }: CheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -51,13 +52,21 @@ export default function CheckoutForm({ clientSecret, customerInfo, total, onSucc
         onError(error.message || 'Payment failed');
         setIsProcessing(false);
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        // Create order object from payment intent and customer info
+        // Create proper order object with all customer information and items
         const order = {
           id: paymentIntent.id,
-          customerInfo,
-          total,
-          status: 'completed',
+          items: items.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image
+          })),
+          total: total,
+          customerInfo: customerInfo,
+          status: 'accepted',
           paymentIntentId: paymentIntent.id,
+          createdAt: new Date().toISOString(),
         };
         onSuccess(order);
       }

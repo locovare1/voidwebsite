@@ -18,8 +18,13 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="pt-20 min-h-screen bg-[#0F0F0F]">
-        <div className="container mx-auto px-4 py-12">
+      <div className="pt-20 min-h-screen bg-gradient-to-b from-[#1a0a2e] via-[#2a1a3a] to-[#1a0a2e] relative overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+        </div>
+        <div className="container mx-auto px-4 py-12 relative z-10">
           {/* Ad Spot - Banner at top */}
           <div className="mb-8">
             <AdPlaceholder size="banner" />
@@ -52,8 +57,13 @@ export default function CartPage() {
   }
 
   return (
-    <div className="pt-20 min-h-screen bg-[#0F0F0F]">
-      <div className="container mx-auto px-4 py-12">
+    <div className="pt-20 min-h-screen bg-gradient-to-b from-[#1a0a2e] via-[#2a1a3a] to-[#1a0a2e] relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+      </div>
+      <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Ad Spot - Banner at top */}
         <div className="mb-8">
           <AdPlaceholder size="banner" />
@@ -194,6 +204,12 @@ export default function CartPage() {
                 className="block w-full text-center mt-4 text-gray-400 hover:text-white transition-colors duration-300"
               >
                 Continue Shopping
+              </Link>
+              <Link
+                href="/track-order"
+                className="block w-full text-center mt-2 text-gray-500 hover:text-gray-300 transition-colors duration-300 text-sm"
+              >
+                Track an Order
               </Link>
             </div>
           </div>

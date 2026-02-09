@@ -52,7 +52,8 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   const [orderProcessed, setOrderProcessed] = useState(false);
   const [shippingCost, setShippingCost] = useState<number>(0);
-  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
+  // Remove shipping calculation effect since we're not calculating shipping
+  // const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
 
   
   const { addOrder } = useOrders();
@@ -67,9 +68,11 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('checkout-open');
       setOrderProcessed(false); // Reset when opening
     } else {
       document.body.style.overflow = 'unset';
+      document.body.classList.remove('checkout-open');
       if (!orderProcessed) {
         setShowPayment(false);
         setClientSecret('');
@@ -78,81 +81,22 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
 
     return () => {
       document.body.style.overflow = 'unset';
+      document.body.classList.remove('checkout-open');
     };
   }, [isOpen, orderProcessed]);
 
-  /**
-   * Calculate the total weight of items in the cart
-   * This is a simplified implementation - in a real app, you would have actual product weights
-   * @returns Total weight in pounds
-   */
+  // Calculate the total weight of items in the cart
+  // This is a simplified implementation - in a real app, you would have actual product weights
   const calculateOrderWeight = useCallback((): number => {
     // Simplified: assume each item weighs 1 pound
     return items.reduce((total, item) => total + item.quantity, 0);
   }, [items]);
 
-  // Calculate shipping cost when zip/country changes
+  // Set fixed shipping cost (removed dynamic calculation)
   useEffect(() => {
-    const calculateShipping = async () => {
-      // Only calculate if we have the required fields
-      if (customerInfo.zipCode && customerInfo.country) {
-        setIsCalculatingShipping(true);
-        console.log('Calculating shipping for:', {
-          destinationZip: customerInfo.zipCode,
-          destinationCountry: customerInfo.country
-        });
-        
-        try {
-          // Use the new simplified shipping API with mathematical formula
-          const response = await fetch('/api/calculate-shipping', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              destinationZip: customerInfo.zipCode,
-              destinationCountry: customerInfo.country
-            }),
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            console.log('Shipping calculation result:', data);
-            setShippingCost(data.shippingCost);
-          } else {
-            const errorData = await response.json();
-            console.log('Shipping API returned error:', errorData);
-            
-            // For non-US addresses, set shipping to 0 (not supported)
-            if (customerInfo.country.toUpperCase() !== 'US') {
-              setShippingCost(0);
-            } else {
-              // For US addresses with invalid ZIP, use fallback
-              setShippingCost(23.50); // Base cost from formula
-            }
-          }
-        } catch (error) {
-          console.error('Error calculating shipping:', error);
-          // Fallback to base cost for US, 0 for international
-          if (customerInfo.country.toUpperCase() === 'US') {
-            setShippingCost(23.50); // Base cost from formula
-          } else {
-            setShippingCost(0);
-          }
-        } finally {
-          setIsCalculatingShipping(false);
-        }
-      }
-    };
-
-    // Debounce the shipping calculation
-    const timer = setTimeout(() => {
-      // Always run the calculation
-      calculateShipping();
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [customerInfo.zipCode, customerInfo.country, customerInfo, subtotal, calculateOrderWeight]);
+    // Set a fixed shipping cost of $0 (free shipping)
+    setShippingCost(0);
+  }, []);
 
 
 
@@ -248,10 +192,12 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
             customerPhone: customerInfo.phone,
             customerCountry: customerInfo.country,
             items: JSON.stringify(items.map(item => ({
+              id: item.id,
               name: item.name,
+              price: item.price,
               quantity: item.quantity,
-              price: item.price
-            }))),
+              image: item.image
+            })))
           },
         }),
       });
@@ -296,8 +242,11 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
     <>
       {/* Checkout Modal */}
       {isOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-300">
-      <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-300"
+          data-checkout-modal="true"
+        >
+      <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-md w-full max-h-[80vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom-4 duration-300 mt-16">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#2A2A2A]">
           <h2 className="text-xl font-bold gradient-text">
@@ -396,6 +345,90 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                   >
                     <option value="">Select your country</option>
                     <option value="US">United States</option>
+                    <option value="CA">Canada</option>
+                    <option value="GB">United Kingdom</option>
+                    <option value="AU">Australia</option>
+                    <option value="DE">Germany</option>
+                    <option value="FR">France</option>
+                    <option value="JP">Japan</option>
+                    <option value="CN">China</option>
+                    <option value="IN">India</option>
+                    <option value="BR">Brazil</option>
+                    <option value="MX">Mexico</option>
+                    <option value="ES">Spain</option>
+                    <option value="IT">Italy</option>
+                    <option value="NL">Netherlands</option>
+                    <option value="SE">Sweden</option>
+                    <option value="NO">Norway</option>
+                    <option value="DK">Denmark</option>
+                    <option value="FI">Finland</option>
+                    <option value="BE">Belgium</option>
+                    <option value="CH">Switzerland</option>
+                    <option value="AT">Austria</option>
+                    <option value="IE">Ireland</option>
+                    <option value="PT">Portugal</option>
+                    <option value="PL">Poland</option>
+                    <option value="CZ">Czech Republic</option>
+                    <option value="HU">Hungary</option>
+                    <option value="RO">Romania</option>
+                    <option value="BG">Bulgaria</option>
+                    <option value="HR">Croatia</option>
+                    <option value="RS">Serbia</option>
+                    <option value="SI">Slovenia</option>
+                    <option value="SK">Slovakia</option>
+                    <option value="EE">Estonia</option>
+                    <option value="LV">Latvia</option>
+                    <option value="LT">Lithuania</option>
+                    <option value="LU">Luxembourg</option>
+                    <option value="MT">Malta</option>
+                    <option value="CY">Cyprus</option>
+                    <option value="GR">Greece</option>
+                    <option value="RU">Russia</option>
+                    <option value="UA">Ukraine</option>
+                    <option value="TR">Turkey</option>
+                    <option value="IL">Israel</option>
+                    <option value="SA">Saudi Arabia</option>
+                    <option value="AE">United Arab Emirates</option>
+                    <option value="ZA">South Africa</option>
+                    <option value="NG">Nigeria</option>
+                    <option value="EG">Egypt</option>
+                    <option value="KE">Kenya</option>
+                    <option value="MA">Morocco</option>
+                    <option value="GH">Ghana</option>
+                    <option value="AR">Argentina</option>
+                    <option value="CL">Chile</option>
+                    <option value="CO">Colombia</option>
+                    <option value="PE">Peru</option>
+                    <option value="VE">Venezuela</option>
+                    <option value="UY">Uruguay</option>
+                    <option value="PY">Paraguay</option>
+                    <option value="BO">Bolivia</option>
+                    <option value="EC">Ecuador</option>
+                    <option value="CR">Costa Rica</option>
+                    <option value="GT">Guatemala</option>
+                    <option value="HN">Honduras</option>
+                    <option value="SV">El Salvador</option>
+                    <option value="NI">Nicaragua</option>
+                    <option value="PA">Panama</option>
+                    <option value="DO">Dominican Republic</option>
+                    <option value="JM">Jamaica</option>
+                    <option value="TT">Trinidad and Tobago</option>
+                    <option value="BB">Barbados</option>
+                    <option value="BS">Bahamas</option>
+                    <option value="BZ">Belize</option>
+                    <option value="HT">Haiti</option>
+                    <option value="CU">Cuba</option>
+                    <option value="SG">Singapore</option>
+                    <option value="MY">Malaysia</option>
+                    <option value="TH">Thailand</option>
+                    <option value="VN">Vietnam</option>
+                    <option value="PH">Philippines</option>
+                    <option value="ID">Indonesia</option>
+                    <option value="KR">South Korea</option>
+                    <option value="TW">Taiwan</option>
+                    <option value="HK">Hong Kong</option>
+                    <option value="MO">Macau</option>
+                    <option value="NZ">New Zealand</option>
                   </select>
                 </div>
               </div>
@@ -414,18 +447,6 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                       <span>${tax.toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-gray-400">
-                    <span>Shipping</span>
-                    <span>
-                      {isCalculatingShipping ? (
-                        <span className="text-gray-400">Calculating...</span>
-                      ) : shippingCost > 0 ? (
-                        `$${shippingCost.toFixed(2)}`
-                      ) : (
-                        'Free'
-                      )}
-                    </span>
-                  </div>
                   <div className="border-t border-[#2A2A2A] pt-2 mt-2">
                     <div className="flex justify-between text-white font-bold">
                       <span>Total</span>
@@ -438,10 +459,10 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
               {/* Proceed Button */}
               <button
                 onClick={handleProceedToPayment}
-                disabled={true}
+                disabled={!isFormValid || isLoading}
                 className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed glow-on-hover"
               >
-                Checkout Temporarily Disabled
+                {isLoading ? 'Processing...' : (finalTotal <= 0 ? 'Place Free Order' : `Pay $${finalTotal.toFixed(2)}`)}
               </button>
             </>
           ) : (
@@ -452,7 +473,12 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                   <CheckoutForm 
                     clientSecret={clientSecret}
                     customerInfo={customerInfo}
+                    items={items}
                     onSuccess={(order: any) => {
+                      // Save order to Firebase and local storage
+                      addOrder(order);
+                      clearCart();
+                      
                       setCompletedOrder(order);
                       setOrderProcessed(true);
                       setShowSuccessModal(true);

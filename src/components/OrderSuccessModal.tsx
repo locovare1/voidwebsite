@@ -66,10 +66,14 @@ export default function OrderSuccessModal({ isOpen, onClose, order }: OrderSucce
         <div className="p-6 space-y-6">
           {/* Success Message */}
           <div className="text-center">
-            <p className="text-gray-300 mb-4">
-              Thank you for your order! We&apos;ve received your purchase and will process it shortly.
+            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircleIcon className="w-10 h-10 text-green-400" />
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">Payment Successful!</h3>
+            <p className="text-gray-300 mb-6">
+              Thank you for your order! Your payment has been processed successfully.
             </p>
-            <div className="bg-green-900/20 border border-green-500/20 rounded-lg p-4">
+            <div className="bg-green-900/20 border border-green-500/20 rounded-lg p-4 mb-6">
               <p className="text-green-400 text-sm">
                 You&apos;ll receive an email confirmation at <span className="font-medium">{order.customerInfo.email}</span>
               </p>
@@ -77,22 +81,23 @@ export default function OrderSuccessModal({ isOpen, onClose, order }: OrderSucce
           </div>
 
           {/* Order Number */}
-          <div className="bg-[#1A1A1A] rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-semibold text-white">Order Number</h3>
-              <button
-                onClick={copyOrderNumber}
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-300 text-sm"
-              >
-                <ClipboardDocumentIcon className="w-4 h-4" />
-                {copied ? 'Copied!' : 'Copy'}
-              </button>
+          <div className="bg-gradient-to-br from-green-900/30 to-emerald-900/30 border border-green-500/30 rounded-xl p-6 text-center">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <ClipboardDocumentIcon className="w-5 h-5 text-green-400" />
+              <h3 className="text-xl font-bold text-white">Your Order Number</h3>
             </div>
-            <div className="bg-[#0F0F0F] rounded-lg p-3 border border-[#2A2A2A]">
-              <p className="text-white font-mono text-lg break-all">{order.id}</p>
-              <p className="text-gray-400 text-sm mt-1">Order #{formatOrderNumber(order.id, true)}</p>
+            <div className="bg-[#0F0F0F] rounded-xl p-4 border border-green-500/20 mb-3">
+              <p className="text-green-400 font-mono text-2xl font-bold tracking-wider break-all">{order.id}</p>
+              <p className="text-gray-400 text-sm mt-2">Order #{formatOrderNumber(order.id, true)}</p>
             </div>
-            <p className="text-gray-400 text-sm mt-2">
+            <button
+              onClick={copyOrderNumber}
+              className="inline-flex items-center gap-2 bg-green-600/20 hover:bg-green-600/30 border border-green-600/30 text-green-400 font-medium py-2 px-4 rounded-lg transition-all duration-300 text-sm"
+            >
+              <ClipboardDocumentIcon className="w-4 h-4" />
+              {copied ? 'Copied to Clipboard!' : 'Copy Order Number'}
+            </button>
+            <p className="text-gray-400 text-sm mt-4">
               Save this number to track your order status
             </p>
           </div>

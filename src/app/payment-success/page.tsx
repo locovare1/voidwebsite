@@ -37,6 +37,9 @@ export default function PaymentSuccessPage() {
             <Link href="/shop" className="block void-button glow-on-hover">
               Continue Shopping
             </Link>
+            <Link href="/track-order" className="block text-gray-400 hover:text-white transition-colors duration-300">
+              Track Your Order
+            </Link>
             <Link href="/" className="block text-gray-400 hover:text-white transition-colors duration-300">
               Back to Home
             </Link>
