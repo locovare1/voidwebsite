@@ -112,11 +112,10 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
   const handleProceedToPayment = async () => {
     if (!isFormValid) return;
 
-    setIsLoading(true);
-    
-    try {
-      // If total is $0 or less, skip payment processing and create order directly
-      if (finalTotal <= 0) {
+    // If total is $0 or less, skip payment processing and create order directly
+    if (finalTotal <= 0) {
+      setIsLoading(true);
+      try {
         // Create order directly for free items
         const newOrder = {
           id: generateOrderNumber(),
@@ -129,58 +128,46 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
           })),
           total: finalTotal,
           customerInfo: customerInfo,
-          status: 'accepted' as const, // Free orders are automatically accepted
+          status: 'accepted' as const,
           createdAt: new Date().toISOString(),
         };
         
         try {
           console.log('Saving order to Firebase:', newOrder.id);
           
-          // Save order to Firebase with timeout, only if db is available
           if (db) {
-            const savePromise = setDoc(doc(db, 'orders', newOrder.id), {
+            await setDoc(doc(db, 'orders', newOrder.id), {
               ...newOrder,
-              createdAt: new Date(), // Use Firebase Timestamp
+              createdAt: new Date(),
             });
-            
-            // Add timeout to prevent hanging
-            await Promise.race([
-              savePromise,
-              new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Firebase timeout')), 10000)
-              )
-            ]);
-            
             console.log('Order saved to Firebase successfully');
-          } else {
-            console.log('Firebase not available, skipping save');
           }
         } catch (error) {
           console.error('Error saving free order to Firebase:', error);
-          // Don't show alert, just log the error
         }
         
-        // Always proceed with local storage and success modal
         addOrder(newOrder);
         clearCart();
-        
-        // Set the completed order and show success modal immediately
         setCompletedOrder(newOrder);
         setOrderProcessed(true);
         setShowSuccessModal(true);
-        
-        // Close the checkout modal immediately
         onClose();
-        
-        return;
+      } finally {
+        setIsLoading(false);
       }
+      return;
+    }
 
-      // For paid orders, proceed with Stripe
+    // For paid orders, proceed with Stripe
+    try {
+      setIsLoading(true);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
       const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amount: finalTotal,
           currency: 'usd',
@@ -191,16 +178,13 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
             customerZipCode: customerInfo.zipCode,
             customerPhone: customerInfo.phone,
             customerCountry: customerInfo.country,
-            items: JSON.stringify(items.map(item => ({
-              id: item.id,
-              name: item.name,
-              price: item.price,
-              quantity: item.quantity,
-              image: item.image
-            })))
+            items: JSON.stringify(items)
           },
         }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -210,11 +194,20 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
       const responseData = await response.json();
       const { clientSecret } = responseData;
       
+      if (!clientSecret) {
+        throw new Error('No client secret received from server');
+      }
+      
+      console.log('Payment intent created, client secret received');
       setClientSecret(clientSecret);
       setShowPayment(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating payment intent:', error);
-      alert('Failed to initialize payment. Please try again.');
+      if (error.name === 'AbortError') {
+        alert('Payment request timed out. Please try again.');
+      } else {
+        alert(error.message || 'Failed to initialize payment. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
