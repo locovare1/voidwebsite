@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import {
   PaymentElement,
   useStripe,
@@ -29,11 +29,19 @@ export default function CheckoutForm({ clientSecret, customerInfo, items, total,
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    if (elements) {
+      setIsMounted(true);
+    }
+  }, [elements]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!stripe || !elements) {
+    if (!stripe || !elements || !isMounted) {
+      onError('Payment system not ready. Please try again.');
       return;
     }
 
@@ -43,7 +51,7 @@ export default function CheckoutForm({ clientSecret, customerInfo, items, total,
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: window.location.origin,
+          return_url: `${window.location.origin}/payment-success`,
         },
         redirect: 'if_required',
       });
@@ -52,7 +60,6 @@ export default function CheckoutForm({ clientSecret, customerInfo, items, total,
         onError(error.message || 'Payment failed');
         setIsProcessing(false);
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        // Create proper order object with all customer information and items
         const order = {
           id: paymentIntent.id,
           items: items.map(item => ({
@@ -78,10 +85,18 @@ export default function CheckoutForm({ clientSecret, customerInfo, items, total,
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <PaymentElement />
+      <div className="min-h-[200px]">
+        {isMounted ? (
+          <PaymentElement />
+        ) : (
+          <div className="flex items-center justify-center h-32">
+            <div className="text-gray-400">Loading payment form...</div>
+          </div>
+        )}
+      </div>
       <button
         type="submit"
-        disabled={!stripe || isProcessing}
+        disabled={!stripe || !elements || !isMounted || isProcessing}
         className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isProcessing ? 'Processing...' : 'Pay Now'}
@@ -89,4 +104,3 @@ export default function CheckoutForm({ clientSecret, customerInfo, items, total,
     </form>
   );
 }
-
