@@ -223,28 +223,35 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
   const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
   const [stripeError, setStripeError] = useState<string | null>(null);
 
-  // Initialize Stripe on mount
+  // Initialize Stripe on mount - load immediately and keep it loaded
   useEffect(() => {
+    let mounted = true;
+    
     const initStripe = async () => {
       try {
         const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
         if (!key) {
-          setStripeError('Stripe publishable key not configured');
+          console.error('Stripe publishable key not found');
           return;
         }
+        
+        const { loadStripe } = await import('@stripe/stripe-js');
         const stripe = await loadStripe(key);
-        if (stripe) {
+        
+        if (mounted && stripe) {
           setStripePromise(Promise.resolve(stripe));
-        } else {
-          setStripeError('Failed to load Stripe');
+          console.log('Stripe loaded successfully');
         }
       } catch (error) {
         console.error('Error loading Stripe:', error);
-        setStripeError('Failed to initialize Stripe');
       }
     };
     
     initStripe();
+    
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const appearance = {
@@ -486,21 +493,16 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
               {/* Proceed Button */}
               <button
                 onClick={handleProceedToPayment}
-                disabled={!isFormValid || isLoading}
+                disabled={!isFormValid || isLoading || !stripePromise}
                 className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed glow-on-hover"
               >
-                {isLoading ? 'Processing...' : (finalTotal <= 0 ? 'Place Free Order' : `Pay $${finalTotal.toFixed(2)}`)}
+                {isLoading ? 'Processing...' : (!stripePromise ? 'Loading...' : (finalTotal <= 0 ? 'Place Free Order' : `Pay $${finalTotal.toFixed(2)}`))}
               </button>
             </>
           ) : (
             <>
-              {/* Payment Form */}
-              {stripeError ? (
-                <div className="text-center py-8">
-                  <div className="text-red-400 mb-4">{stripeError}</div>
-                  <p className="text-gray-400 text-sm">Please ensure your Stripe keys are configured in Vercel.</p>
-                </div>
-              ) : clientSecret && stripePromise ? (
+              {/* Payment Form - Always render when we have clientSecret */}
+              {clientSecret ? (
                 <Elements options={options} stripe={stripePromise}>
                   <CheckoutForm 
                     clientSecret={clientSecret}
@@ -523,7 +525,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                 </Elements>
               ) : (
                 <div className="text-center py-8">
-                  <div className="text-gray-400">Loading payment form...</div>
+                  <div className="text-gray-400">Preparing payment...</div>
                 </div>
               )}
             </>
