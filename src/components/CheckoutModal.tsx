@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Elements } from '@stripe/react-stripe-js';
-import getStripe from '@/lib/stripe';
+import { loadStripe, Stripe } from '@stripe/stripe-js';
 import CheckoutForm from './CheckoutForm';
 import { useOrders, Order } from '@/contexts/OrderContext';
 import { useCart } from '@/contexts/CartContext';
@@ -219,6 +219,33 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
       setIsLoading(false);
     }
   };
+
+  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
+  const [stripeError, setStripeError] = useState<string | null>(null);
+
+  // Initialize Stripe on mount
+  useEffect(() => {
+    const initStripe = async () => {
+      try {
+        const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+        if (!key) {
+          setStripeError('Stripe publishable key not configured');
+          return;
+        }
+        const stripe = await loadStripe(key);
+        if (stripe) {
+          setStripePromise(Promise.resolve(stripe));
+        } else {
+          setStripeError('Failed to load Stripe');
+        }
+      } catch (error) {
+        console.error('Error loading Stripe:', error);
+        setStripeError('Failed to initialize Stripe');
+      }
+    };
+    
+    initStripe();
+  }, []);
 
   const appearance = {
     theme: 'night' as const,
@@ -468,21 +495,23 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
           ) : (
             <>
               {/* Payment Form */}
-              {clientSecret && (
-                <Elements options={options} stripe={getStripe()}>
+              {stripeError ? (
+                <div className="text-center py-8">
+                  <div className="text-red-400 mb-4">{stripeError}</div>
+                  <p className="text-gray-400 text-sm">Please ensure your Stripe keys are configured in Vercel.</p>
+                </div>
+              ) : clientSecret && stripePromise ? (
+                <Elements options={options} stripe={stripePromise}>
                   <CheckoutForm 
                     clientSecret={clientSecret}
                     customerInfo={customerInfo}
                     items={items}
                     onSuccess={(order: any) => {
-                      // Save order to Firebase and local storage
                       addOrder(order);
                       clearCart();
-                      
                       setCompletedOrder(order);
                       setOrderProcessed(true);
                       setShowSuccessModal(true);
-                      // Close checkout modal immediately
                       onClose();
                     }}
                     onError={(error: string) => {
@@ -492,6 +521,10 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                     total={finalTotal}
                   />
                 </Elements>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-gray-400">Loading payment form...</div>
+                </div>
               )}
             </>
           )}
