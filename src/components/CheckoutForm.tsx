@@ -33,9 +33,7 @@ export default function CheckoutForm({ clientSecret, customerInfo, items, total,
   const [message, setMessage] = useState<string | null>(null);
   const [useCardElement, setUseCardElement] = useState(false);
 
-  // Try PaymentElement first, fall back to CardElement if it fails
   useEffect(() => {
-    // Give PaymentElement time to load, if it doesn't show within 3 seconds, switch to CardElement
     const timer = setTimeout(() => {
       if (!elements) {
         setUseCardElement(true);
@@ -47,9 +45,7 @@ export default function CheckoutForm({ clientSecret, customerInfo, items, total,
   const handleCardSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!stripe || !elements) {
-      return;
-    }
+    if (!stripe || !elements) return;
 
     setIsProcessing(true);
     setMessage(null);
@@ -61,64 +57,70 @@ export default function CheckoutForm({ clientSecret, customerInfo, items, total,
       return;
     }
 
-    const { error, paymentIntent } = await stripe.createPaymentMethod({
-      type: 'card',
-      card: cardElement,
-      billing_details: {
-        name: customerInfo.name,
-        email: customerInfo.email,
-        address: {
-          line1: customerInfo.address,
-          postal_code: customerInfo.zipCode,
-          country: customerInfo.country,
+    try {
+      // Create payment method
+      const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
+        type: 'card',
+        card: cardElement,
+        billing_details: {
+          name: customerInfo.name,
+          email: customerInfo.email,
+          address: {
+            line1: customerInfo.address,
+            postal_code: customerInfo.zipCode,
+            country: customerInfo.country,
+          },
         },
-      },
-    });
-
-    if (error) {
-      setMessage(error.message || 'Payment failed');
-      onError(error.message || 'Payment failed');
-      setIsProcessing(false);
-      return;
-    }
-
-    // Now confirm the payment intent
-    if (paymentIntent) {
-      const { error: confirmError, paymentIntent: confirmedIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: paymentIntent.id,
       });
 
-      if (confirmError) {
-        setMessage(confirmError.message || 'Payment failed');
-        onError(confirmError.message || 'Payment failed');
+      if (pmError) {
+        setMessage(pmError.message || 'Payment failed');
+        onError(pmError.message || 'Payment failed');
         setIsProcessing(false);
-      } else if (confirmedIntent && confirmedIntent.status === 'succeeded') {
-        const order = {
-          id: confirmedIntent.id,
-          items: items.map((item: any) => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image
-          })),
-          total: total,
-          customerInfo: customerInfo,
-          status: 'accepted',
-          paymentIntentId: confirmedIntent.id,
-          createdAt: new Date().toISOString(),
-        };
-        onSuccess(order);
+        return;
       }
+
+      // Confirm payment
+      if (paymentMethod) {
+        const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: paymentMethod.id,
+        });
+
+        if (confirmError) {
+          setMessage(confirmError.message || 'Payment failed');
+          onError(confirmError.message || 'Payment failed');
+          setIsProcessing(false);
+        } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+          const order = {
+            id: paymentIntent.id,
+            items: items.map((item: any) => ({
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image
+            })),
+            total: total,
+            customerInfo: customerInfo,
+            status: 'accepted',
+            paymentIntentId: paymentIntent.id,
+            createdAt: new Date().toISOString(),
+          };
+          onSuccess(order);
+        }
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Payment failed';
+      setMessage(errorMsg);
+      onError(errorMsg);
+      setIsProcessing(false);
     }
   };
 
   const handlePaymentElementSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!stripe || !elements) {
-      return;
-    }
+    if (!stripe || !elements) return;
 
     setIsProcessing(true);
 
