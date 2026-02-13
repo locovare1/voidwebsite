@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Elements } from '@stripe/react-stripe-js';
-import { loadStripe, Stripe } from '@stripe/stripe-js';
+import getStripe from '@/lib/stripe';
 import CheckoutForm from './CheckoutForm';
 import { useOrders, Order } from '@/contexts/OrderContext';
 import { useCart } from '@/contexts/CartContext';
@@ -213,27 +213,18 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
     }
   };
 
-  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
-  const [stripeError, setStripeError] = useState<string | null>(null);
+  const [stripeInstance, setStripeInstance] = useState<any>(null);
 
-  // Initialize Stripe on mount - load immediately and keep it loaded
+  // Initialize Stripe on mount - use consistent getStripe
   useEffect(() => {
     let mounted = true;
     
     const initStripe = async () => {
       try {
-        const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-        if (!key) {
-          console.error('Stripe publishable key not found');
-          return;
-        }
-        
-        const { loadStripe } = await import('@stripe/stripe-js');
-        const stripe = await loadStripe(key);
-        
+        const stripe = await getStripe();
         if (mounted && stripe) {
-          setStripePromise(Promise.resolve(stripe));
-          console.log('Stripe loaded successfully');
+          setStripeInstance(stripe);
+          console.log('Stripe loaded successfully in CheckoutModal');
         }
       } catch (error) {
         console.error('Error loading Stripe:', error);
@@ -486,17 +477,17 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
               {/* Proceed Button */}
               <button
                 onClick={handleProceedToPayment}
-                disabled={!isFormValid || isLoading || !stripePromise}
+                disabled={!isFormValid || isLoading || !stripeInstance}
                 className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed glow-on-hover"
               >
-                {isLoading ? 'Processing...' : (!stripePromise ? 'Loading...' : (finalTotal <= 0 ? 'Place Free Order' : `Pay $${finalTotal.toFixed(2)}`))}
+                {isLoading ? 'Processing...' : (!stripeInstance ? 'Loading...' : (finalTotal <= 0 ? 'Place Free Order' : `Pay $${finalTotal.toFixed(2)}`))}
               </button>
             </>
           ) : (
             <>
               {/* Payment Form - Always render when we have clientSecret */}
               {clientSecret ? (
-                <Elements options={options} stripe={stripePromise}>
+                <Elements options={options} stripe={stripeInstance}>
                   <CheckoutForm 
                     clientSecret={clientSecret}
                     customerInfo={customerInfo}
