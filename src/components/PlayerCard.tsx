@@ -29,15 +29,15 @@ export default function PlayerCard({
   return (
     <motion.div
       layoutId={`player-card-${name}`}
-      className="player-card group cursor-pointer transition-transform duration-300 hover:-translate-y-1 h-full"
+      className="player-card group cursor-pointer transition-transform duration-300 hover:-translate-y-1 h-full flex flex-col"
     >
-      <div className="relative h-48 sm:h-56 lg:h-64 mb-3 sm:mb-4 overflow-hidden rounded-lg">
+      <div className="relative h-44 sm:h-52 md:h-48 lg:h-56 xl:h-64 mb-3 sm:mb-4 overflow-hidden rounded-lg">
         <SafeImage
           src={image || '/logo.png'}
           alt={name}
           fill
           className="player-card-image object-cover"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           onError={() => {
             console.warn(`Failed to load image for ${name}: ${image}`);
           }}
@@ -118,24 +118,27 @@ export default function PlayerCard({
       </div>
 
       <div className="text-center px-2">
-        <h3 className="text-lg sm:text-xl font-bold mb-2 group-hover:text-[#a6a6a6] transition-colors duration-300">
+        <h3 className="text-base sm:text-lg md:text-xl font-bold mb-1 sm:mb-2 truncate group-hover:text-[#a6a6a6] transition-colors duration-300">
           {name}
         </h3>
-        <p className="text-sm sm:text-base text-gray-400 mb-3 group-hover:text-gray-300 transition-colors duration-300">
+        <p className="text-xs sm:text-sm md:text-base text-gray-400 mb-2 sm:mb-3 truncate group-hover:text-gray-300 transition-colors duration-300">
           {role}
         </p>
 
         {/* Achievements */}
         {achievements.length > 0 && (
           <div className="space-y-1">
-            {achievements.map((achievement, index) => (
+            {achievements.slice(0, 2).map((achievement, index) => (  // Limit achievements on mobile
               <p
                 key={index}
-                className={`text-xs text-gray-500 group-hover:text-gray-400 transition-colors duration-300 ${index === 0 ? 'delay-0' : index === 1 ? 'delay-50' : index === 2 ? 'delay-100' : index === 3 ? 'delay-150' : 'delay-200'}`}
+                className={`text-xs text-gray-500 group-hover:text-gray-400 transition-colors duration-300 truncate ${index === 0 ? 'delay-0' : index === 1 ? 'delay-50' : index === 2 ? 'delay-100' : index === 3 ? 'delay-150' : 'delay-200'}`}
               >
                 {achievement}
               </p>
             ))}
+            {achievements.length > 2 && (
+              <p className="text-xs text-gray-500">+{achievements.length - 2} more</p>
+            )}
           </div>
         )}
       </div>

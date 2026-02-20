@@ -125,7 +125,7 @@ export default function TeamDetailPage() {
         )}
       </AnimatePresence>
 
-      <div className="void-container py-8 sm:py-12">
+      <div className="void-container py-8 sm:py-12 pb-20 max-w-full overflow-x-hidden">
         {/* Back Button */}
         <AnimatedSection animationType="fadeIn" delay={50}>
           <Link
@@ -139,9 +139,9 @@ export default function TeamDetailPage() {
 
         {/* Team Header */}
         <AnimatedSection animationType="fadeIn" delay={100}>
-          <div className="mb-12">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-6">
-              <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden border border-white/10 shadow-lg">
+          <div className="mb-8 sm:mb-12">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-4 sm:mb-6">
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden border border-white/10 shadow-lg flex-shrink-0">
                 <SafeImage
                   src={team.image}
                   alt={team.name}
@@ -149,11 +149,11 @@ export default function TeamDetailPage() {
                   className="object-cover"
                 />
               </div>
-              <div>
-                <h1 className="text-4xl sm:text-5xl font-bold gradient-text mb-3">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold gradient-text mb-2 sm:mb-3 truncate">
                   {team.name}
                 </h1>
-                <p className="text-gray-400 text-lg max-w-2xl">
+                <p className="text-gray-400 text-base sm:text-lg max-w-full">
                   {team.description}
                 </p>
               </div>
@@ -164,7 +164,7 @@ export default function TeamDetailPage() {
                 {team.achievements.map((achievement, idx) => (
                   <span
                     key={idx}
-                    className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm font-medium"
+                    className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap"
                   >
                     {achievement}
                   </span>
@@ -176,13 +176,17 @@ export default function TeamDetailPage() {
 
         {/* Players Grid */}
         <AnimatedSection animationType="fadeIn" delay={150}>
-          <h2 className="text-2xl sm:text-3xl font-bold gradient-text mb-6">
-            Roster
+          <h2 className="text-2xl sm:text-3xl font-bold gradient-text mb-6 text-center sm:text-left">
+            Roster ({team.players.length} Members)
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             {team.players.map((player, pIdx) => (
-              <AnimatedSection key={player.name} animationType="slideUp" delay={pIdx * 100}>
-                <div onClick={() => openPlayerModal(player, team.players)} className="cursor-pointer">
+              <AnimatedSection key={player.name} animationType="slideUp" delay={pIdx * 30}>
+                <div 
+                  onClick={() => openPlayerModal(player, team.players)} 
+                  className="cursor-pointer touch-manipulation"
+                  style={{ minHeight: '280px' }}
+                >
                   <PlayerCard
                     name={player.name}
                     role={player.role}
