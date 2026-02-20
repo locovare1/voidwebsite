@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "root": "frontend",
+  "rootDirectory": "frontend",
   "env": {
     "NODE_ENV": "production"
   }
