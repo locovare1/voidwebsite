@@ -58,7 +58,7 @@ export default function Footer() {
               Professional esports organization pushing the boundaries of competitive gaming.
             </p>
             <p className="text-sm sm:text-base text-gray-400">
-              Developed by Layne454 and X.y.c.l.o.p.s (Discord)
+              Developed by Layne and Alex. CTO's at Void Esports
             </p>
           </div>
 
