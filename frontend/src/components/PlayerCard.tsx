@@ -33,7 +33,7 @@ export default function PlayerCard({
     >
       <div className="relative h-44 sm:h-52 md:h-48 lg:h-56 xl:h-64 mb-3 sm:mb-4 overflow-hidden rounded-lg">
         <SafeImage
-          src={image || '/logo.png'}
+          src={image || '/hero-bg.jpg'}
           alt={name}
           fill
           className="player-card-image object-cover"
