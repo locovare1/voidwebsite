@@ -63,7 +63,7 @@ export default function AdminDashboard() {
   const { orders, updateOrderStatus, deleteOrder } = useOrders();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'teams' | 'ambassadors' | 'news' | 'placements' | 'schedule' | 'socials' | 'users' | 'orders'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'products' | 'teams' | 'ambassadors' | 'news' | 'placements' | 'schedule' | 'socials' | 'users' | 'orders'>('orders');
   
 
 
@@ -763,7 +763,6 @@ export default function AdminDashboard() {
         <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-1">
           <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
             {[
-              { id: 'dashboard', label: 'Dashboard', icon: ChartBarIcon, link: '/adminpanel/dashboard' },
               { id: 'products', label: 'Products', icon: UserIcon },
               { id: 'teams', label: 'Teams', icon: UserIcon },
               { id: 'ambassadors', label: 'Ambassadors', icon: UserGroupIcon },
@@ -774,33 +773,18 @@ export default function AdminDashboard() {
               { id: 'users', label: 'Users', icon: UserPlusIcon },
               { id: 'orders', label: 'Orders', icon: ShoppingBagIcon },
             ].map((tab) => (
-              tab.link ? (
-                <button
-                  key={tab.id}
-                  onClick={() => router.push(tab.link!)}
-                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-300 whitespace-nowrap text-sm sm:text-base ${activeTab === tab.id
-                    ? 'bg-[#FFFFFF] text-black'
-                    : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]'
-                    }`}
-                >
-                  <tab.icon className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
-                </button>
-              ) : (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-300 whitespace-nowrap text-sm sm:text-base ${activeTab === tab.id
-                    ? 'bg-[#FFFFFF] text-black'
-                    : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]'
-                    }`}
-                >
-                  <tab.icon className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
-                </button>
-              )
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-300 whitespace-nowrap text-sm sm:text-base ${activeTab === tab.id
+                  ? 'bg-[#FFFFFF] text-black'
+                  : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]'
+                  }`}
+              >
+                <tab.icon className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+              </button>
             ))}
           </div>
         </div>
