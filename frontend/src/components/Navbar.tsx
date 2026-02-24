@@ -25,6 +25,19 @@ export default function Navbar() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (mobileMenuOpen) {
+      document.body.classList.add("mobile-menu-open");
+    } else {
+      document.body.classList.remove("mobile-menu-open");
+    }
+    return () => {
+      document.body.classList.remove("mobile-menu-open");
+    };
+  }, [mobileMenuOpen]);
+
   // Show on admin panel but with different styling
   const isAdminPanel = pathname?.startsWith("/adminpanel");
   
@@ -103,48 +116,66 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* MOBILE MENU OVERLAY */}
+      {/* MOBILE MENU OVERLAY (full-screen panel) */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm">
-          <div className="fixed right-0 top-0 h-full w-64 bg-[#1a0a2e]/95 p-6 shadow-xl">
-            {/* Close Button */}
-            <button
-              type="button"
-              className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-md transition"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
+        <div className="lg:hidden fixed inset-0 z-[200] bg-[#05010a]/95 backdrop-blur-xl">
+          <div className="flex flex-col h-full">
+            {/* Top bar with logo + close */}
+            <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-white/10">
+              <Link
+                href="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2"
+              >
+                <Image
+                  src="/logos/new-logo.png"
+                  alt="Void"
+                  width={120}
+                  height={120}
+                  className="h-10 w-auto object-contain"
+                />
+              </Link>
+              <button
+                type="button"
+                className="text-white p-2 hover:bg-white/10 rounded-md transition"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <XMarkIcon className="h-7 w-7" />
+              </button>
+            </div>
 
-            {/* Mobile Nav Items */}
-            <div className="mt-10 space-y-6">
+            {/* Nav items */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block text-lg font-semibold text-white hover:text-purple-400 transition"
+                  className={`block text-xl font-semibold ${
+                    pathname === item.href ? "text-purple-300" : "text-white"
+                  } hover:text-purple-400 transition`}
                 >
                   {item.name}
                 </Link>
               ))}
+            </div>
 
-              {/* Mobile Cart and Shop Buttons */}
-              <div className="flex flex-col gap-3">
-                <Link
-                  href="/cart"
-                  className="block px-4 py-2 text-lg font-semibold text-white bg-gradient-to-r from-gray-600 to-gray-800 rounded-lg hover:from-gray-500 hover:to-gray-700 transition duration-300 text-center"
-                >
-                  Cart
-                </Link>
-                <Link
-                  href="/shop"
-                  className="block px-4 py-2 text-lg font-semibold text-white bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg hover:from-purple-500 hover:to-purple-700 transition duration-300 text-center"
-                >
-                  Shop
-                </Link>
-              </div>
-
+            {/* Cart / Shop actions at bottom */}
+            <div className="px-6 pb-8 pt-4 border-t border-white/10 space-y-3">
+              <Link
+                href="/cart"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-3 text-base font-semibold text-white bg-gradient-to-r from-gray-600 to-gray-800 rounded-lg text-center hover:from-gray-500 hover:to-gray-700 transition duration-300"
+              >
+                Cart
+              </Link>
+              <Link
+                href="/shop"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-3 text-base font-semibold text-white bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg text-center hover:from-purple-500 hover:to-purple-700 transition duration-300"
+              >
+                Shop
+              </Link>
             </div>
           </div>
         </div>
