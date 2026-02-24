@@ -12,6 +12,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { OrderProvider } from "@/contexts/OrderContext";
 import { ReviewProvider } from "@/contexts/ReviewContext";
 import { DebugProvider } from "@/contexts/DebugContext";
+import SiteGate from "@/components/SiteGate";
 
 
 // Removed LanguageProvider import
@@ -71,12 +72,13 @@ export default function RootLayout({
               <ReviewProvider>
                 <GlobalErrorBoundary>
                   <AdvancedPageTransition>
-
-                    <ScrollToTop />
-                    {/* We'll handle navbar visibility in the client-side components */}
-                    <Navbar />
-                    <main className="min-h-screen bg-void-purple">{children}</main>
-                    <Footer />
+                    <SiteGate>
+                      <ScrollToTop />
+                      {/* We'll handle navbar visibility in the client-side components */}
+                      <Navbar />
+                      <main className="min-h-screen bg-void-purple">{children}</main>
+                      <Footer />
+                    </SiteGate>
                   </AdvancedPageTransition>
                 </GlobalErrorBoundary>
               </ReviewProvider>
