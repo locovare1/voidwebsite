@@ -43,6 +43,23 @@ export default function SafeImage({
     }
   }, [src, currentSrc]);
 
+  // Safety timeout: if Firefox (or any browser) never fires onLoad/onError,
+  // stop showing the "Loading..." overlay after a few seconds and fall back.
+  useEffect(() => {
+    if (!isLoading) return;
+    if (typeof window === 'undefined') return;
+
+    const timeoutId = window.setTimeout(() => {
+      setCurrentSrc(getFallbackImageUrl(src));
+      setHasError(false);
+      setIsLoading(false);
+    }, 4000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isLoading, src]);
+
   const handleError = () => {
     console.warn(`Failed to load image: ${currentSrc}`);
     setIsLoading(false);
@@ -83,7 +100,7 @@ export default function SafeImage({
   return (
     <div className={`relative ${fill ? '' : ''}`} style={wrapperStyle}>
       {isLoading && (
-        <div className="absolute inset-0 bg-gray-800 animate-pulse flex items-center justify-center z-10">
+        <div className="absolute inset-0 bg-[#111827] animate-pulse flex items-center justify-center z-10">
           <div className="text-gray-400 text-sm">Loading...</div>
         </div>
       )}
