@@ -187,42 +187,40 @@ export default function TeamDetailPage() {
           </div>
         </AnimatedSection>
 
-        {/* Players Grid */}
-        <AnimatedSection animationType="fadeIn" delay={150}>
-          <section id="team-roster-section">
-            <h2 className="text-2xl sm:text-3xl font-bold gradient-text mb-6 text-center sm:text-left">
-              Roster ({team.players?.length ?? 0} Members)
-            </h2>
+        {/* Players Grid (no scroll animation to ensure visibility on all devices) */}
+        <section id="team-roster-section" className="mt-4">
+          <h2 className="text-2xl sm:text-3xl font-bold gradient-text mb-6 text-center sm:text-left">
+            Roster ({team.players?.length ?? 0} Members)
+          </h2>
 
-            {(!team.players || team.players.length === 0) && (
-              <p className="text-gray-400 text-center sm:text-left">
-                No players found for this roster yet.
-              </p>
-            )}
+          {(!team.players || team.players.length === 0) && (
+            <p className="text-gray-400 text-center sm:text-left">
+              No players found for this roster yet.
+            </p>
+          )}
 
-            {team.players && team.players.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                {team.players.map((player) => (
-                  <div
-                    key={player.name}
-                    onClick={() => openPlayerModal(player, team.players!)}
-                    className="cursor-pointer touch-manipulation"
-                    style={{ minHeight: '280px' }}
-                  >
-                    <PlayerCard
-                      name={player.name}
-                      role={player.role}
-                      image={player.image}
-                      game={player.game}
-                      achievements={player.achievements}
-                      socialLinks={player.socialLinks}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </AnimatedSection>
+          {team.players && team.players.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+              {team.players.map((player) => (
+                <div
+                  key={player.name}
+                  onClick={() => openPlayerModal(player, team.players!)}
+                  className="cursor-pointer touch-manipulation"
+                  style={{ minHeight: '280px' }}
+                >
+                  <PlayerCard
+                    name={player.name}
+                    role={player.role}
+                    image={player.image}
+                    game={player.game}
+                    achievements={player.achievements}
+                    socialLinks={player.socialLinks}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );
