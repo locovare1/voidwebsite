@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { processExternalImageUrl, getFallbackImageUrl, isTrustedImageHost } from '@/lib/imageUtils';
+import { processExternalImageUrl, getFallbackImageUrl } from '@/lib/imageUtils';
 
 interface SafeImageProps {
   src: string;
@@ -22,7 +21,7 @@ export default function SafeImage({
   fill = false,
   width,
   height,
-  sizes,
+  sizes, // kept for API compatibility, not used by <img>
   onError
 }: SafeImageProps) {
   const [currentSrc, setCurrentSrc] = useState(src);
@@ -53,7 +52,7 @@ export default function SafeImage({
       }
     }
 
-    // Fall back to default image
+    // Fall back to default image (local hero background)
     const fallback = getFallbackImageUrl(src);
     if (currentSrc !== fallback && currentSrc !== src) {
       console.log('Falling back to:', fallback);
@@ -71,59 +70,37 @@ export default function SafeImage({
     setHasError(false);
   };
 
-  // For external URLs that might have CORS issues, use regular img tag
-  if (src.startsWith('http') && !isTrustedImageHost(src)) {
-    return (
-      <div className={`relative ${className}`} style={fill ? { width: '100%', height: '100%' } : {}}>
-        {isLoading && (
-          <div className="absolute inset-0 bg-gray-800 animate-pulse flex items-center justify-center">
-            <div className="text-gray-400 text-sm">Loading...</div>
-          </div>
-        )}
+  const wrapperStyle = fill ? { width: '100%', height: '100%' } : {};
+  const imgClass = `${fill ? 'w-full h-full object-cover' : ''} ${className}`;
+
+  return (
+    <div className={`relative ${fill ? '' : ''}`} style={wrapperStyle}>
+      {isLoading && (
+        <div className="absolute inset-0 bg-gray-800 animate-pulse flex items-center justify-center z-10">
+          <div className="text-gray-400 text-sm">Loading...</div>
+        </div>
+      )}
+
+      {!hasError && (
         <img
           src={currentSrc}
           alt={alt}
-          className={`${fill ? 'w-full h-full object-cover' : ''} ${className}`}
+          className={imgClass}
           width={width}
           height={height}
           onError={handleError}
           onLoad={handleLoad}
-          style={hasError ? { display: 'none' } : {}}
         />
-        {hasError && (
-          <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
-            <div className="text-gray-400 text-sm text-center">
-              <div>Failed to load image</div>
-              <div className="text-xs mt-1">
-                {src.includes('discord') ? 'Discord image unavailable' : 'External image unavailable'}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
+      )}
 
-  // For non-Discord URLs, use Next.js Image component
-  return (
-    <div className={fill ? "relative w-full h-full" : ""}>
-      {isLoading && (
-        <div className={`absolute inset-0 bg-gray-800 animate-pulse flex items-center justify-center z-10`}>
-          <div className="text-gray-400 text-sm">Loading...</div>
+      {hasError && (
+        <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
+          <div className="text-gray-400 text-sm text-center px-2">
+            <div>Image unavailable</div>
+            <div className="text-xs mt-1 opacity-70">{alt}</div>
+          </div>
         </div>
       )}
-      <Image
-        src={currentSrc}
-        alt={alt}
-        fill={fill}
-        width={width}
-        height={height}
-        sizes={sizes}
-        className={className}
-        onError={handleError}
-        onLoad={handleLoad}
-        unoptimized={src.includes('discord')}
-      />
     </div>
   );
 }
