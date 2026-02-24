@@ -61,15 +61,15 @@ export const processDiscordImageUrl = processExternalImageUrl;
  */
 export function getFallbackImageUrl(originalUrl?: string): string {
   if (!originalUrl) {
-    return '/logo.png';
+    return '/hero-bg.jpg';
   }
   
   // For Discord URLs, we might want a specific fallback
   if (originalUrl.includes('discord')) {
-    return '/logo.png';
+    return '/hero-bg.jpg';
   }
   
-  return '/logo.png';
+  return '/hero-bg.jpg';
 }
 
 /**
