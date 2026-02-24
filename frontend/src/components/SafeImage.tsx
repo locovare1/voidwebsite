@@ -24,13 +24,20 @@ export default function SafeImage({
   sizes, // kept for API compatibility, not used by <img>
   onError
 }: SafeImageProps) {
-  const [currentSrc, setCurrentSrc] = useState(src);
+  // Immediately normalize empty/whitespace-only src to a safe local fallback
+  const initialSrc =
+    src && src.trim().length > 0 ? src : getFallbackImageUrl(src);
+
+  const [currentSrc, setCurrentSrc] = useState(initialSrc);
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (src !== currentSrc) {
-      setCurrentSrc(src);
+    const normalized =
+      src && src.trim().length > 0 ? src : getFallbackImageUrl(src);
+
+    if (normalized !== currentSrc) {
+      setCurrentSrc(normalized);
       setHasError(false);
       setIsLoading(true);
     }
