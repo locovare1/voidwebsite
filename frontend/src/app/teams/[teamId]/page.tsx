@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, use } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import SafeImage from '@/components/SafeImage';
 import { useParams } from 'next/navigation';
@@ -67,6 +67,19 @@ export default function TeamDetailPage() {
   useEffect(() => {
     loadTeam();
   }, [loadTeam]);
+
+  // On mobile, auto-scroll to the roster section once the team is loaded
+  useEffect(() => {
+    if (!loading && team && typeof window !== 'undefined') {
+      const isMobile = window.innerWidth <= 640;
+      if (isMobile) {
+        const el = document.getElementById('team-roster-section');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }
+  }, [loading, team]);
 
   const openPlayerModal = (player: Player, teamPlayers: Player[]) => {
     setSelectedPlayer(player);
@@ -176,29 +189,31 @@ export default function TeamDetailPage() {
 
         {/* Players Grid */}
         <AnimatedSection animationType="fadeIn" delay={150}>
-          <h2 className="text-2xl sm:text-3xl font-bold gradient-text mb-6 text-center sm:text-left">
-            Roster ({team.players.length} Members)
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-            {team.players.map((player, pIdx) => (
-              <AnimatedSection key={player.name} animationType="slideUp" delay={pIdx * 30}>
-                <div 
-                  onClick={() => openPlayerModal(player, team.players)} 
-                  className="cursor-pointer touch-manipulation"
-                  style={{ minHeight: '280px' }}
-                >
-                  <PlayerCard
-                    name={player.name}
-                    role={player.role}
-                    image={player.image}
-                    game={player.game}
-                    achievements={player.achievements}
-                    socialLinks={player.socialLinks}
-                  />
-                </div>
-              </AnimatedSection>
-            ))}
-          </div>
+          <section id="team-roster-section">
+            <h2 className="text-2xl sm:text-3xl font-bold gradient-text mb-6 text-center sm:text-left">
+              Roster ({team.players.length} Members)
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+              {team.players.map((player, pIdx) => (
+                <AnimatedSection key={player.name} animationType="slideUp" delay={pIdx * 30}>
+                  <div 
+                    onClick={() => openPlayerModal(player, team.players)} 
+                    className="cursor-pointer touch-manipulation"
+                    style={{ minHeight: '280px' }}
+                  >
+                    <PlayerCard
+                      name={player.name}
+                      role={player.role}
+                      image={player.image}
+                      game={player.game}
+                      achievements={player.achievements}
+                      socialLinks={player.socialLinks}
+                    />
+                  </div>
+                </AnimatedSection>
+              ))}
+            </div>
+          </section>
         </AnimatedSection>
       </div>
     </div>
