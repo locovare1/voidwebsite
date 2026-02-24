@@ -105,7 +105,7 @@ export default function Navbar() {
 
       {/* MOBILE MENU OVERLAY */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm">
+        <div className="lg:hidden fixed inset-0 z-[200] bg-black/90">
           <div className="fixed right-0 top-0 h-full w-64 bg-[#1a0a2e]/95 p-6 shadow-xl">
             {/* Close Button */}
             <button
