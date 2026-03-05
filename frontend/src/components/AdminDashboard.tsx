@@ -193,30 +193,120 @@ export default function AdminDashboard() {
     }
   }, []);
 
-  const logAction = async (action: 'create' | 'update' | 'delete', entity: Log['entity'], entityId: string, details: string) => {
-    if (!currentUser?.email) return;
-    try {
-      const logId = await logService.create({
-        action,
-        entity,
-        entityId,
-        details,
-        adminEmail: currentUser.email
-      });
+  const logAction = async (
+    action: Log['action'],
+    entity: Log['entity'],
+    entityId: string,
+    details: string,
+    options?: {
+      beforeSnapshot?: Record<string, any>;
+      afterSnapshot?: Record<string, any>;
+      level?: Log['level'];
+      status?: Log['status'];
+      duration?: number;
+      errorMessage?: string;
+      bulkOperation?: { count: number; items: string[]; summary: string };
+      metadata?: Record<string, any>;
+    }
+  ): Promise<string> => {
+    if (!currentUser?.email) return '';
 
-      // Add the new log to state immediately
-      const newLog: Log = {
-        id: logId,
+    const startTime = performance.now();
+
+    try {
+      const { ipAddress, userAgent } = logService.getClientInfo();
+
+      // Generate IDs if not provided
+      const sessionId = options?.metadata?.sessionId || logService.generateSessionId();
+      const requestId = options?.metadata?.requestId || logService.generateRequestId();
+
+      // Determine log level and status based on action and options
+      const level = options?.level || (
+        action === 'error' ? 'error' :
+        action === 'delete' ? 'warn' :
+        'info'
+      );
+
+      const status = options?.status || (
+        options?.errorMessage ? 'error' : 'success'
+      );
+
+      // Calculate changes if snapshots are provided
+      let changes: Log['changes'];
+      if (options?.beforeSnapshot && options?.afterSnapshot) {
+        changes = logService.calculateChanges(options.beforeSnapshot, options.afterSnapshot);
+      }
+
+      const logData: Omit<Log, 'id' | 'timestamp'> = {
         action,
         entity,
         entityId,
         details,
         adminEmail: currentUser.email,
+        level,
+        status,
+        ipAddress,
+        userAgent,
+        sessionId,
+        requestId,
+        duration: options?.duration || (performance.now() - startTime),
+        errorMessage: options?.errorMessage,
+        beforeSnapshot: options?.beforeSnapshot,
+        afterSnapshot: options?.afterSnapshot,
+        changes,
+        bulkOperation: options?.bulkOperation,
+        metadata: {
+          ...options?.metadata,
+          sessionId,
+          requestId,
+          userAgent,
+          timestamp: new Date().toISOString()
+        }
+      };
+
+      // Filter out undefined fields before saving to Firebase
+      const filteredLogData = Object.fromEntries(
+        Object.entries(logData).filter(([_, value]) => value !== undefined)
+      );
+
+      const logId = await logService.create(filteredLogData as Omit<Log, 'id' | 'timestamp'>);
+
+      // Add the new log to state immediately
+      const newLog: Log = {
+        id: logId,
+        ...logData,
         timestamp: Timestamp.now()
       };
       setLogs(prev => [newLog, ...prev]);
+
+      return logId;
     } catch (error) {
       console.error('Failed to log action:', error);
+      // Try to log the error itself
+      try {
+        const errorLogData = {
+          action: 'error',
+          entity: 'system',
+          entityId: 'logging_error',
+          details: `Failed to log action: ${action} on ${entity}`,
+          adminEmail: currentUser.email,
+          level: 'error',
+          status: 'error',
+          errorMessage: error instanceof Error ? error.message : 'Unknown logging error',
+          duration: performance.now() - startTime,
+          metadata: { originalAction: action, originalEntity: entity }
+        };
+
+        // Filter out undefined fields before saving
+        const filteredErrorLogData = Object.fromEntries(
+          Object.entries(errorLogData).filter(([_, value]) => value !== undefined)
+        );
+
+        await logService.create(filteredErrorLogData as Omit<Log, 'id' | 'timestamp'>);
+      } catch (logError) {
+        console.error('Failed to log logging error:', logError);
+      }
+      return '';
     }
   };
 
@@ -254,7 +344,11 @@ export default function AdminDashboard() {
 
       // Redirect to login page
       window.location.href = '/adminpanel';
-      await logAction('create', 'user', userCredential.user.uid, `Created admin user "${newUserEmail}"`);
+      await logAction('create', 'user', userCredential.user.uid, `Created admin user "${newUserEmail}"`, {
+        level: 'info',
+        status: 'success',
+        metadata: { createdBy: currentUser.email, userRole: 'admin' }
+      });
     } catch (error: any) {
       console.error('Error creating user:', error);
       let errorMessage = 'Failed to create user';
@@ -345,64 +439,169 @@ export default function AdminDashboard() {
     setShowMatchModal(true);
   };
 
-  // Submit handlers
   const submitProduct = async () => {
     try {
       if (productMode === 'create') {
         const productId = await productService.create(productForm);
-        await logAction('create', 'product', productId, `Created product "${productForm.name}"`);
+        await logAction('create', 'product', productId, `Created product "${productForm.name}"`, {
+          level: 'info',
+          status: 'success',
+          metadata: { category: productForm.category, price: productForm.price }
+        });
       } else if (editingProductId) {
-        await productService.update(editingProductId, productForm);
-        await logAction('update', 'product', editingProductId, `Updated product "${productForm.name}"`);
+        // Get current product for change tracking
+        const currentProducts = await productService.getAll();
+        const currentProduct = currentProducts.find(p => p.id === editingProductId);
+
+        if (currentProduct) {
+          const beforeSnapshot = {
+            name: currentProduct.name,
+            price: currentProduct.price,
+            image: currentProduct.image,
+            hoverImage: currentProduct.hoverImage,
+            category: currentProduct.category,
+            description: currentProduct.description,
+            link: currentProduct.link,
+            displayOnHomePage: currentProduct.displayOnHomePage
+          };
+
+          const afterSnapshot = {
+            name: productForm.name,
+            price: productForm.price,
+            image: productForm.image,
+            hoverImage: productForm.hoverImage,
+            category: productForm.category,
+            description: productForm.description,
+            link: productForm.link,
+            displayOnHomePage: productForm.displayOnHomePage
+          };
+
+          await productService.update(editingProductId, productForm);
+          await logAction('update', 'product', editingProductId, `Updated product "${productForm.name}"`, {
+            beforeSnapshot,
+            afterSnapshot,
+            level: 'info',
+            status: 'success',
+            metadata: { updatedFields: Object.keys(afterSnapshot) }
+          });
+        } else {
+          await productService.update(editingProductId, productForm);
+          await logAction('update', 'product', editingProductId, `Updated product "${productForm.name}"`, {
+            level: 'warn',
+            status: 'warning',
+            metadata: { note: 'Could not track changes - current product not found' }
+          });
+        }
       }
       await reloadProducts();
       setShowProductModal(false);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      await logAction('error', 'product', editingProductId || 'unknown', `Failed to ${productMode} product`, {
+        level: 'error',
+        status: 'error',
+        errorMessage: e instanceof Error ? e.message : 'Unknown error'
+      });
+    }
   };
   const submitNews = async () => {
     try {
       if (newsMode === 'create') {
         const newsId = await newsService.create({ ...newsForm, date: newsDate || undefined });
-        await logAction('create', 'news', newsId, `Created news "${newsForm.title}"`);
+        await logAction('create', 'news', newsId, `Created news "${newsForm.title}"`, {
+          level: 'info',
+          status: 'success',
+          metadata: { category: newsForm.category, hasImage: !!newsForm.image }
+        });
       } else if (editingNewsId) {
         await newsService.update(editingNewsId, { ...newsForm, date: (newsDate as unknown) as any });
-        await logAction('update', 'news', editingNewsId, `Updated news "${newsForm.title}"`);
+        await logAction('update', 'news', editingNewsId, `Updated news "${newsForm.title}"`, {
+          level: 'info',
+          status: 'success',
+          metadata: { category: newsForm.category }
+        });
       }
       setShowNewsModal(false);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      await logAction('error', 'news', editingNewsId || 'unknown', `Failed to ${newsMode} news`, {
+        level: 'error',
+        status: 'error',
+        errorMessage: e instanceof Error ? e.message : 'Unknown error'
+      });
+    }
   };
   const submitPlacement = async () => {
     try {
       const payload = { ...placementForm, players: placementPlayersText.split(',').map(s => s.trim()).filter(Boolean) };
       if (placementMode === 'create') {
         const placementId = await placementService.create(payload);
-        await logAction('create', 'placement', placementId, `Created placement "${placementForm.tournament} - ${placementForm.team}"`);
+        await logAction('create', 'placement', placementId, `Created placement "${placementForm.tournament} - ${placementForm.team}"`, {
+          level: 'info',
+          status: 'success',
+          metadata: { game: placementForm.game, position: placementForm.position, prize: placementForm.prize }
+        });
       } else if (editingPlacementId) {
         await placementService.update(editingPlacementId, payload);
-        await logAction('update', 'placement', editingPlacementId, `Updated placement "${placementForm.tournament} - ${placementForm.team}"`);
+        await logAction('update', 'placement', editingPlacementId, `Updated placement "${placementForm.tournament} - ${placementForm.team}"`, {
+          level: 'info',
+          status: 'success',
+          metadata: { game: placementForm.game, position: placementForm.position }
+        });
       }
       setShowPlacementModal(false);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      await logAction('error', 'placement', editingPlacementId || 'unknown', `Failed to ${placementMode} placement`, {
+        level: 'error',
+        status: 'error',
+        errorMessage: e instanceof Error ? e.message : 'Unknown error'
+      });
+    }
   };
   const submitMatch = async () => {
     try {
       if (matchMode === 'create') {
         const matchId = await scheduleService.createMatch(matchForm);
-        await logAction('create', 'match', matchId, `Created match "${matchForm.game} - ${matchForm.event}"`);
+        await logAction('create', 'match', matchId, `Created match "${matchForm.game} - ${matchForm.event}"`, {
+          level: 'info',
+          status: 'success',
+          metadata: { opponent: matchForm.opponent, hasStream: !!matchForm.streamLink }
+        });
       } else if (editingMatchId) {
         await scheduleService.updateMatch(editingMatchId, matchForm);
-        await logAction('update', 'match', editingMatchId, `Updated match "${matchForm.game} - ${matchForm.event}"`);
+        await logAction('update', 'match', editingMatchId, `Updated match "${matchForm.game} - ${matchForm.event}"`, {
+          level: 'info',
+          status: 'success',
+          metadata: { opponent: matchForm.opponent }
+        });
       }
       setShowMatchModal(false);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      await logAction('error', 'match', editingMatchId || 'unknown', `Failed to ${matchMode} match`, {
+        level: 'error',
+        status: 'error',
+        errorMessage: e instanceof Error ? e.message : 'Unknown error'
+      });
+    }
   };
 
   const handleStatusChange = async (orderId: string, newStatus: any) => {
     try {
       await updateOrderStatus(orderId, newStatus);
-      await logAction('update', 'order', orderId, `Updated order status to "${newStatus}"`);
+      await logAction('update', 'order', orderId, `Updated order status to "${newStatus}"`, {
+        level: 'info',
+        status: 'success',
+        metadata: { previousStatus: 'unknown', newStatus }
+      });
     } catch (error) {
       console.error('Error updating order status:', error);
+      await logAction('error', 'order', orderId, `Failed to update order status to "${newStatus}"`, {
+        level: 'error',
+        status: 'error',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   };
 
@@ -410,9 +609,18 @@ export default function AdminDashboard() {
     if (confirm('Are you sure you want to delete this order?')) {
       try {
         await deleteOrder(orderId);
-        await logAction('delete', 'order', orderId, `Deleted order`);
+        await logAction('delete', 'order', orderId, `Deleted order`, {
+          level: 'warn',
+          status: 'success',
+          metadata: { deletedBy: currentUser?.email }
+        });
       } catch (error) {
         console.error('Error deleting order:', error);
+        await logAction('error', 'order', orderId, `Failed to delete order`, {
+          level: 'error',
+          status: 'error',
+          errorMessage: error instanceof Error ? error.message : 'Unknown error'
+        });
       }
     }
   };
@@ -422,9 +630,18 @@ export default function AdminDashboard() {
       try {
         await reviewService.deleteReview(reviewId);
         setReviews(reviews.filter(review => review.id !== reviewId));
-        await logAction('delete', 'review', reviewId, `Deleted review`);
+        await logAction('delete', 'review', reviewId, `Deleted review`, {
+          level: 'warn',
+          status: 'success',
+          metadata: { deletedBy: currentUser?.email }
+        });
       } catch (error) {
         console.error('Error deleting review:', error);
+        await logAction('error', 'review', reviewId, `Failed to delete review`, {
+          level: 'error',
+          status: 'error',
+          errorMessage: error instanceof Error ? error.message : 'Unknown error'
+        });
       }
     }
   };
@@ -439,11 +656,24 @@ export default function AdminDashboard() {
         setReviews(reviews.filter(review => !selectedReviews.has(review.id || '')));
         setSelectedReviews(new Set());
         setShowBulkActions(false);
-        for (const reviewId of selectedReviews) {
-          await logAction('delete', 'review', reviewId, `Bulk deleted review`);
-        }
+
+        await logAction('delete', 'review', 'bulk', `Bulk deleted ${selectedReviews.size} reviews`, {
+          level: 'warn',
+          status: 'success',
+          bulkOperation: {
+            count: selectedReviews.size,
+            items: Array.from(selectedReviews),
+            summary: `Bulk deletion of ${selectedReviews.size} reviews`
+          },
+          metadata: { deletedBy: currentUser?.email, operationType: 'bulk_delete' }
+        });
       } catch (error) {
         console.error('Error bulk deleting reviews:', error);
+        await logAction('error', 'review', 'bulk', `Failed bulk deletion of ${selectedReviews.size} reviews`, {
+          level: 'error',
+          status: 'error',
+          errorMessage: error instanceof Error ? error.message : 'Unknown error'
+        });
       }
     }
   };
@@ -490,10 +720,19 @@ export default function AdminDashboard() {
       setSelectedTeam(null);
 
       alert('Player added successfully! Changes should appear on the teams page.');
-      await logAction('update', 'team', teamId, `Added player "${newPlayer.name}" to team`);
+      await logAction('update', 'team', teamId, `Added player "${newPlayer.name}" to team`, {
+        level: 'info',
+        status: 'success',
+        metadata: { playerName: newPlayer.name, playerRole: newPlayer.role, playerGame: newPlayer.game }
+      });
     } catch (error) {
       console.error('Error adding player:', error);
       alert(`Failed to add player: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      await logAction('error', 'team', teamId, `Failed to add player "${newPlayer.name}" to team`, {
+        level: 'error',
+        status: 'error',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      });
     } finally {
       setLoadingTeams(false);
     }
@@ -513,10 +752,19 @@ export default function AdminDashboard() {
 
       setEditingPlayer(null);
       alert('Player updated successfully! Changes should appear on the teams page.');
-      await logAction('update', 'team', teamId, `Updated player "${updatedPlayer.name}" in team`);
+      await logAction('update', 'team', teamId, `Updated player "${updatedPlayer.name}" in team`, {
+        level: 'info',
+        status: 'success',
+        metadata: { playerName: updatedPlayer.name, updatedFields: ['name', 'role', 'game', 'achievements'] }
+      });
     } catch (error) {
       console.error('Error updating player:', error);
       alert(`Failed to update player: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      await logAction('error', 'team', teamId, `Failed to update player "${updatedPlayer.name}" in team`, {
+        level: 'error',
+        status: 'error',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      });
     } finally {
       setLoadingTeams(false);
     }
@@ -534,10 +782,19 @@ export default function AdminDashboard() {
       setTeams(updatedTeams);
 
       alert('Player removed successfully!');
-      await logAction('update', 'team', teamId, `Removed player from team`);
+      await logAction('update', 'team', teamId, `Removed player from team`, {
+        level: 'warn',
+        status: 'success',
+        metadata: { playerIndex, removedBy: currentUser?.email }
+      });
     } catch (error) {
       console.error('Error removing player:', error);
       alert('Failed to remove player');
+      await logAction('error', 'team', teamId, `Failed to remove player from team`, {
+        level: 'error',
+        status: 'error',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      });
     } finally {
       setLoadingTeams(false);
     }
@@ -568,10 +825,19 @@ export default function AdminDashboard() {
       setShowCreateTeam(false);
 
       alert('Team created successfully!');
-      await logAction('create', 'team', teamId, `Created team "${newTeam.name}"`);
+      await logAction('create', 'team', teamId, `Created team "${newTeam.name}"`, {
+        level: 'info',
+        status: 'success',
+        metadata: { hasImage: !!newTeam.image, playerCount: 0 }
+      });
     } catch (error) {
       console.error('Error creating team:', error);
       alert('Failed to create team');
+      await logAction('error', 'team', 'unknown', `Failed to create team "${newTeam.name}"`, {
+        level: 'error',
+        status: 'error',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      });
     } finally {
       setLoadingTeams(false);
     }
@@ -589,10 +855,19 @@ export default function AdminDashboard() {
       setTeams(updatedTeams);
 
       alert('Team deleted successfully!');
-      await logAction('delete', 'team', teamId, `Deleted team "${teamName}"`);
+      await logAction('delete', 'team', teamId, `Deleted team "${teamName}"`, {
+        level: 'warn',
+        status: 'success',
+        metadata: { teamName, deletedBy: currentUser?.email }
+      });
     } catch (error) {
       console.error('Error deleting team:', error);
       alert('Failed to delete team');
+      await logAction('error', 'team', teamId, `Failed to delete team "${teamName}"`, {
+        level: 'error',
+        status: 'error',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      });
     } finally {
       setLoadingTeams(false);
     }
@@ -632,16 +907,24 @@ export default function AdminDashboard() {
       setEditingTeam(null);
 
       alert('Team updated successfully! Changes should appear on the teams page.');
-      await logAction('update', 'team', editingTeam.id!, `Updated team "${editingTeam.name}"`);
+      await logAction('update', 'team', editingTeam.id!, `Updated team "${editingTeam.name}"`, {
+        level: 'info',
+        status: 'success',
+        metadata: { playerCount: editingTeam.players.length, updatedFields: ['name', 'description', 'image'] }
+      });
     } catch (error) {
       console.error('Error updating team:', error);
       alert(`Failed to update team: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      await logAction('error', 'team', editingTeam?.id || 'unknown', `Failed to update team "${editingTeam?.name}"`, {
+        level: 'error',
+        status: 'error',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      });
     } finally {
       setLoadingTeams(false);
     }
   };
 
-  // Ambassador management functions
   const handleCreateAmbassador = async () => {
     try {
       setLoadingAmbassadors(true);
@@ -657,10 +940,19 @@ export default function AdminDashboard() {
         achievements: [],
         socialLinks: {}
       });
-      await logAction('create', 'ambassador', ambassadorId, `Created ambassador "${ambassadorForm.name}"`);
+      await logAction('create', 'ambassador', ambassadorId, `Created ambassador "${ambassadorForm.name}"`, {
+        level: 'info',
+        status: 'success',
+        metadata: { role: ambassadorForm.role, game: ambassadorForm.game, hasImage: !!ambassadorForm.image }
+      });
     } catch (error) {
       console.error('Error creating ambassador:', error);
       alert('Failed to create ambassador');
+      await logAction('error', 'ambassador', 'unknown', `Failed to create ambassador "${ambassadorForm.name}"`, {
+        level: 'error',
+        status: 'error',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      });
     } finally {
       setLoadingAmbassadors(false);
     }
@@ -683,10 +975,19 @@ export default function AdminDashboard() {
         achievements: [],
         socialLinks: {}
       });
-      await logAction('update', 'ambassador', editingAmbassador.id!, `Updated ambassador "${ambassadorForm.name}"`);
+      await logAction('update', 'ambassador', editingAmbassador.id!, `Updated ambassador "${ambassadorForm.name}"`, {
+        level: 'info',
+        status: 'success',
+        metadata: { updatedFields: ['name', 'role', 'game', 'achievements', 'socialLinks'] }
+      });
     } catch (error) {
       console.error('Error updating ambassador:', error);
       alert('Failed to update ambassador');
+      await logAction('error', 'ambassador', editingAmbassador.id!, `Failed to update ambassador "${ambassadorForm.name}"`, {
+        level: 'error',
+        status: 'error',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      });
     } finally {
       setLoadingAmbassadors(false);
     }
@@ -699,10 +1000,19 @@ export default function AdminDashboard() {
       await ambassadorService.remove(id);
       const updatedAmbassadors = await ambassadorService.getAll();
       setAmbassadors(updatedAmbassadors);
-      await logAction('delete', 'ambassador', id, `Deleted ambassador`);
+      await logAction('delete', 'ambassador', id, `Deleted ambassador`, {
+        level: 'warn',
+        status: 'success',
+        metadata: { deletedBy: currentUser?.email }
+      });
     } catch (error) {
       console.error('Error deleting ambassador:', error);
       alert('Failed to delete ambassador');
+      await logAction('error', 'ambassador', id, `Failed to delete ambassador`, {
+        level: 'error',
+        status: 'error',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      });
     } finally {
       setLoadingAmbassadors(false);
     }
@@ -789,7 +1099,11 @@ export default function AdminDashboard() {
     } finally {
       setLoadingTeams(false);
     }
-    await logAction('update', 'team', teamId, `Moved player position in team`);
+    await logAction('update', 'team', teamId, `Moved player position in team`, {
+      level: 'info',
+      status: 'success',
+      metadata: { movedBy: currentUser?.email, direction }
+    });
   };
 
   // Statistics calculations
@@ -1255,22 +1569,123 @@ export default function AdminDashboard() {
                 <div className="space-y-4">
                   {logs.map((log) => (
                     <div key={log.id} className="bg-[#0F0F0F] rounded-lg p-4 border border-[#2A2A2A] hover:bg-[#1A1A1A] transition-colors">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              log.action === 'create' ? 'bg-green-900/20 text-green-400 border border-green-500/20' :
-                              log.action === 'update' ? 'bg-blue-900/20 text-blue-400 border border-blue-500/20' :
-                              'bg-red-900/20 text-red-400 border border-red-500/20'
-                            }`}>
-                              {log.action.toUpperCase()}
-                            </span>
-                            <span className="text-gray-400 text-sm capitalize">{log.entity}</span>
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          {/* Log Level Badge */}
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            (log.level || 'info') === 'error' ? 'bg-red-900/20 text-red-400 border border-red-500/20' :
+                            (log.level || 'info') === 'warn' ? 'bg-yellow-900/20 text-yellow-400 border border-yellow-500/20' :
+                            (log.level || 'info') === 'info' ? 'bg-blue-900/20 text-blue-400 border border-blue-500/20' :
+                            'bg-gray-900/20 text-gray-400 border border-gray-500/20'
+                          }`}>
+                            {(log.level || 'info').toUpperCase()}
+                          </span>
+
+                          {/* Action Badge */}
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            log.action === 'create' ? 'bg-green-900/20 text-green-400 border border-green-500/20' :
+                            log.action === 'update' ? 'bg-blue-900/20 text-blue-400 border border-blue-500/20' :
+                            log.action === 'delete' ? 'bg-red-900/20 text-red-400 border border-red-500/20' :
+                            log.action === 'error' ? 'bg-red-900/20 text-red-400 border border-red-500/20' :
+                            'bg-gray-900/20 text-gray-400 border border-gray-500/20'
+                          }`}>
+                            {log.action.toUpperCase()}
+                          </span>
+
+                          {/* Status Badge */}
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            (log.status || 'success') === 'success' ? 'bg-green-900/20 text-green-400 border border-green-500/20' :
+                            (log.status || 'success') === 'error' ? 'bg-red-900/20 text-red-400 border border-red-500/20' :
+                            'bg-yellow-900/20 text-yellow-400 border border-yellow-500/20'
+                          }`}>
+                            {(log.status || 'success').toUpperCase()}
+                          </span>
+
+                          <span className="text-gray-400 text-sm capitalize">{log.entity}</span>
+                        </div>
+
+                        {/* Duration & Timestamp */}
+                        <div className="text-right text-xs text-gray-500">
+                          <div>{log.duration ? `${log.duration}ms` : ''}</div>
+                          <div>{new Date(log.timestamp.toDate()).toLocaleString()}</div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-white text-sm">{log.details}</p>
+
+                        {/* Error Message */}
+                        {log.errorMessage && (
+                          <div className="bg-red-900/10 border border-red-500/20 rounded p-2">
+                            <p className="text-red-400 text-xs font-medium">Error: {log.errorMessage}</p>
                           </div>
-                          <p className="text-white text-sm">{log.details}</p>
-                          <div className="text-gray-500 text-xs mt-2">
-                            By {log.adminEmail} • {new Date(log.timestamp.toDate()).toLocaleString()}
+                        )}
+
+                        {/* Change Tracking */}
+                        {log.action === 'update' && log.changes && log.changes.length > 0 && (
+                          <div className="bg-blue-900/10 border border-blue-500/20 rounded p-3">
+                            <p className="text-blue-300 text-sm font-medium mb-2">Changes Made:</p>
+                            <div className="space-y-1 max-h-32 overflow-y-auto">
+                              {log.changes.map((change, index) => (
+                                <div key={index} className="text-xs flex items-center gap-2">
+                                  <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                                    change.impact === 'major' ? 'bg-red-900/20 text-red-400' :
+                                    change.impact === 'minor' ? 'bg-yellow-900/20 text-yellow-400' :
+                                    'bg-gray-900/20 text-gray-400'
+                                  }`}>
+                                    {change.changeType}
+                                  </span>
+                                  <span className="text-gray-400 font-mono">{change.field}:</span>
+                                  {change.changeType === 'added' && (
+                                    <span className="text-green-400">+ {JSON.stringify(change.newValue)}</span>
+                                  )}
+                                  {change.changeType === 'removed' && (
+                                    <span className="text-red-400">- {JSON.stringify(change.oldValue)}</span>
+                                  )}
+                                  {change.changeType === 'modified' && (
+                                    <>
+                                      <span className="text-red-400 line-through">{JSON.stringify(change.oldValue)}</span>
+                                      <span className="text-gray-400">→</span>
+                                      <span className="text-green-400">{JSON.stringify(change.newValue)}</span>
+                                    </>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
                           </div>
+                        )}
+
+                        {/* Bulk Operation Info */}
+                        {log.bulkOperation && (
+                          <div className="bg-purple-900/10 border border-purple-500/20 rounded p-2">
+                            <p className="text-purple-300 text-xs">
+                              Bulk Operation: {log.bulkOperation.summary} ({log.bulkOperation.count} items)
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Metadata */}
+                        {log.metadata && Object.keys(log.metadata).length > 0 && (
+                          <div className="bg-gray-900/10 border border-gray-500/20 rounded p-2">
+                            <p className="text-gray-300 text-xs font-medium mb-1">Metadata:</p>
+                            <div className="text-xs text-gray-400 space-y-0.5">
+                              {Object.entries(log.metadata)
+                                .filter(([key]) => !['sessionId', 'requestId', 'userAgent', 'timestamp'].includes(key))
+                                .map(([key, value]) => (
+                                  <div key={key} className="flex justify-between">
+                                    <span className="font-mono">{key}:</span>
+                                    <span className="truncate ml-2" title={String(value)}>
+                                      {Array.isArray(value) ? `[${value.length} items]` : String(value)}
+                                    </span>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between text-gray-500 text-xs pt-2 border-t border-[#2A2A2A]">
+                          <span>By {log.adminEmail}</span>
+                          <span>ID: {log.entityId}</span>
                         </div>
                       </div>
                     </div>
