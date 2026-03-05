@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { FaTwitter, FaDiscord, FaTwitch, FaYoutube, FaInstagram, FaTiktok, FaFacebook, FaLinkedin } from 'react-icons/fa';
 import { socialService, type SocialLink } from '@/lib/socialService';
 
@@ -53,12 +54,12 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Brand Section */}
           <div className="space-y-3 sm:space-y-4">
-            <h3 className="text-lg sm:text-xl font-bold text-purple-gradient">VOID</h3>
+            <Image src="/logos/new-logo.png" alt="Void Esports Logo" width={120} height={40} className="h-8 sm:h-10 w-auto" />
             <p className="text-sm sm:text-base text-gray-400">
               Professional esports organization pushing the boundaries of competitive gaming.
             </p>
             <p className="text-sm sm:text-base text-gray-400">
-              <br />Website developed by Layne and Alex. CTO's at Void Esports
+              <br />Website developed by Layne and Alex. CTOs at Void Esports
             </p>
           </div>
 
@@ -115,7 +116,7 @@ export default function Footer() {
 
         <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-purple-500/20">
           <p className="text-center text-xs sm:text-sm text-gray-400">
-            © 2025 Void Esports. All rights reserved.
+            © 2026 Void Esports. All rights reserved.
           </p>
         </div>
       </div>

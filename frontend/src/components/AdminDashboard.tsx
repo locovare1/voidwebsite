@@ -17,6 +17,8 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, on
 import { auth, db } from '@/lib/firebase';
 import { uploadService } from '@/lib/uploadService';
 import LoadingScreen from './LoadingScreen';
+import { logService, Log } from '@/lib/logService';
+import { Timestamp } from 'firebase/firestore';
 
 import {
   TrashIcon,
@@ -63,7 +65,7 @@ export default function AdminDashboard() {
   const { orders, updateOrderStatus, deleteOrder } = useOrders();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'products' | 'teams' | 'ambassadors' | 'news' | 'placements' | 'schedule' | 'socials' | 'users' | 'orders'>('orders');
+  const [activeTab, setActiveTab] = useState<'products' | 'teams' | 'ambassadors' | 'news' | 'placements' | 'schedule' | 'socials' | 'users' | 'orders' | 'logs'>('orders');
   
 
 
@@ -120,6 +122,8 @@ export default function AdminDashboard() {
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [logs, setLogs] = useState<Log[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
 
   // Products modal state
   const [showProductModal, setShowProductModal] = useState(false);
@@ -158,16 +162,19 @@ export default function AdminDashboard() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [reviewsData, teamsData, ambassadorsData, productsData] = await Promise.all([
+        const results = await Promise.allSettled([
           reviewService.getAllReviews(),
           teamService.getAll(),
           ambassadorService.getAll(),
-          productService.getAll()
+          productService.getAll(),
+          logService.getAll()
         ]);
-        setReviews(reviewsData);
-        setTeams(teamsData);
-        setAmbassadors(ambassadorsData);
-        setProducts(productsData);
+
+        setReviews(results[0].status === 'fulfilled' ? results[0].value : []);
+        setTeams(results[1].status === 'fulfilled' ? results[1].value : []);
+        setAmbassadors(results[2].status === 'fulfilled' ? results[2].value : []);
+        setProducts(results[3].status === 'fulfilled' ? results[3].value : []);
+        setLogs(results[4].status === 'fulfilled' ? results[4].value : []);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -185,6 +192,33 @@ export default function AdminDashboard() {
       return () => unsubscribe();
     }
   }, []);
+
+  const logAction = async (action: 'create' | 'update' | 'delete', entity: Log['entity'], entityId: string, details: string) => {
+    if (!currentUser?.email) return;
+    try {
+      const logId = await logService.create({
+        action,
+        entity,
+        entityId,
+        details,
+        adminEmail: currentUser.email
+      });
+
+      // Add the new log to state immediately
+      const newLog: Log = {
+        id: logId,
+        action,
+        entity,
+        entityId,
+        details,
+        adminEmail: currentUser.email,
+        timestamp: Timestamp.now()
+      };
+      setLogs(prev => [newLog, ...prev]);
+    } catch (error) {
+      console.error('Failed to log action:', error);
+    }
+  };
 
   const handleCreateUser = async () => {
     if (!auth || !currentUser) {
@@ -220,6 +254,7 @@ export default function AdminDashboard() {
 
       // Redirect to login page
       window.location.href = '/adminpanel';
+      await logAction('create', 'user', userCredential.user.uid, `Created admin user "${newUserEmail}"`);
     } catch (error: any) {
       console.error('Error creating user:', error);
       let errorMessage = 'Failed to create user';
@@ -314,9 +349,11 @@ export default function AdminDashboard() {
   const submitProduct = async () => {
     try {
       if (productMode === 'create') {
-        await productService.create(productForm);
+        const productId = await productService.create(productForm);
+        await logAction('create', 'product', productId, `Created product "${productForm.name}"`);
       } else if (editingProductId) {
         await productService.update(editingProductId, productForm);
+        await logAction('update', 'product', editingProductId, `Updated product "${productForm.name}"`);
       }
       await reloadProducts();
       setShowProductModal(false);
@@ -325,10 +362,11 @@ export default function AdminDashboard() {
   const submitNews = async () => {
     try {
       if (newsMode === 'create') {
-        await newsService.create({ ...newsForm, date: newsDate || undefined });
+        const newsId = await newsService.create({ ...newsForm, date: newsDate || undefined });
+        await logAction('create', 'news', newsId, `Created news "${newsForm.title}"`);
       } else if (editingNewsId) {
-        // Cast to satisfy union type (service converts string to Timestamp internally)
         await newsService.update(editingNewsId, { ...newsForm, date: (newsDate as unknown) as any });
+        await logAction('update', 'news', editingNewsId, `Updated news "${newsForm.title}"`);
       }
       setShowNewsModal(false);
     } catch (e) { console.error(e); }
@@ -337,9 +375,11 @@ export default function AdminDashboard() {
     try {
       const payload = { ...placementForm, players: placementPlayersText.split(',').map(s => s.trim()).filter(Boolean) };
       if (placementMode === 'create') {
-        await placementService.create(payload);
+        const placementId = await placementService.create(payload);
+        await logAction('create', 'placement', placementId, `Created placement "${placementForm.tournament} - ${placementForm.team}"`);
       } else if (editingPlacementId) {
         await placementService.update(editingPlacementId, payload);
+        await logAction('update', 'placement', editingPlacementId, `Updated placement "${placementForm.tournament} - ${placementForm.team}"`);
       }
       setShowPlacementModal(false);
     } catch (e) { console.error(e); }
@@ -347,9 +387,11 @@ export default function AdminDashboard() {
   const submitMatch = async () => {
     try {
       if (matchMode === 'create') {
-        await scheduleService.createMatch(matchForm);
+        const matchId = await scheduleService.createMatch(matchForm);
+        await logAction('create', 'match', matchId, `Created match "${matchForm.game} - ${matchForm.event}"`);
       } else if (editingMatchId) {
         await scheduleService.updateMatch(editingMatchId, matchForm);
+        await logAction('update', 'match', editingMatchId, `Updated match "${matchForm.game} - ${matchForm.event}"`);
       }
       setShowMatchModal(false);
     } catch (e) { console.error(e); }
@@ -358,6 +400,7 @@ export default function AdminDashboard() {
   const handleStatusChange = async (orderId: string, newStatus: any) => {
     try {
       await updateOrderStatus(orderId, newStatus);
+      await logAction('update', 'order', orderId, `Updated order status to "${newStatus}"`);
     } catch (error) {
       console.error('Error updating order status:', error);
     }
@@ -367,6 +410,7 @@ export default function AdminDashboard() {
     if (confirm('Are you sure you want to delete this order?')) {
       try {
         await deleteOrder(orderId);
+        await logAction('delete', 'order', orderId, `Deleted order`);
       } catch (error) {
         console.error('Error deleting order:', error);
       }
@@ -378,6 +422,7 @@ export default function AdminDashboard() {
       try {
         await reviewService.deleteReview(reviewId);
         setReviews(reviews.filter(review => review.id !== reviewId));
+        await logAction('delete', 'review', reviewId, `Deleted review`);
       } catch (error) {
         console.error('Error deleting review:', error);
       }
@@ -394,6 +439,9 @@ export default function AdminDashboard() {
         setReviews(reviews.filter(review => !selectedReviews.has(review.id || '')));
         setSelectedReviews(new Set());
         setShowBulkActions(false);
+        for (const reviewId of selectedReviews) {
+          await logAction('delete', 'review', reviewId, `Bulk deleted review`);
+        }
       } catch (error) {
         console.error('Error bulk deleting reviews:', error);
       }
@@ -442,6 +490,7 @@ export default function AdminDashboard() {
       setSelectedTeam(null);
 
       alert('Player added successfully! Changes should appear on the teams page.');
+      await logAction('update', 'team', teamId, `Added player "${newPlayer.name}" to team`);
     } catch (error) {
       console.error('Error adding player:', error);
       alert(`Failed to add player: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -464,6 +513,7 @@ export default function AdminDashboard() {
 
       setEditingPlayer(null);
       alert('Player updated successfully! Changes should appear on the teams page.');
+      await logAction('update', 'team', teamId, `Updated player "${updatedPlayer.name}" in team`);
     } catch (error) {
       console.error('Error updating player:', error);
       alert(`Failed to update player: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -484,6 +534,7 @@ export default function AdminDashboard() {
       setTeams(updatedTeams);
 
       alert('Player removed successfully!');
+      await logAction('update', 'team', teamId, `Removed player from team`);
     } catch (error) {
       console.error('Error removing player:', error);
       alert('Failed to remove player');
@@ -500,7 +551,7 @@ export default function AdminDashboard() {
 
     try {
       setLoadingTeams(true);
-      await teamService.create(newTeam);
+      const teamId = await teamService.create(newTeam);
 
       // Reload teams
       const updatedTeams = await teamService.getAll();
@@ -517,6 +568,7 @@ export default function AdminDashboard() {
       setShowCreateTeam(false);
 
       alert('Team created successfully!');
+      await logAction('create', 'team', teamId, `Created team "${newTeam.name}"`);
     } catch (error) {
       console.error('Error creating team:', error);
       alert('Failed to create team');
@@ -537,6 +589,7 @@ export default function AdminDashboard() {
       setTeams(updatedTeams);
 
       alert('Team deleted successfully!');
+      await logAction('delete', 'team', teamId, `Deleted team "${teamName}"`);
     } catch (error) {
       console.error('Error deleting team:', error);
       alert('Failed to delete team');
@@ -579,6 +632,7 @@ export default function AdminDashboard() {
       setEditingTeam(null);
 
       alert('Team updated successfully! Changes should appear on the teams page.');
+      await logAction('update', 'team', editingTeam.id!, `Updated team "${editingTeam.name}"`);
     } catch (error) {
       console.error('Error updating team:', error);
       alert(`Failed to update team: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -591,7 +645,7 @@ export default function AdminDashboard() {
   const handleCreateAmbassador = async () => {
     try {
       setLoadingAmbassadors(true);
-      await ambassadorService.create(ambassadorForm);
+      const ambassadorId = await ambassadorService.create(ambassadorForm);
       const updatedAmbassadors = await ambassadorService.getAll();
       setAmbassadors(updatedAmbassadors);
       setShowCreateAmbassador(false);
@@ -603,6 +657,7 @@ export default function AdminDashboard() {
         achievements: [],
         socialLinks: {}
       });
+      await logAction('create', 'ambassador', ambassadorId, `Created ambassador "${ambassadorForm.name}"`);
     } catch (error) {
       console.error('Error creating ambassador:', error);
       alert('Failed to create ambassador');
@@ -628,6 +683,7 @@ export default function AdminDashboard() {
         achievements: [],
         socialLinks: {}
       });
+      await logAction('update', 'ambassador', editingAmbassador.id!, `Updated ambassador "${ambassadorForm.name}"`);
     } catch (error) {
       console.error('Error updating ambassador:', error);
       alert('Failed to update ambassador');
@@ -643,6 +699,7 @@ export default function AdminDashboard() {
       await ambassadorService.remove(id);
       const updatedAmbassadors = await ambassadorService.getAll();
       setAmbassadors(updatedAmbassadors);
+      await logAction('delete', 'ambassador', id, `Deleted ambassador`);
     } catch (error) {
       console.error('Error deleting ambassador:', error);
       alert('Failed to delete ambassador');
@@ -732,6 +789,7 @@ export default function AdminDashboard() {
     } finally {
       setLoadingTeams(false);
     }
+    await logAction('update', 'team', teamId, `Moved player position in team`);
   };
 
   // Statistics calculations
@@ -772,6 +830,7 @@ export default function AdminDashboard() {
               { id: 'socials', label: 'Socials', icon: LinkIcon },
               { id: 'users', label: 'Users', icon: UserPlusIcon },
               { id: 'orders', label: 'Orders', icon: ShoppingBagIcon },
+              { id: 'logs', label: 'Logs', icon: DocumentIcon },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1165,6 +1224,57 @@ export default function AdminDashboard() {
                       ))}
                     </div>
                   </div>
+                </div>
+              )}
+            </AnimatedCard>
+          </div>
+        )}
+
+        {/* Logs Tab */}
+        {activeTab === 'logs' && (
+          <div className="space-y-6">
+            <AnimatedCard className="admin-card p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <DocumentIcon className="w-6 h-6" />
+                  Admin Activity Logs
+                </h2>
+              </div>
+              <p className="text-gray-400 text-sm mb-4">View all administrative actions and changes made in the admin panel.</p>
+              
+              {loadingLogs ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#FFFFFF] mx-auto mb-2"></div>
+                  <p className="text-gray-400">Loading logs...</p>
+                </div>
+              ) : logs.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-400">No logs available yet. Actions in the admin panel will be logged here.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {logs.map((log) => (
+                    <div key={log.id} className="bg-[#0F0F0F] rounded-lg p-4 border border-[#2A2A2A] hover:bg-[#1A1A1A] transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              log.action === 'create' ? 'bg-green-900/20 text-green-400 border border-green-500/20' :
+                              log.action === 'update' ? 'bg-blue-900/20 text-blue-400 border border-blue-500/20' :
+                              'bg-red-900/20 text-red-400 border border-red-500/20'
+                            }`}>
+                              {log.action.toUpperCase()}
+                            </span>
+                            <span className="text-gray-400 text-sm capitalize">{log.entity}</span>
+                          </div>
+                          <p className="text-white text-sm">{log.details}</p>
+                          <div className="text-gray-500 text-xs mt-2">
+                            By {log.adminEmail} • {new Date(log.timestamp.toDate()).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </AnimatedCard>
