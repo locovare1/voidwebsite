@@ -1,24 +1,24 @@
 @tailwind base;
 
-/* Prevent horizontal overflow from large ads/images */
 html, body {
   overflow-x: hidden;
 }
 
-/* Ensure images/iframes/ad slots are responsive */
 img, iframe, .ad-slot {
   max-width: 100%;
   height: auto;
   display: block;
 }
 
-/* Ensure mobile menu links remain left aligned */
 #mobile-menu nav a {
   text-align: left;
 }
 
+@import './ui-enhancements.css';
+
 @tailwind components;
 @tailwind utilities;
+
 :root {
   --void-purple: #FFFFFF;
   --void-dark: #1a0a2e;
