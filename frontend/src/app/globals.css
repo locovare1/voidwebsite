@@ -1,4 +1,21 @@
 @tailwind base;
+
+html, body {
+  overflow-x: hidden;
+}
+
+img, iframe, .ad-slot {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+#mobile-menu nav a {
+  text-align: left;
+}
+
+@import './ui-enhancements.css';
+
 @tailwind components;
 @tailwind utilities;
 
