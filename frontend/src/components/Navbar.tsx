@@ -104,51 +104,58 @@ export default function Navbar() {
       </nav>
 
       {/* MOBILE MENU OVERLAY */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-[200] bg-black/80">
-          <div className="absolute inset-y-0 right-0 w-64 bg-[#05010a] p-6 shadow-xl flex flex-col">
-            {/* Close Button */}
-            <button
-              type="button"
-              className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-md transition"
+{mobileMenuOpen && (
+  <div id="mobile-menu" className="lg:hidden fixed inset-0 z-[200]">
+    {/* Backdrop: semi-opaque and closes menu when clicked */}
+    <div
+      className="absolute inset-0 bg-black/80"
+      onClick={() => setMobileMenuOpen(false)}
+      aria-hidden="true"
+    />
+
+    {/* Panel: fixed, above backdrop, left-aligned links */}
+    <div className="relative z-[210] fixed inset-y-0 right-0 w-72 max-w-full bg-[#05010a] p-6 shadow-2xl overflow-y-auto">
+      {/* Close Button */}
+      <button
+        type="button"
+        className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-md transition"
+        onClick={() => setMobileMenuOpen(false)}
+        aria-label="Close menu"
+      >
+        <XMarkIcon className="h-6 w-6" />
+      </button>
+
+      {/* Mobile Nav Items */}
+      <div className="mt-10 space-y-6">
+        <nav aria-label="Mobile" className="flex flex-col items-start">
+          {navigation.map((item) => (
+            <Link
+              key={item.name}
+              href={item.href}
               onClick={() => setMobileMenuOpen(false)}
+              className="w-full text-left block px-2 py-2 text-lg font-semibold text-white hover:text-purple-400 hover:bg-white/5 rounded transition"
             >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
+              {item.name}
+            </Link>
+          ))}
+        </nav>
 
-            {/* Mobile Nav Items */}
-            <div className="mt-10 space-y-6">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block text-lg font-semibold text-white hover:text-purple-400 transition"
-                >
-                  {item.name}
-                </Link>
-              ))}
-
-              {/* Mobile Cart and Shop Buttons */}
-              <div className="flex flex-col gap-3">
-                <Link
-                  href="/cart"
-                  className="block px-4 py-2 text-lg font-semibold text-white bg-gradient-to-r from-gray-600 to-gray-800 rounded-lg hover:from-gray-500 hover:to-gray-700 transition duration-300 text-center"
-                >
-                  Cart
-                </Link>
-                <Link
-                  href="/shop"
-                  className="block px-4 py-2 text-lg font-semibold text-white bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg hover:from-purple-500 hover:to-purple-700 transition duration-300 text-center"
-                >
-                  Shop
-                </Link>
-              </div>
-
-            </div>
-          </div>
+        {/* Mobile Cart and Shop Buttons */}
+        <div className="flex flex-col gap-3 mt-4">
+          <Link
+            href="/cart"
+            className="block w-full px-4 py-2 text-lg font-semibold text-white bg-gradient-to-r from-gray-600 to-gray-800 rounded-lg hover:from-gray-500 hover:to-gray-700 transition duration-300 text-left"
+          >
+            Cart
+          </Link>
+          <Link
+            href="/shop"
+            className="block w-full px-4 py-2 text-lg font-semibold text-white bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg hover:from-purple-500 hover:to-purple-700 transition duration-300 text-left"
+          >
+            Shop
+          </Link>
         </div>
-      )}
-    </header>
-  );
-}
+      </div>
+    </div>
+  </div>
+)}
