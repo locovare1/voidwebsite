@@ -3,28 +3,49 @@
 @tailwind utilities;
 
 :root {
-  --void-purple: #FFFFFF;
-  --void-dark: #1a0a2e;
-  --void-dark-alt: #2a1a3a;
-  --void-light: #F5F5F5;
+  --background: #ffffff;
+  --foreground: #0f0f0f;
+
+  --void-purple: #740FA8;
+  --void-dark: #f5f5f5;
+  --void-dark-alt: #eaeaea;
+  --void-light: #0f0f0f;
+
   --purple-primary: #740FA8;
   --purple-secondary: #9E47B2;
   --purple-accent: rgba(116, 15, 168, 0.1);
 }
 
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+
+  --void-purple: #FFFFFF;
+  --void-dark: #1a0a2e;
+  --void-dark-alt: #2a1a3a;
+  --void-light: #F5F5F5;
+
+  --purple-primary: #9E47B2;
+  --purple-secondary: #c280ff;
+  --purple-accent: rgba(158, 71, 178, 0.15);
+}
+
 body {
-  background: linear-gradient(135deg, #1a0a2e 0%, #2a1a3a 50%, #740FA8 100%);
-  background-attachment: fixed;
-  color: var(--void-light);
+  background: var(--background);
+  color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   overflow-x: hidden;
-  padding-top: 4rem; /* Add padding for fixed navbar */
+  padding-top: 4rem;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* Page Transition Animations */
+.dark body {
+  background: linear-gradient(135deg, #1a0a2e 0%, #2a1a3a 50%, #740FA8 100%);
+  background-attachment: fixed;
+}
+
 .page-transition {
   position: fixed;
   top: 0;
@@ -45,7 +66,6 @@ body {
   transform: translateY(-100%);
 }
 
-/* Page Content Animations */
 .page-content {
   opacity: 0;
   transform: translateY(20px);
@@ -59,7 +79,6 @@ body {
   }
 }
 
-/* Staggered Animation for Cards */
 .stagger-animation {
   opacity: 0;
   transform: translateY(30px);
@@ -80,7 +99,6 @@ body {
   }
 }
 
-/* Parallax Effects */
 .parallax-container {
   position: relative;
   overflow: hidden;
@@ -91,7 +109,6 @@ body {
   will-change: transform;
 }
 
-/* Hero Section Animations */
 .hero-title {
   opacity: 0;
   transform: translateY(50px);
@@ -131,7 +148,6 @@ body {
   }
 }
 
-/* Enhanced Card Animations */
 .void-card {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(116, 15, 168, 0.08) 100%);
   backdrop-filter: saturate(140%) blur(8px);
@@ -167,7 +183,6 @@ body {
   box-shadow: 0 25px 45px -12px rgba(116, 15, 168, 0.4);
 }
 
-/* Player Card Specific Animations */
 .player-card {
   background: linear-gradient(135deg, #2a1a3a 0%, rgba(116, 15, 168, 0.2) 100%);
   border: 1px solid rgba(116, 15, 168, 0.2);
@@ -193,7 +208,6 @@ body {
   transform: scale(1.1) translateY(-5px);
 }
 
-/* Loading Animation */
 .loading-spinner {
   width: 40px;
   height: 40px;
@@ -208,7 +222,6 @@ body {
   100% { transform: rotate(360deg); }
 }
 
-/* Floating Animation */
 .floating {
   animation: floating 3s ease-in-out infinite;
 }
@@ -218,7 +231,6 @@ body {
   50% { transform: translateY(-10px); }
 }
 
-/* Glow Effects */
 .glow-on-hover {
   position: relative;
   transition: all 0.3s ease;
@@ -241,14 +253,10 @@ body {
   opacity: 1;
 }
 
-
-
-/* Smooth Scroll Behavior */
 html {
   scroll-behavior: smooth;
 }
 
-/* Enhanced Button Animations */
 .void-button {
   background-color: #FFFFFF;
   color: #000000;
@@ -285,7 +293,6 @@ html {
   height: 300px;
 }
 
-/* Glass utilities */
 .glass {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(116, 15, 168, 0.06) 100%);
   backdrop-filter: saturate(140%) blur(8px);
@@ -293,11 +300,11 @@ html {
   border: 1px solid rgba(116, 15, 168, 0.15);
 }
 
-/* Shine sweep on hover */
 .shine-hover {
   position: relative;
   overflow: hidden;
 }
+
 .shine-hover::after {
   content: "";
   position: absolute;
@@ -307,11 +314,11 @@ html {
   background: linear-gradient(90deg, transparent, rgba(116, 15, 168, 0.3), transparent);
   transition: left 0.6s ease;
 }
+
 .shine-hover:hover::after {
   left: 160%;
 }
 
-/* Admin card base */
 .admin-card {
   @apply rounded-xl border p-4;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(116, 15, 168, 0.05) 100%);
@@ -319,7 +326,6 @@ html {
   backdrop-filter: blur(6px);
 }
 
-/* Navbar Animation */
 .navbar-animate {
   animation: navbarSlideDown 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
@@ -335,7 +341,6 @@ html {
   }
 }
 
-/* Intersection Observer Animations */
 .fade-in-on-scroll {
   opacity: 0;
   transform: translateY(30px);
@@ -347,7 +352,6 @@ html {
   transform: translateY(0);
 }
 
-/* Pulse Animation for CTAs */
 .pulse-glow {
   animation: pulseGlow 2s ease-in-out infinite;
 }
@@ -426,7 +430,6 @@ html {
   background-image: linear-gradient(to right, #FFFFFF, #dedede);
 }
 
-/* Loading state styles */
 .loading-fade-in {
   animation: loading-fade-in 0.5s ease-out;
 }
@@ -442,7 +445,6 @@ html {
   }
 }
 
-/* Loading spinner */
 .loading-spinner {
   width: 40px;
   height: 40px;
@@ -457,7 +459,6 @@ html {
   100% { transform: rotate(360deg); }
 }
 
-/* Error state styles */
 .error-state {
   background: linear-gradient(135deg, #2a1a3a 0%, #1a0a2e 100%);
   min-height: 100vh;
@@ -466,7 +467,6 @@ html {
   justify-content: center;
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -484,7 +484,6 @@ html {
   background: #dedede;
 }
 
-/* Hide scrollbar for mobile horizontal scroll */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -494,9 +493,6 @@ html {
   display: none;
 }
 
-/* Firefox scrollbar rules removed to satisfy linter compatibility checks */
-
-/* Admin Panel Custom Scrollbar */
 .admin-panel ::-webkit-scrollbar {
   width: 8px;
 }
@@ -514,7 +510,6 @@ html {
   background: #dedede;
 }
 
-/* Mobile-specific improvements */
 @media (max-width: 640px) {
   .void-card {
     padding: 1rem;
@@ -525,25 +520,21 @@ html {
     font-size: 0.875rem;
   }
   
-  /* Improve touch targets */
   button, a {
     min-height: 44px;
   }
   
-  /* Better text readability on mobile */
   body {
     font-size: 16px;
     line-height: 1.5;
     padding-top: 4rem;
   }
   
-  /* Prevent horizontal scroll */
   html, body {
     overflow-x: hidden;
     max-width: 100vw;
   }
   
-  /* Better carousel spacing on mobile */
   .carousel-container {
     padding-left: 0;
     padding-right: 0;
@@ -561,234 +552,4 @@ html {
   }
   
   .carousel-container::after {
-    background: linear-gradient(to left, #2a1a3a, transparent);
-  }
-  
-  /* Improve mobile menu */
-  .mobile-menu-open {
-    overflow: hidden !important;
-  }
-  
-  /* Better spacing for mobile */
-  .void-container {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-  
-  /* Optimize animations for mobile */
-  .void-card:hover {
-    transform: translateY(-3px) scale(1.01);
-  }
-  
-  /* Better hero section on mobile */
-  section {
-    scroll-margin-top: 4rem;
-  }
-}
-
-/* Tablet improvements */
-@media (min-width: 641px) and (max-width: 1024px) {
-  .void-container {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-  
-  .void-card {
-    padding: 1.25rem;
-  }
-  
-  /* Better carousel on tablets */
-  .carousel-container::before,
-  .carousel-container::after {
-    width: 80px;
-  }
-}
-
-/* Landscape mobile improvements */
-@media (max-width: 896px) and (orientation: landscape) {
-  body {
-    padding-top: 3.5rem;
-  }
-  
-  /* Reduce hero height in landscape */
-  section.relative.h-\[70vh\] {
-    height: 90vh !important;
-  }
-}
-
-/* Line clamp utilities for mobile */
-.line-clamp-1 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-}
-
-.line-clamp-2 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.line-clamp-3 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Image optimization for mobile */
-img {
-  max-width: 100%;
-  height: auto;
-}
-
-/* Prevent layout shift */
-.relative img {
-  object-fit: cover;
-}
-
-/* Better tap highlight */
-* {
-  -webkit-tap-highlight-color: rgba(116, 15, 168, 0.2);
-}
-
-/* Smooth momentum scrolling on iOS */
-.overflow-y-auto,
-.overflow-x-auto {
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Fix for iOS Safari bottom bar */
-@supports (-webkit-touch-callout: none) {
-  body {
-    min-height: -webkit-fill-available;
-  }
-}
-
-/* Add missing keyframes for fadeInOut animation used in teams page easter egg */
-@keyframes fadeInOut {
-  0% { opacity: 0; transform: scale(0.8); }
-  20% { opacity: 1; transform: scale(1); }
-  80% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(0.8); }
-}
-
-/* Purple Gradient Utilities */
-.bg-purple-gradient {
-  background: linear-gradient(135deg, #740FA8 0%, #9E47B2 100%);
-}
-
-.bg-purple-gradient-subtle {
-  background: linear-gradient(135deg, rgba(116, 15, 168, 0.1) 0%, rgba(158, 71, 178, 0.1) 100%);
-}
-
-.text-purple-gradient {
-  background: linear-gradient(135deg, #740FA8 0%, #9E47B2 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-}
-
-.border-purple-gradient {
-  border-image: linear-gradient(135deg, #740FA8 0%, #9E47B2 100%) 1;
-}
-
-/* Purple accent elements */
-.purple-accent::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(116, 15, 168, 0.05) 0%, rgba(158, 71, 178, 0.05) 100%);
-  pointer-events: none;
-  border-radius: inherit;
-}
-
-/* Enhanced button with purple accent */
-.void-button-purple {
-  background: linear-gradient(135deg, #FFFFFF 0%, #f3e8ff 100%);
-  color: #000000;
-  font-weight: 700;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid rgba(116, 15, 168, 0.2);
-  transition: all 0.3s;
-  position: relative;
-  overflow: hidden;
-}
-
-.void-button-purple:hover {
-  background: linear-gradient(135deg, #FFFFFF 0%, #e9d5ff 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(116, 15, 168, 0.3);
-}
-
-.void-button-purple::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: rgba(116, 15, 168, 0.1);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
-}
-
-.void-button-purple:hover::before {
-  width: 300px;
-  height: 300px;
-}
-
-/* 
-Continuous Carousel Styles */
-.carousel-container {
-  position: relative;
-  overflow: hidden;
-  -webkit-overflow-scrolling: touch;
-}
-
-.carousel-container::before,
-.carousel-container::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 100px;
-  z-index: 10;
-  pointer-events: none;
-}
-
-.carousel-container::before {
-  left: 0;
-  background: linear-gradient(to right, #1A1A1A, transparent);
-}
-
-.carousel-container::after {
-  right: 0;
-  background: linear-gradient(to left, #1A1A1A, transparent);
-}
-
-/* Smooth scrolling for carousels */
-.carousel-container > div {
-  will-change: transform;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-}
+    background: linear-gradient(to left, #
