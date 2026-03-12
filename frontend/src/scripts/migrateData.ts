@@ -263,7 +263,7 @@ const events = [
     date: 'TBD',
     type: 'Online Tournament',
     prizePool: 'TBD (USD)',
-    registrationLink: 'https://discord.gg/voidesports2x',
+    registrationLink: 'https://discord.gg/ftxyf32wJN',
     createdAt: Timestamp.now()
   }
 ];

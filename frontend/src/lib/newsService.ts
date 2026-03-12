@@ -35,10 +35,23 @@ export const newsService = {
     const q = query(collection(db, NEWS_COLLECTION), orderBy('date', 'desc'));
     const snap = await getDocs(q);
     if (snap.empty) return [];
-    const articles = snap.docs.map(d => ({
-      id: d.id,
-      ...(d.data() as Omit<NewsArticle, 'id'>)
-    }));
+    const sanitizeLink = (text: string) => {
+      if (!text) return text;
+      return text
+        .replace(/discord\.gg\/voidesports2x/gi, 'discord.gg/ftxyf32wJN')
+        .replace(/x\.com\/CodoxieMGMT/gi, 'x.com/VoidEsports2x')
+        .replace(/twitter\.com\/CodoxieMGMT/gi, 'x.com/VoidEsports2x')
+        .replace(/twitch\.tv\/voidfrankenstein/gi, 'twitch.tv/voidesports2x');
+    };
+
+    const articles = snap.docs.map(d => {
+      const data = d.data() as Omit<NewsArticle, 'id'>;
+      return {
+        id: d.id,
+        ...data,
+        description: sanitizeLink(data.description)
+      };
+    });
     // Client-side sort: by date first, then by createdAt for articles with same date
     return articles.sort((a, b) => {
       const aDate = a.date?.toMillis() || 0;

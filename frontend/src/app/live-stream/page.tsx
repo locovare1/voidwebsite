@@ -23,8 +23,8 @@ const streamers: Streamer[] = [
   },
   {
     name: 'Void Esports 2x',
-    game: 'Fortnite',
-    image: '/teams/fortnite.png',
+    game: 'Official',
+    image: '/logos/new-logo.png',
     description: 'Official Void Esports stream channel',
     channelLink: 'https://www.twitch.tv/voidesports2x',
   },
@@ -59,7 +59,7 @@ export default function LiveStreamPage() {
             <div className="aspect-video w-full">
               {/* This would be replaced with an actual Twitch embed when someone is live */}
               <iframe 
-                src="https://player.twitch.tv/?channel=voidfrankenstein&parent=localhost" 
+                src="https://player.twitch.tv/?channel=voidesports2x&parent=localhost" 
                 height="100%" 
                 width="100%" 
                 allowFullScreen

@@ -34,11 +34,61 @@ export default function Footer() {
       try {
         const links = await socialService.getAll();
         if (!mounted) return;
-        setSocialLinks(links);
+        
+        if (links.length > 0) {
+          setSocialLinks(links);
+        } else {
+          // Fallback to default organization links
+          setSocialLinks([
+            {
+              name: 'Twitch',
+              url: 'https://www.twitch.tv/voidesports2x',
+              icon: 'twitch',
+              order: 1,
+              createdAt: {} as any
+            },
+            {
+              name: 'Twitter',
+              url: 'https://x.com/VoidEsports2x',
+              icon: 'twitter',
+              order: 2,
+              createdAt: {} as any
+            },
+            {
+              name: 'Discord',
+              url: 'https://discord.gg/ftxyf32wJN',
+              icon: 'discord',
+              order: 3,
+              createdAt: {} as any
+            }
+          ]);
+        }
       } catch (error) {
         console.error('Error loading social links:', error);
-        // Fallback to empty array
-        setSocialLinks([]);
+        // Fallback to default organization links on error
+        setSocialLinks([
+          {
+            name: 'Twitch',
+            url: 'https://www.twitch.tv/voidesports2x',
+            icon: 'twitch',
+            order: 1,
+            createdAt: {} as any
+          },
+          {
+            name: 'Twitter',
+            url: 'https://x.com/VoidEsports2x',
+            icon: 'twitter',
+            order: 2,
+            createdAt: {} as any
+          },
+          {
+            name: 'Discord',
+            url: 'https://discord.gg/ftxyf32wJN',
+            icon: 'discord',
+            order: 3,
+            createdAt: {} as any
+          }
+        ]);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -94,11 +144,19 @@ export default function Footer() {
                 <div className="text-gray-400 text-sm">No social links available</div>
               ) : (
                 socialLinks.map((social) => {
-                  const IconComponent = iconMap[social.icon.toLowerCase()] || FaTwitter;
+                  const iconKey = social.icon.toLowerCase();
+                  const IconComponent = iconMap[iconKey] || FaTwitter;
+                  
+                  // Priority override for organization links
+                  let displayUrl = social.url;
+                  if (iconKey === 'twitter') displayUrl = 'https://x.com/VoidEsports2x';
+                  else if (iconKey === 'twitch') displayUrl = 'https://www.twitch.tv/voidesports2x';
+                  else if (iconKey === 'discord') displayUrl = 'https://discord.gg/ftxyf32wJN';
+
                   return (
                     <Link
                       key={social.id || social.name}
-                      href={social.url}
+                      href={displayUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-400 hover:text-purple-300 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center group"
