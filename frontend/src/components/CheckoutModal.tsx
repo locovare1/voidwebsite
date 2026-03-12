@@ -18,11 +18,18 @@ interface CheckoutModalProps {
   onClose: () => void;
   total: number;
   items: Array<{
-    id: number;
+    id: string;
+    productId?: number;
     name: string;
     price: number;
     quantity: number;
     image: string;
+    customization?: {
+      customFields?: Record<string, string>;
+      size?: string;
+      sizeModifier?: number;
+    };
+    firestoreId?: string;
   }>;
 }
 
@@ -119,13 +126,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
         // Create order directly for free items
         const newOrder = {
           id: generateOrderNumber(),
-          items: items.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image,
-          })),
+          items: items, // Include full item data with customization
           total: finalTotal,
           customerInfo: customerInfo,
           status: 'accepted' as const,

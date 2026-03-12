@@ -18,13 +18,42 @@ export interface Product {
   id?: string;
   name: string;
   price: number;
-  image: string;
+  image: string; // Primary image for backward compatibility
+  images?: string[]; // Array of all images
   hoverImage?: string;
   category: string;
   description: string;
   link: string;
   displayOnHomePage?: boolean;
   createdAt: Timestamp;
+
+  // New fields for customization
+  customFields?: CustomField[];
+  sizes?: Size[];
+  hasCustomFields?: boolean;
+  hasSizes?: boolean;
+}
+
+export interface CustomField {
+  id: string;
+  label: string;
+  type: 'text' | 'number' | 'select';
+  required: boolean;
+  placeholder?: string;
+  options?: string[]; // For select type
+  maxLength?: number; // For text type
+  validation?: {
+    pattern?: string;
+    min?: number;
+    max?: number;
+  };
+}
+
+export interface Size {
+  id: string;
+  name: string;
+  priceModifier?: number; // Additional cost for this size
+  available: boolean;
 }
 
 const PRODUCTS_COLLECTION = 'products';
@@ -55,14 +84,18 @@ export const productService = {
       ...input,
       createdAt: Timestamp.now()
     };
+    console.log('[ProductService] Creating product with payload:', payload);
     const ref = await addDoc(collection(db, PRODUCTS_COLLECTION), payload);
+    console.log('[ProductService] Product created with ID:', ref.id, 'Images saved:', payload.images);
     return ref.id;
   },
 
   async update(id: string, updates: Partial<Omit<Product, 'id'>>): Promise<void> {
     if (!isBrowser || !db) return;
+    console.log('[ProductService] Updating product ID:', id, 'with updates:', updates);
     const ref = doc(db, PRODUCTS_COLLECTION, id);
     await updateDoc(ref, updates);
+    console.log('[ProductService] Product updated successfully. Images field:', updates.images);
   },
 
   async remove(id: string): Promise<void> {

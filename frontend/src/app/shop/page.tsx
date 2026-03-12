@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import ProductGrid from '@/components/ProductGrid';
 import AdPlaceholder from '@/components/AdPlaceholder';
-import { products as fallbackProducts } from '@/data/products';
 import { productService, type Product as FSProduct } from '@/lib/productService';
 
 // Map Firestore product to legacy product format
@@ -33,7 +32,7 @@ function stringToHash(str: string): number {
 }
 
 export default function ShopPage() {
-  const [products, setProducts] = useState<LegacyProduct[]>(fallbackProducts);
+  const [products, setProducts] = useState<LegacyProduct[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -51,14 +50,14 @@ export default function ShopPage() {
             category: p.category,
             description: p.description,
             link: p.link,
-            firestoreId: p.id // Store the original Firestore ID
+            firestoreId: p.id // Store the original Firestore ID for routing
           }));
           setProducts(mapped);
         } else {
-          setProducts(fallbackProducts);
+          setProducts([]);
         }
       } catch {
-        setProducts(fallbackProducts);
+        setProducts([]);
       }
     })();
     return () => { mounted = false; };

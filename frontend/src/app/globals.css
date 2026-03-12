@@ -792,3 +792,19 @@ Continuous Carousel Styles */
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
 }
+
+/* Mobile Menu Slide-In Animation */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}

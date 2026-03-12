@@ -60,7 +60,7 @@ export default function CheckoutForm({ clientSecret, customerInfo, items, total,
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
         const order = {
           id: paymentIntent.id,
-          items: items.map((item: any) => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity, image: item.image })),
+          items: items, // Include full item data with customization
           total,
           customerInfo,
           status: "accepted",

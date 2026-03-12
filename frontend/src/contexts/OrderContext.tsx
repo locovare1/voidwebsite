@@ -5,11 +5,18 @@ import { collection, getDocs, query, orderBy, updateDoc, doc, deleteDoc } from '
 import { db } from '@/lib/firebase';
 
 export interface OrderItem {
-  id: number;
+  id: string;
+  productId?: number;
   name: string;
   price: number;
   quantity: number;
   image: string;
+  customization?: {
+    customFields?: Record<string, string>;
+    size?: string;
+    sizeModifier?: number;
+  };
+  firestoreId?: string;
 }
 
 export interface Order {
@@ -267,17 +274,23 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
             const order: Order = {
               id: doc.id,
               items: data.items.map((item: {
-                id: number;
+                id: number | string;
+                productId?: number;
                 name: string;
                 price: number;
                 quantity: number;
                 image?: string;
+                customization?: any;
+                firestoreId?: string;
               }) => ({
-                id: item.id || 0,
+                id: typeof item.id === 'number' ? item.id.toString() : item.id,
+                productId: item.productId,
                 name: item.name || 'Unknown Item',
                 price: item.price || 0,
                 quantity: item.quantity || 1,
                 image: item.image || '/placeholder-product.jpg',
+                customization: item.customization,
+                firestoreId: item.firestoreId,
               })),
               total: data.total || data.finalTotal || 0,
               customerInfo: {
@@ -369,7 +382,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
               quantity: number;
               image?: string;
             }) => ({
-              id: item.id || 0,
+              id: item.id.toString(), // Convert number ID to string
               name: item.name || 'Unknown Item',
               price: item.price || 0,
               quantity: item.quantity || 1,

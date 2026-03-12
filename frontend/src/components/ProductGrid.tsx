@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
 import Pagination from './Pagination';
 import { useCart } from '@/contexts/CartContext';
@@ -71,12 +72,15 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 		await new Promise(resolve => setTimeout(resolve, 500));
 		
 		addItem({
-			id: product.id,
+			id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+			productId: product.id,
 			name: product.name,
 			price: product.price,
 			image: product.image,
 			category: product.category,
 			description: product.description,
+			firestoreId: product.firestoreId,
+			quantity: 1, // Default to 1 for shop page
 		});
 		
 		setAddingToCart(null);
@@ -115,54 +119,41 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
 				{currentProducts.map((product) => (
-					<AnimatedCard key={product.id} className="void-card shine-hover overflow-hidden group">
-						<div className="relative h-48 sm:h-56 lg:h-64 w-full overflow-hidden">
-							<Image
-								src={product.image && product.image.trim() ? product.image : '/logo.png'}
-								alt={product.name}
-								fill
-								className="object-contain transition-transform duration-500 group-hover:scale-105 p-3 sm:p-4"
-								sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-							/>
-							<div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-black/80 text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold shadow-lg">
-								{product.price === 0 ? 'FREE' : `${product.price.toFixed(2)}`}
-							</div>
-						</div>
-
-						<div className="p-4 sm:p-6 space-y-3">
-							<div className="flex justify-between items-start gap-2 mb-2">
-								<span className="px-2.5 py-1 sm:px-3 sm:py-1.5 bg-[#FFFFFF]/10 rounded-full text-[#FFFFFF] text-xs font-medium shadow-sm">
-									{product.category}
-								</span>
+					<Link key={product.id} href={`/products/${product.firestoreId || product.id}`} className="block">
+						<AnimatedCard className="void-card shine-hover overflow-hidden group cursor-pointer">
+							<div className="relative h-48 sm:h-56 lg:h-64 w-full overflow-hidden">
+								<Image
+									src={product.image && product.image.trim() ? product.image : '/logo.png'}
+									alt={product.name}
+									fill
+									className="object-contain transition-transform duration-500 group-hover:scale-105 p-3 sm:p-4"
+									sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+								/>
+								<div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-black/80 text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold shadow-lg">
+									{product.price === 0 ? 'FREE' : `${product.price.toFixed(2)}`}
+								</div>
 							</div>
 
-							<h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-[#a2a2a2] transition-colors duration-300 mb-0 line-clamp-2">
-								{product.name}
-							</h3>
-							<p className="text-gray-400 text-sm mb-0 line-clamp-2">
-								{product.description}
-							</p>
+							<div className="p-4 sm:p-6 space-y-3">
+								<div className="flex justify-between items-start gap-2 mb-2">
+									<span className="px-2.5 py-1 sm:px-3 sm:py-1.5 bg-[#FFFFFF]/10 rounded-full text-[#FFFFFF] text-xs font-medium shadow-sm">
+										{product.category}
+									</span>
+								</div>
 
-							<button
-								className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black text-center py-3 px-4 rounded-lg transition-all duration-300 mt-4 font-medium hover:shadow-lg transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed glow-on-hover min-h-[44px] text-sm sm:text-base"
-								onClick={() => handleAddToCart(product)}
-								disabled={addingToCart === product.id}
-							>
-								{addingToCart === product.id ? (
-									<div className="flex items-center justify-center gap-2">
-										<div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
-										Adding...
-									</div>
-								) : product.price === 0 ? (
-									'Add to Cart - FREE'
-								) : (
-									`Add to Cart - ${product.price.toFixed(2)}`
-								)}
-							</button>
+								<h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-[#a2a2a2] transition-colors duration-300 mb-0 line-clamp-2">
+									{product.name}
+								</h3>
+								<p className="text-gray-400 text-sm mb-0 line-clamp-2">
+									{product.description}
+								</p>
 
-							<ReviewButton productId={product.id} productName={product.name} />
-						</div>
-					</AnimatedCard>
+								<div className="text-center text-sm text-gray-400 mt-2">
+									Click to view details
+								</div>
+							</div>
+						</AnimatedCard>
+					</Link>
 				))}
 				{currentProducts.length === 0 && (
 					<div className="col-span-full text-center py-16">

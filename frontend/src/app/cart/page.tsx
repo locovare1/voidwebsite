@@ -95,20 +95,59 @@ export default function CartPage() {
                 className="bg-[#1A1A1A] rounded-xl p-6 border border-[#2A2A2A] hover:border-[#3A3A3A] transition-all duration-300"
               >
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="relative w-full sm:w-24 h-24 flex-shrink-0">
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      className="object-contain rounded-lg"
-                    />
+                  <div className="relative w-full sm:w-24 h-24 flex-shrink-0 flex items-center justify-center">
+                    {item.image ? (
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        width={96}
+                        height={96}
+                        className="object-contain rounded-lg max-w-full max-h-full"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const placeholder = target.parentElement?.querySelector('.image-placeholder') as HTMLElement;
+                          if (placeholder) placeholder.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div className="image-placeholder absolute inset-0 flex items-center justify-center bg-gray-700 rounded-lg" style={{ display: item.image ? 'none' : 'flex' }}>
+                      <div className="text-gray-400 text-xs text-center">
+                        <svg className="w-8 h-8 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        No Image
+                      </div>
+                    </div>
                   </div>
-                  
+
                   <div className="flex-grow">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                       <div>
                         <h3 className="text-lg font-semibold text-white mb-1">{item.name}</h3>
                         <p className="text-sm text-gray-400 mb-2">{item.category}</p>
+                        
+                        {/* Customization Details */}
+                        {item.customization && (
+                          <div className="mb-2 p-2 bg-[#0F0F0F] rounded-lg border border-[#2A2A2A]">
+                            <p className="text-xs font-medium text-gray-300 mb-1">Customizations:</p>
+                            <div className="flex flex-wrap gap-2 text-xs">
+                              {item.customization.size && (
+                                <span className="bg-purple-900/30 text-purple-300 px-2 py-1 rounded">
+                                  Size: {item.customization.size}
+                                </span>
+                              )}
+                              {item.customization.customFields && Object.entries(item.customization.customFields).map(([key, value]) => (
+                                value && (
+                                  <span key={key} className="bg-blue-900/30 text-blue-300 px-2 py-1 rounded">
+                                    {item.customization?.customFieldLabels?.[key] || key}: {String(value)}
+                                  </span>
+                                )
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
                         <p className="text-sm text-gray-500">{item.description}</p>
                       </div>
                       
@@ -220,13 +259,7 @@ export default function CartPage() {
           isOpen={isCheckoutModalOpen}
           onClose={() => setIsCheckoutModalOpen(false)}
           total={total}
-          items={items.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image,
-          }))}
+          items={items}
         />
 
         {/* Ad Spot - Banner at bottom */}

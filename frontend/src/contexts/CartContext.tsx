@@ -3,13 +3,22 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 
 export interface CartItem {
-  id: number;
+  id: string; // Changed from number to string for unique combinations
+  productId: number; // Original product ID
   name: string;
   price: number;
   image: string;
   category: string;
   description: string;
   quantity: number;
+  // New fields for customization
+  customization?: {
+    customFields?: Record<string, string>;
+    customFieldLabels?: Record<string, string>; // Maps field IDs to their display labels
+    size?: string;
+    sizeModifier?: number; // Price modifier for selected size
+  };
+  firestoreId?: string; // Original Firestore document ID
 }
 
 interface CartState {
@@ -19,9 +28,9 @@ interface CartState {
 }
 
 type CartAction =
-  | { type: 'ADD_ITEM'; payload: Omit<CartItem, 'quantity'> }
-  | { type: 'REMOVE_ITEM'; payload: number }
-  | { type: 'UPDATE_QUANTITY'; payload: { id: number; quantity: number } }
+  | { type: 'ADD_ITEM'; payload: Omit<CartItem, 'quantity'> & { quantity?: number } }
+  | { type: 'REMOVE_ITEM'; payload: string }
+  | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
   | { type: 'CLEAR_CART' }
   | { type: 'LOAD_CART'; payload: CartItem[] };
 
@@ -34,20 +43,29 @@ const initialState: CartState = {
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'ADD_ITEM': {
-      const existingItem = state.items.find(item => item.id === action.payload.id);
+      const existingItemIndex = state.items.findIndex(item =>
+        item.id === action.payload.id &&
+        JSON.stringify(item.customization || {}) === JSON.stringify(action.payload.customization || {})
+      );
 
       let newItems: CartItem[];
-      if (existingItem) {
-        newItems = state.items.map(item =>
-          item.id === action.payload.id
-            ? { ...item, quantity: item.quantity + 1 }
+      if (existingItemIndex >= 0) {
+        // Item exists, update quantity
+        newItems = state.items.map((item, index) =>
+          index === existingItemIndex
+            ? { ...item, quantity: item.quantity + (action.payload.quantity || 1) }
             : item
         );
       } else {
-        newItems = [...state.items, { ...action.payload, quantity: 1 }];
+        // Item doesn't exist, add new item
+        newItems = [...state.items, { ...action.payload, quantity: action.payload.quantity || 1 }];
       }
 
-      const total = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const total = newItems.reduce((sum, item) => {
+        const basePrice = item.price;
+        const sizeModifier = item.customization?.sizeModifier || 0;
+        return sum + ((basePrice + sizeModifier) * item.quantity);
+      }, 0);
       const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
 
       return { items: newItems, total, itemCount };
@@ -55,7 +73,11 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
     case 'REMOVE_ITEM': {
       const newItems = state.items.filter(item => item.id !== action.payload);
-      const total = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const total = newItems.reduce((sum, item) => {
+        const basePrice = item.price;
+        const sizeModifier = item.customization?.sizeModifier || 0;
+        return sum + ((basePrice + sizeModifier) * item.quantity);
+      }, 0);
       const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
 
       return { items: newItems, total, itemCount };
@@ -68,7 +90,11 @@ function cartReducer(state: CartState, action: CartAction): CartState {
           : item
       ).filter(item => item.quantity > 0);
 
-      const total = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const total = newItems.reduce((sum, item) => {
+        const basePrice = item.price;
+        const sizeModifier = item.customization?.sizeModifier || 0;
+        return sum + ((basePrice + sizeModifier) * item.quantity);
+      }, 0);
       const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
 
       return { items: newItems, total, itemCount };
@@ -78,7 +104,11 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       return initialState;
 
     case 'LOAD_CART': {
-      const total = action.payload.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const total = action.payload.reduce((sum, item) => {
+        const basePrice = item.price;
+        const sizeModifier = item.customization?.sizeModifier || 0;
+        return sum + ((basePrice + sizeModifier) * item.quantity);
+      }, 0);
       const itemCount = action.payload.reduce((sum, item) => sum + item.quantity, 0);
 
       return { items: action.payload, total, itemCount };
@@ -90,9 +120,9 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 }
 
 interface CartContextType extends CartState {
-  addItem: (item: Omit<CartItem, 'quantity'>) => void;
-  removeItem: (id: number) => void;
-  updateQuantity: (id: number, quantity: number) => void;
+  addItem: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
+  removeItem: (id: string) => void;
+  updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
 }
 
@@ -119,15 +149,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('void-cart', JSON.stringify(state.items));
   }, [state.items]);
 
-  const addItem = (item: Omit<CartItem, 'quantity'>) => {
+  const addItem = (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
     dispatch({ type: 'ADD_ITEM', payload: item });
   };
 
-  const removeItem = (id: number) => {
+  const removeItem = (id: string) => {
     dispatch({ type: 'REMOVE_ITEM', payload: id });
   };
 
-  const updateQuantity = (id: number, quantity: number) => {
+  const updateQuantity = (id: string, quantity: number) => {
     dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
   };
 

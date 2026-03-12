@@ -85,10 +85,10 @@ export default function AdvancedPageTransition({ children }: AdvancedPageTransit
   const pathname = usePathname();
 
   useEffect(() => {
-    // Initial page load
+    // Initial page load - ensure loading screen shows for adequate time
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1450);
+    }, 2000); // Increased from 1450 to 2000ms
 
     return () => clearTimeout(timer);
   }, []);

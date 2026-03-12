@@ -12,7 +12,8 @@ import { CartProvider } from "@/contexts/CartContext";
 import { OrderProvider } from "@/contexts/OrderContext";
 import { ReviewProvider } from "@/contexts/ReviewContext";
 import { DebugProvider } from "@/contexts/DebugContext";
-import SiteGate from "@/components/SiteGate";
+import { SupportProvider } from "@/contexts/SupportContext";
+import CustomerSupportButton from "@/components/CustomerSupportButton";
 
 
 // Removed LanguageProvider import
@@ -70,17 +71,18 @@ export default function RootLayout({
           <OrderProvider>
             <CartProvider>
               <ReviewProvider>
-                <GlobalErrorBoundary>
-                  <AdvancedPageTransition>
-                    <SiteGate>
+                <SupportProvider>
+                  <GlobalErrorBoundary>
+                    <AdvancedPageTransition>
                       <ScrollToTop />
                       {/* We'll handle navbar visibility in the client-side components */}
                       <Navbar />
                       <main className="min-h-screen bg-void-purple">{children}</main>
                       <Footer />
-                    </SiteGate>
-                  </AdvancedPageTransition>
-                </GlobalErrorBoundary>
+                      <CustomerSupportButton />
+                    </AdvancedPageTransition>
+                  </GlobalErrorBoundary>
+                </SupportProvider>
               </ReviewProvider>
             </CartProvider>
           </OrderProvider>

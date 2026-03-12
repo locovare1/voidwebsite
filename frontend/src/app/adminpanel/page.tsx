@@ -86,7 +86,9 @@ export default function AdminPanelPage() {
   };
 
   if (loading && !isAuthenticated) {
-    return <LoadingScreen message="VERIFYING ACCESS" />;
+    return <div className="pt-20 min-h-screen bg-[#0F0F0F] flex items-center justify-center">
+      <div className="text-white">Loading...</div>
+    </div>;
   }
 
   if (!isAuthenticated) {

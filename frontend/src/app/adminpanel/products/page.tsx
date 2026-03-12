@@ -21,17 +21,33 @@ export default function ProductsPage() {
   const [productForm, setProductForm] = useState({
     name: '',
     price: 0,
-    image: '',
+    image: '', // Primary image
+    images: [] as string[], // Array of additional images
     hoverImage: '',
     category: '',
     description: '',
     link: '',
     displayOnHomePage: false
   });
-  
+
+  // Product customization state
+  const [selectedProductForCustomization, setSelectedProductForCustomization] = useState<any>(null);
+  const [customizationForm, setCustomizationForm] = useState<{
+    hasCustomFields: boolean;
+    hasSizes: boolean;
+    customFields: any[];
+    sizes: any[];
+  }>({
+    hasCustomFields: false,
+    hasSizes: false,
+    customFields: [],
+    sizes: []
+  });
+
   // Refs for file inputs
   const imageFileRef = useRef<HTMLInputElement>(null);
   const hoverImageFileRef = useRef<HTMLInputElement>(null);
+  const additionalImageFileRef = useRef<HTMLInputElement>(null);
 
   const loadProducts = async () => {
     try {
@@ -50,12 +66,74 @@ export default function ProductsPage() {
     loadProducts();
   }, []);
 
+  useEffect(() => {
+    if (selectedProductForCustomization) {
+      setCustomizationForm({
+        hasCustomFields: selectedProductForCustomization.hasCustomFields || false,
+        hasSizes: selectedProductForCustomization.hasSizes || false,
+        customFields: selectedProductForCustomization.customFields || [],
+        sizes: selectedProductForCustomization.sizes || []
+      });
+    }
+  }, [selectedProductForCustomization]);
+
+  const handleUpdateProductCustomization = async () => {
+    if (!selectedProductForCustomization) return;
+
+    try {
+      await productService.update(selectedProductForCustomization.id!, {
+        hasCustomFields: customizationForm.hasCustomFields,
+        hasSizes: customizationForm.hasSizes,
+        customFields: customizationForm.hasCustomFields ? customizationForm.customFields : undefined,
+        sizes: customizationForm.hasSizes ? customizationForm.sizes : undefined
+      });
+
+      // Reload products to reflect changes
+      await loadProducts();
+      setSelectedProductForCustomization(null);
+
+      alert('Product customization updated successfully!');
+    } catch (error) {
+      console.error('Error updating product customization:', error);
+      alert('Failed to update product customization');
+    }
+  };
+
   const resetProductForm = () => {
-    setProductForm({ name: '', price: 0, image: '', hoverImage: '', category: '', description: '', link: '', displayOnHomePage: false });
+    setProductForm({ name: '', price: 0, image: '', images: [], hoverImage: '', category: '', description: '', link: '', displayOnHomePage: false });
     setEditingProduct(null);
     // Reset file inputs
     if (imageFileRef.current) imageFileRef.current.value = '';
     if (hoverImageFileRef.current) hoverImageFileRef.current.value = '';
+    if (additionalImageFileRef.current) additionalImageFileRef.current.value = '';
+  };
+
+  const addImage = (imageUrl: string) => {
+    setProductForm(prev => ({
+      ...prev,
+      images: [...(prev.images || []), imageUrl]
+    }));
+  };
+
+  const removeImage = (index: number) => {
+    setProductForm(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAdditionalImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const downloadURL = await uploadService.uploadProductImage(file);
+      addImage(downloadURL);
+    } catch (error) {
+      console.error('Error uploading additional image:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to upload image: ${errorMsg}\n\n💡 Tip: Use the Image URL field above instead! Upload to Imgur (imgur.com) and paste the direct image URL.`);
+    }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -228,40 +306,52 @@ export default function ProductsPage() {
                               </span>
                             </label>
                           </div>
-                          <p className="text-gray-400 text-sm truncate">{product.description}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-green-400 font-bold">${product.price.toFixed(2)}</span>
-                            <span className="text-xs text-gray-500">{product.category}</span>
+                          <div>
+                            <p className="text-gray-400 text-sm truncate">{product.description}</p>
                           </div>
                         </div>
-                        <div className="flex gap-2 ml-4 flex-shrink-0">
-                          <button
-                            onClick={() => {
-                              setEditingProduct(product);
-                              setProductForm({
-                                name: product.name,
-                                price: product.price,
-                                image: product.image,
-                                hoverImage: product.hoverImage || '',
-                                category: product.category,
-                                description: product.description,
-                                link: product.link,
-                                displayOnHomePage: product.displayOnHomePage || false
-                              });
-                            }}
-                            className="text-blue-400 hover:text-blue-300 p-1 rounded hover:bg-blue-400/10 transition-all duration-300"
-                          >
-                            <PencilIcon className="w-4 h-4" />
-                          </button>
-                          {product.id && (
-                            <button
-                              onClick={() => setShowDeleteConfirm(product.id!)}
-                              className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-400/10 transition-all duration-300"
-                            >
-                              <TrashIcon className="w-4 h-4" />
-                            </button>
-                          )}
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-green-400 font-bold">${product.price.toFixed(2)}</span>
+                          <span className="text-xs text-gray-500">{product.category}</span>
                         </div>
+                      </div>
+                      <div className="flex gap-2 ml-4 flex-shrink-0">
+                        <button
+                          onClick={() => {
+                            setEditingProduct(product);
+                            setProductForm({
+                              name: product.name,
+                              price: product.price,
+                              image: product.image,
+                              images: product.images || [], // Load existing images array
+                              hoverImage: product.hoverImage || '',
+                              category: product.category,
+                              description: product.description,
+                              link: product.link,
+                              displayOnHomePage: product.displayOnHomePage || false
+                            });
+                          }}
+                          className="text-blue-400 hover:text-blue-300 p-1 rounded hover:bg-blue-400/10 transition-all duration-300"
+                        >
+                          <PencilIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setSelectedProductForCustomization(product)}
+                          className="text-purple-400 hover:text-purple-300 p-1 rounded hover:bg-purple-400/10 transition-all duration-300"
+                          title="Configure Custom Fields & Sizes"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+                          </svg>
+                        </button>
+                        {product.id && (
+                          <button
+                            onClick={() => setShowDeleteConfirm(product.id!)}
+                            className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-400/10 transition-all duration-300"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
@@ -417,6 +507,83 @@ export default function ProductsPage() {
                 </div>
               )}
               
+              {/* Additional Images Section */}
+              <div className="md:col-span-2">
+                <label className="block text-sm text-gray-400 mb-1">Additional Images</label>
+                <div className="space-y-2">
+                  {/* Current Images */}
+                  {productForm.images && productForm.images.length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {productForm.images.map((imageUrl, index) => (
+                        <div key={index} className="relative group">
+                          <div className="bg-gray-700 w-full h-20 rounded-lg flex items-center justify-center overflow-hidden">
+                            <Image
+                              src={imageUrl}
+                              alt={`Additional image ${index + 1}`}
+                              width={80}
+                              height={80}
+                              className="max-h-20 max-w-full object-contain rounded"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                target.nextSibling?.addEventListener('click', () => {
+                                  target.style.display = 'block';
+                                });
+                              }}
+                            />
+                            <span className="text-gray-400 text-xs">Image {index + 1}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Remove image"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add Image Input */}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Additional image URL"
+                      className="flex-1 bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const value = (e.target as HTMLInputElement).value.trim();
+                          if (value) {
+                            addImage(value);
+                            (e.target as HTMLInputElement).value = '';
+                          }
+                        }
+                      }}
+                    />
+                    <input
+                      type="file"
+                      ref={additionalImageFileRef}
+                      onChange={handleAdditionalImageUpload}
+                      accept="image/*"
+                      className="hidden"
+                      id="additional-image-upload"
+                    />
+                    <label
+                      htmlFor="additional-image-upload"
+                      className="flex items-center gap-2 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white px-3 py-2 rounded cursor-pointer transition-colors text-sm"
+                    >
+                      <CloudArrowUpIcon className="w-4 h-4" />
+                      Upload
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Press Enter in the URL field to add an image, or use the upload button. Images will be displayed in the product detail page.
+                  </p>
+                </div>
+              </div>
               <input 
                 value={productForm.link} 
                 onChange={e=>setProductForm(p=>({...p,link:e.target.value}))} 

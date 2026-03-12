@@ -460,7 +460,7 @@ export default function OrdersPage() {
                 <h4 className="text-md font-semibold text-white mb-2">Items</h4>
                 <div className="space-y-2">
                   {selectedOrder.items.map((item: any) => (
-                    <div key={item.id} className="flex items-center gap-3 p-2 bg-[#0F0F0F] rounded-lg">
+                    <div key={item.id} className="flex items-start gap-3 p-3 bg-[#0F0F0F] rounded-lg">
                       <div className="relative w-12 h-12 flex-shrink-0">
                         {/* Using a placeholder since we don't have Image component here */}
                         <div className="bg-gray-700 w-full h-full rounded flex items-center justify-center">
@@ -472,6 +472,30 @@ export default function OrdersPage() {
                         <p className="text-gray-400 text-xs">
                           {item.quantity} × ${item.price.toFixed(2)} = ${(item.price * item.quantity).toFixed(2)}
                         </p>
+                        
+                        {/* Customization Details */}
+                        {item.customization && (
+                          <div className="mt-2 p-2 bg-[#1A1A1A] rounded border border-[#2A2A2A]">
+                            <p className="text-xs font-medium text-gray-300 mb-1">Customizations:</p>
+                            <div className="flex flex-wrap gap-1 text-xs">
+                              {item.customization.size && (
+                                <span className="bg-purple-900/30 text-purple-300 px-2 py-1 rounded">
+                                  Size: {item.customization.size}
+                                </span>
+                              )}
+                              {item.customization.customFields?.jerseyName && (
+                                <span className="bg-blue-900/30 text-blue-300 px-2 py-1 rounded">
+                                  Name: {item.customization.customFields.jerseyName}
+                                </span>
+                              )}
+                              {item.customization.customFields?.jerseyNumber && (
+                                <span className="bg-green-900/30 text-green-300 px-2 py-1 rounded">
+                                  Number: {item.customization.customFields.jerseyNumber}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

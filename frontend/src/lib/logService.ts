@@ -14,7 +14,7 @@ export interface Log {
   id?: string;
   // Basic fields
   action: 'create' | 'update' | 'delete' | 'view' | 'login' | 'logout' | 'error';
-  entity: 'product' | 'team' | 'ambassador' | 'news' | 'placement' | 'match' | 'order' | 'user' | 'review' | 'system';
+  entity: 'product' | 'team' | 'ambassador' | 'news' | 'placement' | 'match' | 'order' | 'user' | 'review' | 'system' | 'supportTicket' | 'supportMessage';
   entityId: string;
   details: string;
   adminEmail: string;
@@ -60,7 +60,7 @@ const isValidLogData = (data: any): data is Omit<Log, 'id'> => {
     typeof data.action === 'string' &&
     ['create', 'update', 'delete', 'view', 'login', 'logout', 'error'].includes(data.action) &&
     typeof data.entity === 'string' &&
-    ['product', 'team', 'ambassador', 'news', 'placement', 'match', 'order', 'user', 'review', 'system'].includes(data.entity) &&
+    ['product', 'team', 'ambassador', 'news', 'placement', 'match', 'order', 'user', 'review', 'system', 'supportTicket', 'supportMessage'].includes(data.entity) &&
     typeof data.entityId === 'string' &&
     typeof data.details === 'string' &&
     typeof data.adminEmail === 'string' &&
@@ -111,7 +111,7 @@ export const logService = {
     if (!['create', 'update', 'delete', 'view', 'login', 'logout', 'error'].includes(input.action)) {
       throw new Error('Invalid log action');
     }
-    if (!['product', 'team', 'ambassador', 'news', 'placement', 'match', 'order', 'user', 'review', 'system'].includes(input.entity)) {
+    if (!['product', 'team', 'ambassador', 'news', 'placement', 'match', 'order', 'user', 'review', 'system', 'supportTicket', 'supportMessage'].includes(input.entity)) {
       throw new Error('Invalid log entity');
     }
     // Make level and status optional for backward compatibility

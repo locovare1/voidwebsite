@@ -3,7 +3,6 @@
 // Animation Components
 export { default as AnimatedSection } from './AnimatedSection';
 export * from './FramerAnimations';
-export { default as PageTransition } from './PageTransition';
 export { default as AdvancedPageTransition } from './AdvancedPageTransition';
 
 
