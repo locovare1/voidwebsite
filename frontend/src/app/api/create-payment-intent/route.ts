@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { getStripeAmount } from '@/lib/currencyService';
 
 let stripe: Stripe | null = null;
 
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
     // Create Payment Intent
     const stripeInstance = getStripe();
     const paymentIntent = await stripeInstance.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
+      amount: getStripeAmount(amount, currency), // Convert to smallest unit (e.g. cents, paise, yen)
       currency,
       metadata: {
         ...metadata,

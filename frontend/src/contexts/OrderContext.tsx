@@ -17,6 +17,7 @@ export interface OrderItem {
     sizeModifier?: number;
   };
   firestoreId?: string;
+  currency?: string;
 }
 
 export interface Order {
@@ -35,6 +36,7 @@ export interface Order {
   createdAt: string;
   paymentIntentId?: string;
   setId?: string;
+  currency?: string;
 }
 
 export interface OrderSet {
@@ -304,6 +306,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
               status: data.status || 'pending',
               createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
               paymentIntentId: data.paymentIntentId,
+              currency: data.currency || 'USD',
             };
             firebaseOrders.push(order);
           } catch (itemError) {
@@ -400,6 +403,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
             status: data.status || 'pending',
             createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
             paymentIntentId: data.paymentIntentId,
+            currency: data.currency || 'USD',
           };
           firebaseOrders.push(order);
         } catch (itemError) {

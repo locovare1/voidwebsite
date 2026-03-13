@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { formatCurrency } from "@/lib/currencyService";
 
 interface CustomerInfo {
   name: string;
@@ -59,16 +60,14 @@ export default function CheckoutForm({ clientSecret, customerInfo, items, total,
         onError(error.message || "Payment failed");
         setIsProcessing(false);
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
-        const order = {
+        // The order is already saved in Firestore by CheckoutModal
+        // Just return the payment intent info
+        const orderData = {
           id: paymentIntent.id,
-          items: items, // Include full item data with customization
-          total,
-          customerInfo,
-          status: "accepted",
           paymentIntentId: paymentIntent.id,
-          createdAt: new Date().toISOString(),
+          status: 'accepted',
         };
-        onSuccess(order);
+        onSuccess(orderData);
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Payment failed";
@@ -94,10 +93,7 @@ export default function CheckoutForm({ clientSecret, customerInfo, items, total,
   };
 
   const formatPrice = (amount: number, currencyCode: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currencyCode,
-    }).format(amount);
+    return formatCurrency(amount, currencyCode);
   };
 
   return (

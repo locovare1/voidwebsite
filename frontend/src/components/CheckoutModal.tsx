@@ -11,6 +11,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import OrderSuccessModal from './OrderSuccessModal';
 import { generateOrderNumber } from '@/lib/orderUtils';
+import { SUPPORTED_CURRENCIES, convertFromUSD, formatCurrency } from '@/lib/currencyService';
 
 
 interface CheckoutModalProps {
@@ -42,27 +43,6 @@ interface CustomerInfo {
   country: string;
 }
 
-// Supported currencies with symbols and locales
-const SUPPORTED_CURRENCIES = [
-  { code: 'USD', symbol: '$', name: 'US Dollar', locale: 'en-US' },
-  { code: 'EUR', symbol: '€', name: 'Euro', locale: 'de-DE' },
-  { code: 'GBP', symbol: '£', name: 'British Pound', locale: 'en-GB' },
-  { code: 'CAD', symbol: 'CA$', name: 'Canadian Dollar', locale: 'en-CA' },
-  { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', locale: 'en-AU' },
-  { code: 'JPY', symbol: '¥', name: 'Japanese Yen', locale: 'ja-JP' },
-  { code: 'CNY', symbol: '¥', name: 'Chinese Yuan', locale: 'zh-CN' },
-  { code: 'INR', symbol: '₹', name: 'Indian Rupee', locale: 'en-IN' },
-  { code: 'BRL', symbol: 'R$', name: 'Brazilian Real', locale: 'pt-BR' },
-  { code: 'MXN', symbol: 'MX$', name: 'Mexican Peso', locale: 'es-MX' },
-  { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc', locale: 'de-CH' },
-  { code: 'SEK', symbol: 'kr', name: 'Swedish Krona', locale: 'sv-SE' },
-  { code: 'NOK', symbol: 'kr', name: 'Norwegian Krone', locale: 'nb-NO' },
-  { code: 'DKK', symbol: 'kr', name: 'Danish Krone', locale: 'da-DK' },
-  { code: 'NZD', symbol: 'NZ$', name: 'New Zealand Dollar', locale: 'en-NZ' },
-  { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar', locale: 'en-SG' },
-  { code: 'HKD', symbol: 'HK$', name: 'Hong Kong Dollar', locale: 'zh-HK' },
-  { code: 'KRW', symbol: '₩', name: 'South Korean Won', locale: 'ko-KR' },
-];
 
 export default function CheckoutModal({ isOpen, onClose, total, items }: CheckoutModalProps) {
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
@@ -92,21 +72,24 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
   const { clearCart } = useCart();
 
   const isFormValid = Object.values(customerInfo).every(value => value.trim() !== '');
-  const subtotal = total;
-  // For free products, we don't apply tax
-  const tax = (total > 0) ? total * 0.08 : 0;
-  const finalTotal = subtotal + tax + shippingCost;
+  
+  // Base prices in USD
+  const subtotalUSD = total;
+  const taxUSD = (total > 0) ? total * 0.08 : 0;
+  const shippingCostUSD = 0; // Currently fixed at 0
+  const finalTotalUSD = subtotalUSD + taxUSD + shippingCostUSD;
+
+  // Converted prices for display and charging
+  const subtotal = convertFromUSD(subtotalUSD, selectedCurrency);
+  const tax = convertFromUSD(taxUSD, selectedCurrency);
+  const finalTotal = convertFromUSD(finalTotalUSD, selectedCurrency);
   
   // Get selected currency details
   const currencyDetails = SUPPORTED_CURRENCIES.find(c => c.code === selectedCurrency) || SUPPORTED_CURRENCIES[0];
   
   // Format price with selected currency
   const formatPrice = (amount: number) => {
-    if (amount <= 0) return 'FREE';
-    return new Intl.NumberFormat(currencyDetails.locale, {
-      style: 'currency',
-      currency: selectedCurrency,
-    }).format(amount);
+    return formatCurrency(amount, selectedCurrency);
   };
 
   useEffect(() => {
@@ -163,7 +146,10 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
         // Create order directly for free items
         const newOrder = {
           id: generateOrderNumber(),
-          items: items, // Include full item data with customization
+          items: items.map(item => ({
+            ...item,
+            price: convertFromUSD(item.price, selectedCurrency)
+          })), 
           total: finalTotal,
           customerInfo: customerInfo,
           status: 'accepted' as const,
@@ -185,6 +171,24 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
         }
         
         addOrder(newOrder);
+        
+        // Send confirmation email for free order
+        try {
+          await fetch('/api/send-order-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: customerInfo.email,
+              orderId: newOrder.id,
+              customerName: customerInfo.name,
+              total: 0,
+              currency: selectedCurrency,
+            }),
+          });
+        } catch (emailError) {
+          console.error('Error sending free order email:', emailError);
+        }
+
         clearCart();
         setCompletedOrder(newOrder);
         setOrderProcessed(true);
@@ -200,6 +204,33 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
     try {
       setIsLoading(true);
       
+      // Generate order number and create temporary order ID
+      const orderNumber = generateOrderNumber();
+      const tempOrderId = `pending_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Create a pending order in Firestore first
+      if (db) {
+        const orderRef = doc(db, 'orders', tempOrderId);
+        await setDoc(orderRef, {
+          id: tempOrderId,
+          orderNumber,
+          items: items.map(item => ({
+            ...item,
+            price: convertFromUSD(item.price, selectedCurrency)
+          })),
+          total: finalTotal,
+          customerInfo,
+          status: 'pending',
+          paymentIntentId: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          currency: selectedCurrency,
+          shippingCost: convertFromUSD(shippingCostUSD, selectedCurrency),
+          tax,
+          totalUSD: finalTotalUSD, // Keep record of original USD price
+        });
+      }
+      
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
       
@@ -212,12 +243,8 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
           metadata: {
             customerName: customerInfo.name,
             customerEmail: customerInfo.email,
-            customerAddress: customerInfo.address,
-            customerZipCode: customerInfo.zipCode,
-            customerPhone: customerInfo.phone,
-            customerCountry: customerInfo.country,
-            items: JSON.stringify(items),
-            currency: selectedCurrency,
+            orderId: tempOrderId, // Reference to Firestore order
+            orderNumber,
           },
         }),
         signal: controller.signal
@@ -553,10 +580,24 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                     clientSecret={clientSecret}
                     customerInfo={customerInfo}
                     items={items}
-                    onSuccess={(order: any) => {
-                      addOrder(order);
+                    onSuccess={async (paymentData: any) => {
+                      // Order is already in Firestore, just need to add to local state
+                      const completedOrderData = {
+                        id: paymentData.id,
+                        paymentIntentId: paymentData.paymentIntentId,
+                        status: 'accepted' as const,
+                        items: items.map(item => ({
+                          ...item,
+                          price: convertFromUSD(item.price, selectedCurrency)
+                        })),
+                        total: finalTotal,
+                        customerInfo,
+                        createdAt: new Date().toISOString(),
+                      };
+                      
+                      addOrder(completedOrderData);
                       clearCart();
-                      setCompletedOrder(order);
+                      setCompletedOrder(completedOrderData);
                       setOrderProcessed(true);
                       setShowSuccessModal(true);
                       onClose();

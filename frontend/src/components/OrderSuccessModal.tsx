@@ -6,6 +6,7 @@ import { Order } from '@/contexts/OrderContext';
 import Image from 'next/image';
 import { formatOrderNumber } from '@/lib/orderUtils';
 import { getCountryByCode } from '@/lib/countries';
+import { formatCurrency } from '@/lib/currencyService';
 
 interface OrderSuccessModalProps {
   isOpen: boolean;
@@ -144,11 +145,11 @@ export default function OrderSuccessModal({ isOpen, onClose, order }: OrderSucce
                   <div className="flex-grow min-w-0">
                     <p className="text-white text-sm font-medium truncate">{item.name}</p>
                     <p className="text-gray-400 text-xs">
-                      Qty: {item.quantity} × ${item.price.toFixed(2)}
+                      Qty: {item.quantity} × {formatCurrency(item.price, order.currency || 'USD')}
                     </p>
                   </div>
                   <div className="text-white text-sm font-medium">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    {formatCurrency(item.price * item.quantity, order.currency || 'USD')}
                   </div>
                 </div>
               ))}
@@ -157,7 +158,7 @@ export default function OrderSuccessModal({ isOpen, onClose, order }: OrderSucce
             <div className="mt-4 pt-4 border-t border-[#2A2A2A]">
               <div className="flex justify-between text-lg font-bold text-white">
                 <span>Total:</span>
-                <span>${order.total.toFixed(2)}</span>
+                <span>{formatCurrency(order.total, order.currency || 'USD')}</span>
               </div>
             </div>
           </div>
