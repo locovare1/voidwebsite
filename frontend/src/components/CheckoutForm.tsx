@@ -17,11 +17,12 @@ interface CheckoutFormProps {
   customerInfo: CustomerInfo;
   items: any[];
   total: number;
+  currency?: string;
   onSuccess: (order: any) => void;
   onError: (error: string) => void;
 }
 
-export default function CheckoutForm({ clientSecret, customerInfo, items, total, onSuccess, onError }: CheckoutFormProps) {
+export default function CheckoutForm({ clientSecret, customerInfo, items, total, currency = 'USD', onSuccess, onError }: CheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -92,6 +93,13 @@ export default function CheckoutForm({ clientSecret, customerInfo, items, total,
     },
   };
 
+  const formatPrice = (amount: number, currencyCode: string) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode,
+    }).format(amount);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Card Number with Expiry and CVC */}
@@ -110,7 +118,7 @@ export default function CheckoutForm({ clientSecret, customerInfo, items, total,
         disabled={!stripe || isProcessing} 
         className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isProcessing ? "Processing..." : `Pay $${total.toFixed(2)}`}
+        {isProcessing ? "Processing..." : `Pay ${formatPrice(total, currency)}`}
       </button>
     </form>
   );

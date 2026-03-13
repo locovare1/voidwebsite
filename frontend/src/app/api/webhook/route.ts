@@ -3,11 +3,31 @@ import Stripe from 'stripe';
 import { db } from '@/lib/firebase';
 import { doc, setDoc, updateDoc } from 'firebase/firestore';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-08-27.basil',
-});
+let stripe: Stripe | null = null;
+let webhookSecret: string | undefined;
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+const getStripe = () => {
+  if (!stripe) {
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) {
+      throw new Error('STRIPE_SECRET_KEY not configured');
+    }
+    stripe = new Stripe(secretKey, {
+      apiVersion: '2025-08-27.basil',
+    });
+  }
+  return stripe;
+};
+
+const getWebhookSecret = () => {
+  if (!webhookSecret) {
+    webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      throw new Error('STRIPE_WEBHOOK_SECRET not configured');
+    }
+  }
+  return webhookSecret;
+};
 
 export async function POST(req: NextRequest) {
   const sig = req.headers.get('stripe-signature');
@@ -16,7 +36,9 @@ export async function POST(req: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, sig!, webhookSecret);
+    const stripeInstance = getStripe();
+    const secret = getWebhookSecret();
+    event = stripeInstance.webhooks.constructEvent(body, sig!, secret);
   } catch (err) {
     console.error('Webhook signature verification failed:', err);
     return NextResponse.json(

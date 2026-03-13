@@ -2,9 +2,30 @@
 
 import { useRouter } from 'next/navigation';
 import { ShoppingBagIcon } from '@heroicons/react/24/outline';
-import { useOrders, Order } from '@/contexts/OrderContext';
+import { Order } from '@/contexts/OrderContext';
 import { formatOrderNumber } from '@/lib/orderUtils';
 import { AnimatedCard } from '@/components/FramerAnimations';
+
+interface OrdersTabProps {
+  orders: Order[];
+  updateOrderStatus?: (id: string, status: Order['status']) => Promise<void>;
+  deleteOrder?: (id: string) => Promise<void>;
+  selectedOrder?: Order | null;
+  setSelectedOrder?: (order: Order | null) => void;
+  showOrderDetails?: boolean;
+  setShowOrderDetails?: (show: boolean) => void;
+  filterStatus?: Order['status'] | 'all';
+  setFilterStatus?: (status: Order['status'] | 'all') => void;
+  selectedReviews?: Set<string>;
+  setSelectedReviews?: (ids: Set<string>) => void;
+  showBulkActions?: boolean;
+  setShowBulkActions?: (show: boolean) => void;
+  onLogAction?: (action: any, entity: any, entityId: string, details: string, options?: any) => Promise<string>;
+  currentUser?: any;
+  router?: any;
+  formatOrderNumber?: (id: string, short?: boolean) => string;
+  getStatusColor?: (status: Order['status']) => string;
+}
 
 const statusColors = {
   pending: 'bg-yellow-900/20 text-yellow-400 border-yellow-500/20',
@@ -15,13 +36,17 @@ const statusColors = {
   canceled: 'bg-gray-900/20 text-gray-400 border-gray-500/20',
 };
 
-export default function OrdersTab() {
+export default function OrdersTab({
+  orders,
+  getStatusColor,
+}: OrdersTabProps) {
   const router = useRouter();
-  const { orders } = useOrders();
 
-  const getStatusColor = (status: Order['status']) => {
+  const defaultGetStatusColor = (status: Order['status']) => {
     return statusColors[status] || 'bg-gray-900/20 text-gray-400 border-gray-500/20';
   };
+
+  const colorFn = getStatusColor || defaultGetStatusColor;
 
   return (
     <div className="space-y-6">
@@ -77,7 +102,7 @@ export default function OrdersTab() {
                       </div>
                       <div className="text-right">
                         <div className="font-medium text-white">${order.total.toFixed(2)}</div>
-                        <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                        <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${colorFn(order.status)}`}>
                           {order.status}
                         </div>
                       </div>

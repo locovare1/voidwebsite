@@ -42,6 +42,28 @@ interface CustomerInfo {
   country: string;
 }
 
+// Supported currencies with symbols and locales
+const SUPPORTED_CURRENCIES = [
+  { code: 'USD', symbol: '$', name: 'US Dollar', locale: 'en-US' },
+  { code: 'EUR', symbol: '€', name: 'Euro', locale: 'de-DE' },
+  { code: 'GBP', symbol: '£', name: 'British Pound', locale: 'en-GB' },
+  { code: 'CAD', symbol: 'CA$', name: 'Canadian Dollar', locale: 'en-CA' },
+  { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', locale: 'en-AU' },
+  { code: 'JPY', symbol: '¥', name: 'Japanese Yen', locale: 'ja-JP' },
+  { code: 'CNY', symbol: '¥', name: 'Chinese Yuan', locale: 'zh-CN' },
+  { code: 'INR', symbol: '₹', name: 'Indian Rupee', locale: 'en-IN' },
+  { code: 'BRL', symbol: 'R$', name: 'Brazilian Real', locale: 'pt-BR' },
+  { code: 'MXN', symbol: 'MX$', name: 'Mexican Peso', locale: 'es-MX' },
+  { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc', locale: 'de-CH' },
+  { code: 'SEK', symbol: 'kr', name: 'Swedish Krona', locale: 'sv-SE' },
+  { code: 'NOK', symbol: 'kr', name: 'Norwegian Krone', locale: 'nb-NO' },
+  { code: 'DKK', symbol: 'kr', name: 'Danish Krone', locale: 'da-DK' },
+  { code: 'NZD', symbol: 'NZ$', name: 'New Zealand Dollar', locale: 'en-NZ' },
+  { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar', locale: 'en-SG' },
+  { code: 'HKD', symbol: 'HK$', name: 'Hong Kong Dollar', locale: 'zh-HK' },
+  { code: 'KRW', symbol: '₩', name: 'South Korean Won', locale: 'ko-KR' },
+];
+
 export default function CheckoutModal({ isOpen, onClose, total, items }: CheckoutModalProps) {
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     name: '',
@@ -51,6 +73,9 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
     phone: '',
     country: '',
   });
+  
+  // Add currency state
+  const [selectedCurrency, setSelectedCurrency] = useState('USD');
   
   const [clientSecret, setClientSecret] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -71,6 +96,18 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
   // For free products, we don't apply tax
   const tax = (total > 0) ? total * 0.08 : 0;
   const finalTotal = subtotal + tax + shippingCost;
+  
+  // Get selected currency details
+  const currencyDetails = SUPPORTED_CURRENCIES.find(c => c.code === selectedCurrency) || SUPPORTED_CURRENCIES[0];
+  
+  // Format price with selected currency
+  const formatPrice = (amount: number) => {
+    if (amount <= 0) return 'FREE';
+    return new Intl.NumberFormat(currencyDetails.locale, {
+      style: 'currency',
+      currency: selectedCurrency,
+    }).format(amount);
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -171,7 +208,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amount: finalTotal,
-          currency: 'usd',
+          currency: selectedCurrency.toLowerCase(),
           metadata: {
             customerName: customerInfo.name,
             customerEmail: customerInfo.email,
@@ -179,7 +216,8 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
             customerZipCode: customerInfo.zipCode,
             customerPhone: customerInfo.phone,
             customerCountry: customerInfo.country,
-            items: JSON.stringify(items)
+            items: JSON.stringify(items),
+            currency: selectedCurrency,
           },
         }),
         signal: controller.signal
@@ -455,21 +493,43 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
               {/* Order Summary */}
               <div className="bg-[#1A1A1A] rounded-lg p-4 mb-6">
                 <h3 className="text-lg font-semibold text-white mb-3">Order Summary</h3>
+                
+                {/* Currency Selector */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Currency *
+                  </label>
+                  <select
+                    value={selectedCurrency}
+                    onChange={(e) => setSelectedCurrency(e.target.value)}
+                    className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
+                  >
+                    {SUPPORTED_CURRENCIES.map((currency) => (
+                      <option key={currency.code} value={currency.code}>
+                        {currency.name} ({currency.symbol})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Prices will be converted to your selected currency
+                  </p>
+                </div>
+                
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between text-gray-400">
                     <span>Subtotal</span>
-                    <span>{subtotal <= 0 ? 'FREE' : `$${subtotal.toFixed(2)}`}</span>
+                    <span>{formatPrice(subtotal)}</span>
                   </div>
                   {subtotal > 0 && (
                     <div className="flex justify-between text-gray-400">
                       <span>Tax (8%)</span>
-                      <span>${tax.toFixed(2)}</span>
+                      <span>{formatPrice(tax)}</span>
                     </div>
                   )}
                   <div className="border-t border-[#2A2A2A] pt-2 mt-2">
                     <div className="flex justify-between text-white font-bold">
                       <span>Total</span>
-                      <span>{finalTotal <= 0 ? 'FREE' : `$${finalTotal.toFixed(2)}`}</span>
+                      <span>{formatPrice(finalTotal)}</span>
                     </div>
                   </div>
                 </div>
@@ -481,7 +541,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                 disabled={!isFormValid || isLoading || !stripeInstance}
                 className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed glow-on-hover"
               >
-                {isLoading ? 'Processing...' : (!stripeInstance ? 'Loading...' : (finalTotal <= 0 ? 'Place Free Order' : `Pay $${finalTotal.toFixed(2)}`))}
+                {isLoading ? 'Processing...' : (!stripeInstance ? 'Loading...' : (finalTotal <= 0 ? 'Place Free Order' : `Pay ${formatPrice(finalTotal)}`))}
               </button>
             </>
           ) : (
@@ -506,6 +566,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                       alert(`Payment failed: ${error}`);
                     }}
                     total={finalTotal}
+                    currency={selectedCurrency}
                   />
                 </Elements>
               ) : (
