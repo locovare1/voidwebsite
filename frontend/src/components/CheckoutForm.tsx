@@ -8,9 +8,11 @@ interface CustomerInfo {
   name: string;
   email: string;
   address: string;
+  city: string;
   zipCode: string;
   phone: string;
   country: string;
+  discordUsername?: string;
 }
 
 interface CheckoutFormProps {
@@ -50,7 +52,7 @@ export default function CheckoutForm({ clientSecret, customerInfo, items, total,
           billing_details: {
             name: customerInfo.name,
             email: customerInfo.email,
-            address: { line1: customerInfo.address, postal_code: customerInfo.zipCode, country: customerInfo.country },
+            address: { line1: customerInfo.address, city: customerInfo.city, postal_code: customerInfo.zipCode, country: customerInfo.country },
           },
         },
       });

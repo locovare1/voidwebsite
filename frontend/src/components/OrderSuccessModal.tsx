@@ -171,11 +171,14 @@ export default function OrderSuccessModal({ isOpen, onClose, order }: OrderSucce
               <div>
                 <h4 className="text-sm font-medium text-gray-300 mb-2">Shipping Address</h4>
                 <p className="text-white">{order.customerInfo.address}</p>
+                <p className="text-white">{order.customerInfo.city}</p>
                 <p className="text-gray-400">{order.customerInfo.zipCode}</p>
                 <p className="text-gray-400">{getCountryByCode(order.customerInfo.country)?.name || order.customerInfo.country}</p>
               </div>
               <p className="text-gray-400">{order.customerInfo.phone}</p>
-              <p className="text-gray-400">{order.customerInfo.country}</p>
+              {order.customerInfo.discordUsername && (
+                <p className="text-gray-400">Discord: {order.customerInfo.discordUsername}</p>
+              )}
             </div>
           </div>
 

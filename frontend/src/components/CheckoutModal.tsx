@@ -38,9 +38,11 @@ interface CustomerInfo {
   name: string;
   email: string;
   address: string;
+  city: string;
   zipCode: string;
   phone: string;
   country: string;
+  discordUsername?: string;
 }
 
 
@@ -49,9 +51,11 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
     name: '',
     email: '',
     address: '',
+    city: '',
     zipCode: '',
     phone: '',
     country: '',
+    discordUsername: '',
   });
   
   // Add currency state
@@ -71,7 +75,13 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
   const { addOrder } = useOrders();
   const { clearCart } = useCart();
 
-  const isFormValid = Object.values(customerInfo).every(value => value.trim() !== '');
+  const isFormValid = customerInfo.name.trim() !== '' && 
+                      customerInfo.email.trim() !== '' && 
+                      customerInfo.address.trim() !== '' && 
+                      customerInfo.city.trim() !== '' &&
+                      customerInfo.zipCode.trim() !== '' && 
+                      customerInfo.phone.trim() !== '' && 
+                      customerInfo.country.trim() !== '';
   
   // Base prices in USD
   const subtotalUSD = total;
@@ -379,6 +389,32 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
+                    City *
+                  </label>
+                  <input
+                    type="text"
+                    value={customerInfo.city}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
+                    placeholder="Enter your city"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Discord Username (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={customerInfo.discordUsername || ''}
+                    onChange={(e) => handleInputChange('discordUsername', e.target.value)}
+                    className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
+                    placeholder="Enter your Discord username (e.g., user#1234)"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Address *
                   </label>
                   <input
@@ -634,9 +670,11 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
             name: '',
             email: '',
             address: '',
+            city: '',
             zipCode: '',
             phone: '',
             country: '',
+            discordUsername: '',
           });
           setShowPayment(false);
           setClientSecret('');

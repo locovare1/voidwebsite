@@ -28,9 +28,11 @@ export interface Order {
     name: string;
     email: string;
     address: string;
+    city: string;
     zipCode: string;
     phone: string;
     country: string;
+    discordUsername?: string;
   };
   status: 'pending' | 'accepted' | 'processing' | 'delivered' | 'declined' | 'canceled';
   createdAt: string;
@@ -299,9 +301,11 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
                 name: data.customerInfo?.name || 'Unknown',
                 email: data.customerInfo?.email || '',
                 address: data.customerInfo?.address || '',
+                city: data.customerInfo?.city || '',
                 zipCode: data.customerInfo?.zipCode || '',
                 phone: data.customerInfo?.phone || '',
                 country: data.customerInfo?.country || '',
+                discordUsername: data.customerInfo?.discordUsername || '',
               },
               status: data.status || 'pending',
               createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
@@ -396,9 +400,11 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
               name: data.customerInfo?.name || 'Unknown',
               email: data.customerInfo?.email || '',
               address: data.customerInfo?.address || '',
+              city: data.customerInfo?.city || '',
               zipCode: data.customerInfo?.zipCode || '',
               phone: data.customerInfo?.phone || '',
               country: data.customerInfo?.country || '',
+              discordUsername: data.customerInfo?.discordUsername || '',
             },
             status: data.status || 'pending',
             createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),

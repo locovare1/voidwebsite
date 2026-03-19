@@ -450,8 +450,12 @@ export default function OrdersPage() {
                   <p><span className="text-gray-300">Email:</span> {selectedOrder.customerInfo.email}</p>
                   <p><span className="text-gray-300">Phone:</span> {selectedOrder.customerInfo.phone}</p>
                   <p><span className="text-gray-300">Address:</span> {selectedOrder.customerInfo.address}</p>
+                  <p><span className="text-gray-300">City:</span> {selectedOrder.customerInfo.city}</p>
                   <p><span className="text-gray-300">ZIP:</span> {selectedOrder.customerInfo.zipCode}</p>
                   <p><span className="text-gray-300">Country:</span> {selectedOrder.customerInfo.country}</p>
+                  {selectedOrder.customerInfo.discordUsername && (
+                    <p><span className="text-gray-300">Discord:</span> {selectedOrder.customerInfo.discordUsername}</p>
+                  )}
                 </div>
               </div>
 
