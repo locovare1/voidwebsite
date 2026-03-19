@@ -11,7 +11,7 @@ interface CustomerSupportChatProps {
 }
 
 export default function CustomerSupportChat({ isOpen, onClose }: CustomerSupportChatProps) {
-  const { createTicket, getUserTickets, sendMessage, currentUser } = useSupport();
+  const { createTicket, getUserTickets, sendMessage, visitorId } = useSupport();
   const [tickets, setTickets] = useState<any[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
@@ -24,10 +24,10 @@ export default function CustomerSupportChat({ isOpen, onClose }: CustomerSupport
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isOpen && currentUser) {
+    if (isOpen && visitorId) {
       loadTickets();
     }
-  }, [isOpen, currentUser]);
+  }, [isOpen, visitorId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -114,7 +114,7 @@ export default function CustomerSupportChat({ isOpen, onClose }: CustomerSupport
             <div>
               <h3 className="text-lg font-bold text-white">Customer Support</h3>
               <p className="text-xs text-gray-400">
-                {currentUser ? 'We\'re here to help!' : 'Please log in for support'}
+                {visitorId ? 'We\'re here to help!' : 'Loading...'}
               </p>
             </div>
           </div>
@@ -129,20 +129,7 @@ export default function CustomerSupportChat({ isOpen, onClose }: CustomerSupport
 
         {/* Content */}
         <div className="flex-1 flex overflow-hidden">
-          {!currentUser ? (
-            /* Login Required Message */
-            <div className="flex-1 flex items-center justify-center p-8">
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-600/20 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <h4 className="text-lg font-semibold text-white mb-2">Login Required</h4>
-                <p className="text-gray-400 text-sm">Please log in to access customer support</p>
-              </div>
-            </div>
-          ) : isCreating ? (
+          {isCreating ? (
             /* Create New Ticket Form */
             <div className="flex-1 p-4 overflow-y-auto">
               <div className="space-y-4">
