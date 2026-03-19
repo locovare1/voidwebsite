@@ -214,32 +214,9 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
     try {
       setIsLoading(true);
       
-      // Generate order number and create temporary order ID
+      // Generate order number for metadata
       const orderNumber = generateOrderNumber();
       const tempOrderId = `Void_Order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      // Create a pending order in Firestore first
-      if (db) {
-        const orderRef = doc(db, 'orders', tempOrderId);
-        await setDoc(orderRef, {
-          id: tempOrderId,
-          orderNumber,
-          items: items.map(item => ({
-            ...item,
-            price: convertFromUSD(item.price, selectedCurrency)
-          })),
-          total: finalTotal,
-          customerInfo,
-          status: 'pending',
-          paymentIntentId: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          currency: selectedCurrency,
-          shippingCost: convertFromUSD(shippingCostUSD, selectedCurrency),
-          tax,
-          totalUSD: finalTotalUSD, // Keep record of original USD price
-        });
-      }
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
@@ -253,7 +230,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
           metadata: {
             customerName: customerInfo.name,
             customerEmail: customerInfo.email,
-            orderId: tempOrderId, // Reference to Firestore order
+            orderId: tempOrderId, // Reference for potential order creation
             orderNumber,
           },
         }),
@@ -617,9 +594,12 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                     customerInfo={customerInfo}
                     items={items}
                     onSuccess={async (paymentData: any) => {
-                      // Order is already in Firestore, just need to add to local state
+                      // Create order in Firestore only after successful payment
+                      const orderNumber = generateOrderNumber();
+                      const finalOrderId = `Void_Order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                      
                       const completedOrderData = {
-                        id: paymentData.id,
+                        id: finalOrderId,
                         paymentIntentId: paymentData.paymentIntentId,
                         status: 'accepted' as const,
                         items: items.map(item => ({
@@ -629,9 +609,47 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                         total: finalTotal,
                         customerInfo,
                         createdAt: new Date().toISOString(),
+                        currency: selectedCurrency,
+                        shippingCost: convertFromUSD(shippingCostUSD, selectedCurrency),
+                        tax,
+                        totalUSD: finalTotalUSD,
                       };
                       
+                      // Save to Firebase after successful payment
+                      try {
+                        console.log('Saving paid order to Firebase:', finalOrderId);
+                        
+                        if (db) {
+                          await setDoc(doc(db, 'orders', finalOrderId), {
+                            ...completedOrderData,
+                            createdAt: new Date(),
+                            updatedAt: new Date(),
+                          });
+                          console.log('Paid order saved to Firebase successfully');
+                        }
+                      } catch (error) {
+                        console.error('Error saving paid order to Firebase:', error);
+                      }
+                      
                       addOrder(completedOrderData);
+                      
+                      // Send confirmation email
+                      try {
+                        await fetch('/api/send-order-email', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            email: customerInfo.email,
+                            orderId: finalOrderId,
+                            customerName: customerInfo.name,
+                            total: finalTotal,
+                            currency: selectedCurrency,
+                          }),
+                        });
+                      } catch (emailError) {
+                        console.error('Error sending order email:', emailError);
+                      }
+                      
                       clearCart();
                       setCompletedOrder(completedOrderData);
                       setOrderProcessed(true);
