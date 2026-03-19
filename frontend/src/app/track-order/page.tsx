@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useOrderTracking } from '@/hooks/useOrderTracking';
 import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { formatOrderNumber } from '@/lib/orderUtils';
 
 export default function TrackOrderPage() {
   const [orderNumber, setOrderNumber] = useState('');
@@ -97,8 +98,11 @@ export default function TrackOrderPage() {
             <div className="bg-[#1A1A1A] rounded-xl p-6 border border-[#2A2A2A]">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-white mb-2">
-                  Order #{order.id.substring(0, 8).toUpperCase()}
+                  Order #{formatOrderNumber(order.id, true)}
                 </h2>
+                <p className="text-gray-400 text-sm mb-2">
+                  Full Order ID: {order.id}
+                </p>
                 <div className="flex items-center gap-2">
                   <span className={`px-3 py-1 rounded-full text-sm border ${getStatusColor(order.status)}`}>
                     {order.status.charAt(0).toUpperCase() + order.status.slice(1)}

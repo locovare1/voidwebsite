@@ -216,7 +216,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
       
       // Generate order number and create temporary order ID
       const orderNumber = generateOrderNumber();
-      const tempOrderId = `pending_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const tempOrderId = `Void_Order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
       // Create a pending order in Firestore first
       if (db) {
