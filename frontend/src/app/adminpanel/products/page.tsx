@@ -21,6 +21,8 @@ export default function ProductsPage() {
   const [productForm, setProductForm] = useState({
     name: '',
     price: 0,
+    salePrice: 0,
+    onSale: false,
     image: '', // Primary image
     images: [] as string[], // Array of additional images
     hoverImage: '',
@@ -100,7 +102,7 @@ export default function ProductsPage() {
   };
 
   const resetProductForm = () => {
-    setProductForm({ name: '', price: 0, image: '', images: [], hoverImage: '', category: '', description: '', link: '', displayOnHomePage: false });
+    setProductForm({ name: '', price: 0, salePrice: 0, onSale: false, image: '', images: [], hoverImage: '', category: '', description: '', link: '', displayOnHomePage: false });
     setEditingProduct(null);
     // Reset file inputs
     if (imageFileRef.current) imageFileRef.current.value = '';
@@ -311,7 +313,19 @@ export default function ProductsPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-green-400 font-bold">${product.price.toFixed(2)}</span>
+                          <div className="flex flex-col">
+                            <span className="text-green-400 font-bold">
+                              ${product.onSale && product.salePrice ? product.salePrice.toFixed(2) : product.price.toFixed(2)}
+                            </span>
+                            {product.onSale && product.salePrice && product.salePrice < product.price && (
+                              <div className="flex items-center gap-1">
+                                <span className="text-gray-500 line-through text-sm">${product.price.toFixed(2)}</span>
+                                <span className="text-red-400 text-xs font-bold">
+                                  -{Math.round(((product.price - product.salePrice) / product.price) * 100)}%
+                                </span>
+                              </div>
+                            )}
+                          </div>
                           <span className="text-xs text-gray-500">{product.category}</span>
                         </div>
                       </div>
@@ -322,6 +336,8 @@ export default function ProductsPage() {
                             setProductForm({
                               name: product.name,
                               price: product.price,
+                              salePrice: product.salePrice || 0,
+                              onSale: product.onSale || false,
                               image: product.image,
                               images: product.images || [], // Load existing images array
                               hoverImage: product.hoverImage || '',
@@ -384,6 +400,28 @@ export default function ProductsPage() {
                 placeholder="Price" 
                 className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]" 
               />
+              <div className="flex items-center gap-3 bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2">
+                <input
+                  type="checkbox"
+                  id="onSale"
+                  checked={productForm.onSale}
+                  onChange={e=>setProductForm(p=>({...p,onSale:e.target.checked}))}
+                  className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
+                />
+                <label htmlFor="onSale" className="text-sm text-gray-300 cursor-pointer">
+                  On Sale
+                </label>
+              </div>
+              {productForm.onSale && (
+                <input 
+                  type="number" 
+                  step="0.01" 
+                  value={productForm.salePrice === 0 ? '' : productForm.salePrice} 
+                  onChange={e=>setProductForm(p=>({...p,salePrice:parseFloat(e.target.value)||0}))} 
+                  placeholder="Sale Price" 
+                  className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]" 
+                />
+              )}
               <input 
                 value={productForm.category} 
                 onChange={e=>setProductForm(p=>({...p,category:e.target.value}))} 

@@ -6,7 +6,8 @@ export interface CartItem {
   id: string; // Changed from number to string for unique combinations
   productId: number; // Original product ID
   name: string;
-  price: number;
+  price: number; // Current price (sale price if on sale)
+  originalPrice?: number; // Original price for discount calculation
   image: string;
   category: string;
   description: string;

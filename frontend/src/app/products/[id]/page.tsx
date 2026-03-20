@@ -107,7 +107,9 @@ export default function ProductDetailPage() {
 
   const calculateTotalPrice = () => {
     if (!product) return 0;
-    let basePrice = product.price;
+    // Use sale price if on sale, otherwise regular price
+    let basePrice = product.onSale && product.salePrice ? product.salePrice : product.price;
+    
     if (product.sizes && customization.size) {
       const selectedSize = product.sizes.find(s => s.id === customization.size);
       if (selectedSize?.priceModifier) {
@@ -147,11 +149,15 @@ export default function ProductDetailPage() {
       });
       const cartItemId = `${product.id}_${btoa(customizationKey).replace(/[^a-zA-Z0-9]/g, '')}`;
       
+      // Use sale price if on sale, otherwise regular price
+      const itemPrice = product.onSale && product.salePrice ? product.salePrice : product.price;
+      
       await addItem({
         id: cartItemId,
         productId: parseInt(product.id!) || Math.floor(Math.random() * 1000000),
         name: product.name,
-        price: product.price,
+        price: itemPrice,
+        originalPrice: product.onSale && product.salePrice ? product.price : undefined,
         image: product.image,
         category: product.category,
         description: product.description,
@@ -293,8 +299,21 @@ export default function ProductDetailPage() {
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
                 {product.name}
               </h1>
-              <div className="text-xl sm:text-2xl font-bold text-green-400 mb-4">
-                ${product.price.toFixed(2)}
+              <div className="mb-4">
+                <div className="text-xl sm:text-2xl font-bold text-green-400">
+                  {product.onSale && product.salePrice && product.salePrice < product.price 
+                    ? (product.salePrice === 0 ? 'FREE' : `$${product.salePrice.toFixed(2)}`)
+                    : (product.price === 0 ? 'FREE' : `$${product.price.toFixed(2)}`)
+                  }
+                </div>
+                {product.onSale && product.salePrice && product.salePrice < product.price && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-gray-500 line-through text-lg">${product.price.toFixed(2)}</span>
+                    <span className="text-red-400 text-sm font-bold">
+                      -{Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF
+                    </span>
+                  </div>
+                )}
               </div>
               <p className="text-gray-300 text-base sm:text-lg leading-relaxed">
                 {product.description}

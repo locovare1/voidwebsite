@@ -14,10 +14,23 @@ import { db } from '@/lib/firebase';
 
 const isBrowser = typeof window !== 'undefined';
 
+// Utility function to calculate sale percentage
+export function calculateSalePercentage(originalPrice: number, salePrice: number): number {
+  if (!originalPrice || !salePrice || salePrice >= originalPrice) return 0;
+  return Math.round(((originalPrice - salePrice) / originalPrice) * 100);
+}
+
+// Utility function to get display price (sale price if on sale, otherwise regular price)
+export function getDisplayPrice(product: Product): number {
+  return product.onSale && product.salePrice ? product.salePrice : product.price;
+}
+
 export interface Product {
   id?: string;
   name: string;
   price: number;
+  salePrice?: number;
+  onSale?: boolean;
   image: string; // Primary image for backward compatibility
   images?: string[]; // Array of all images
   hoverImage?: string;

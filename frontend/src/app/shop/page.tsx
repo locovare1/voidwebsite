@@ -10,6 +10,8 @@ type LegacyProduct = {
   id: number;
   name: string;
   price: number;
+  salePrice?: number;
+  onSale?: boolean;
   image: string;
   category: string;
   description: string;
@@ -46,6 +48,8 @@ export default function ShopPage() {
             id: p.id ? stringToHash(p.id) : Math.floor(Math.random() * 1000000) + 1000,
             name: p.name,
             price: p.price,
+            salePrice: p.salePrice,
+            onSale: p.onSale,
             image: p.image,
             category: p.category,
             description: p.description,

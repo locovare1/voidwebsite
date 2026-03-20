@@ -12,6 +12,19 @@ export default function CartPage() {
   const { items, total, updateQuantity, removeItem, clearCart } = useCart();
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
 
+  // Calculate discount savings
+  const calculateDiscountSavings = () => {
+    return items.reduce((total, item) => {
+      if (item.originalPrice && item.originalPrice > item.price) {
+        const savingsPerItem = item.originalPrice - item.price;
+        return total + (savingsPerItem * item.quantity);
+      }
+      return total;
+    }, 0);
+  };
+
+  const discountSavings = calculateDiscountSavings();
+
   const handleCheckout = () => {
     setIsCheckoutModalOpen(true);
   };
@@ -152,10 +165,31 @@ export default function CartPage() {
                       </div>
                       
                       <div className="text-right">
-                        <p className="text-lg font-bold text-white">
-                          {item.price === 0 ? 'FREE' : `$${item.price.toFixed(2)}`}
-                        </p>
-                        <p className="text-sm text-gray-400">each</p>
+                        {item.originalPrice && item.originalPrice > item.price ? (
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-end gap-2">
+                              <span className="text-lg font-bold text-green-400">
+                                {item.price === 0 ? 'FREE' : `$${item.price.toFixed(2)}`}
+                              </span>
+                              <span className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                -{Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}%
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-end gap-2">
+                              <span className="text-sm text-gray-500 line-through">
+                                ${item.originalPrice.toFixed(2)}
+                              </span>
+                              <span className="text-xs text-gray-400">each</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="text-lg font-bold text-white">
+                              {item.price === 0 ? 'FREE' : `$${item.price.toFixed(2)}`}
+                            </p>
+                            <p className="text-sm text-gray-400">each</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                     
@@ -211,6 +245,13 @@ export default function CartPage() {
                   <span>{total === 0 ? 'FREE' : `$${total.toFixed(2)}`}</span>
                 </div>
                 
+                {discountSavings > 0 && (
+                  <div className="flex justify-between text-green-400">
+                    <span>Discount Savings</span>
+                    <span>-${discountSavings.toFixed(2)}</span>
+                  </div>
+                )}
+                
                 <div className="flex justify-between text-gray-400">
                   <span>Shipping</span>
                   <span>Free</span>
@@ -228,6 +269,11 @@ export default function CartPage() {
                     <span>Total</span>
                     <span>{total === 0 ? 'FREE' : `$${(total * 1.08).toFixed(2)}`}</span>
                   </div>
+                  {discountSavings > 0 && (
+                    <div className="text-sm text-green-400 mt-1">
+                      You saved ${discountSavings.toFixed(2)} on this order!
+                    </div>
+                  )}
                 </div>
               </div>
               

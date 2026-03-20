@@ -8,10 +8,13 @@ import { useCart } from '@/contexts/CartContext';
 import ReviewButton from './ReviewButton';
 import { Product } from '@/data/products';
 import { AnimatedCard } from '@/components/FramerAnimations';
+import { calculateSalePercentage, getDisplayPrice } from '@/lib/productService';
 
-// Extend the Product interface to include optional Firestore ID
+// Extend the Product interface to include optional Firestore ID and sale fields
 interface ExtendedProduct extends Product {
   firestoreId?: string;
+  salePrice?: number;
+  onSale?: boolean;
 }
 
 interface ProductGridProps {
@@ -71,11 +74,15 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 		// Add a small delay for better UX
 		await new Promise(resolve => setTimeout(resolve, 500));
 		
+		// Use sale price if on sale, otherwise regular price
+		const itemPrice = product.onSale && product.salePrice ? product.salePrice : product.price;
+		
 		addItem({
 			id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
 			productId: product.id,
 			name: product.name,
-			price: product.price,
+			price: itemPrice,
+			originalPrice: product.onSale && product.salePrice ? product.price : undefined,
 			image: product.image,
 			category: product.category,
 			description: product.description,
@@ -129,8 +136,18 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 									className="object-contain transition-transform duration-500 group-hover:scale-105 p-3 sm:p-4"
 									sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
 								/>
-								<div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-black/80 text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold shadow-lg">
-									{product.price === 0 ? 'FREE' : `${product.price.toFixed(2)}`}
+								<div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex flex-col items-end gap-1">
+									<div className="bg-black/80 text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold shadow-lg">
+										{product.onSale && product.salePrice && product.salePrice < product.price 
+											? (product.salePrice === 0 ? 'FREE' : `$${product.salePrice.toFixed(2)}`)
+											: (product.price === 0 ? 'FREE' : `$${product.price.toFixed(2)}`)
+										}
+									</div>
+									{product.onSale && product.salePrice && product.salePrice < product.price && (
+										<div className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+											-{Math.round(((product.price - product.salePrice) / product.price) * 100)}%
+										</div>
+									)}
 								</div>
 							</div>
 
