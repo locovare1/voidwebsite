@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { productService, getLocationSpecificPrice, detectUserCountry, type Product } from '@/lib/productService';
+import { productService, getLocationSpecificPrice, detectUserCountry, type Product, resetLocationPermission, hasLocationPermission } from '@/lib/productService';
 import ProductGrid from '@/components/ProductGrid';
 import AdPlaceholder from '@/components/AdPlaceholder';
 import Link from 'next/link';
@@ -100,6 +100,34 @@ export default function ShopPage() {
       </div>
       
       <div className="void-container py-8 sm:py-12 relative z-10">
+        {/* Location Status Indicator */}
+        <div className="mb-4 p-3 bg-[#2A2A2A] rounded-lg border border-[#3A3A3A]">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-400">
+                {userCountry ? (
+                  <>
+                    <span className="text-green-400">🌍 Location Detected:</span>
+                    <span className="text-white font-medium">{userCountry}</span>
+                  </>
+                ) : (
+                  <span className="text-yellow-400">
+                    🌍 Location permission required for accurate pricing
+                  </span>
+                )}
+              </span>
+              {userCountry && (
+                <button
+                  onClick={() => resetLocationPermission()}
+                  className="text-xs text-gray-500 hover:text-gray-300 underline"
+                >
+                  Reset Location
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div className="text-center mb-8 sm:mb-12">
           <h1 className="text-3xl sm:text-4xl font-bold gradient-text">
             SHOP VOID

@@ -42,6 +42,19 @@ export function getLocationSpecificPrice(product: Product, countryCode?: string)
   return getDisplayPrice(product);
 }
 
+// Reset location permission (for testing or user request)
+export function resetLocationPermission() {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('locationPermissionGranted');
+  }
+}
+
+// Check if location permission is granted
+export function hasLocationPermission(): boolean {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem('locationPermissionGranted') === 'true';
+}
+
 // Country detection utility
 export function detectUserCountry(): Promise<string> {
   if (typeof window === 'undefined') {
@@ -49,144 +62,178 @@ export function detectUserCountry(): Promise<string> {
   }
 
   return new Promise((resolve) => {
-    try {
-      // Method 1: Try to get country from browser locale
-      const locale = navigator.language || (navigator as any).userLanguage;
-      if (locale) {
-        const countryCode = locale.split('-')[1] || locale.split('_')[1];
-        if (countryCode && countryCode.length === 2) {
-          resolve(countryCode.toUpperCase());
-          return;
-        }
-      }
-
-      // Method 2: Try to get country from timezone
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (timezone) {
-        // Enhanced timezone to country mapping
-        const timezoneToCountry: { [key: string]: string } = {
-          // Middle East
-          'Asia/Riyadh': 'SA',
-          'Asia/Dubai': 'AE',
-          'Asia/Kuwait': 'KW',
-          'Asia/Qatar': 'QA',
-          'Asia/Bahrain': 'BH',
-          'Asia/Muscat': 'OM',
-          'Asia/Tehran': 'IR',
-          'Asia/Baghdad': 'IQ',
-          'Asia/Jerusalem': 'IL',
-          'Asia/Damascus': 'SY',
-          'Asia/Beirut': 'LB',
-          'Asia/Amman': 'JO',
-          
-          // Europe
-          'Europe/London': 'GB',
-          'Europe/Paris': 'FR',
-          'Europe/Berlin': 'DE',
-          'Europe/Rome': 'IT',
-          'Europe/Madrid': 'ES',
-          'Europe/Amsterdam': 'NL',
-          'Europe/Brussels': 'BE',
-          'Europe/Vienna': 'AT',
-          'Europe/Zurich': 'CH',
-          'Europe/Stockholm': 'SE',
-          'Europe/Oslo': 'NO',
-          'Europe/Copenhagen': 'DK',
-          'Europe/Helsinki': 'FI',
-          'Europe/Warsaw': 'PL',
-          'Europe/Prague': 'CZ',
-          'Europe/Budapest': 'HU',
-          'Europe/Bucharest': 'RO',
-          'Europe/Sofia': 'BG',
-          'Europe/Belgrade': 'RS',
-          'Europe/Zagreb': 'HR',
-          'Europe/Athens': 'GR',
-          'Europe/Lisbon': 'PT',
-          'Europe/Dublin': 'IE',
-          
-          // Americas
-          'America/New_York': 'US',
-          'America/Los_Angeles': 'US',
-          'America/Chicago': 'US',
-          'America/Denver': 'US',
-          'America/Phoenix': 'US',
-          'America/Toronto': 'CA',
-          'America/Vancouver': 'CA',
-          'America/Montreal': 'CA',
-          'America/Sao_Paulo': 'BR',
-          'America/Mexico_City': 'MX',
-          'America/Argentina/Buenos_Aires': 'AR',
-          'America/Chile/Santiago': 'CL',
-          'America/Peru/Lima': 'PE',
-          'America/Colombia/Bogota': 'CO',
-          'America/Venezuela/Caracas': 'VE',
-          
-          // Asia Pacific
-          'Asia/Tokyo': 'JP',
-          'Asia/Shanghai': 'CN',
-          'Asia/Hong_Kong': 'HK',
-          'Asia/Singapore': 'SG',
-          'Asia/Seoul': 'KR',
-          'Asia/Bangkok': 'TH',
-          'Asia/Jakarta': 'ID',
-          'Asia/Manila': 'PH',
-          'Asia/Kuala_Lumpur': 'MY',
-          'Asia/Taipei': 'TW',
-          'Asia/Ho_Chi_Minh': 'VN',
-          
-          // Australia & Oceania
-          'Australia/Sydney': 'AU',
-          'Australia/Melbourne': 'AU',
-          'Australia/Perth': 'AU',
-          'New_Zealand/Auckland': 'NZ',
-          
-          // Africa
-          'Africa/Cairo': 'EG',
-          'Africa/Johannesburg': 'ZA',
-          'Africa/Lagos': 'NG',
-          'Africa/Nairobi': 'KE',
-          'Africa/Casablanca': 'MA',
-          'Africa/Algiers': 'DZ',
-          'Africa/Tunis': 'TN',
-          
-          // Add more as needed...
-        };
-        
-        const detectedCountry = timezoneToCountry[timezone];
-        if (detectedCountry) {
-          resolve(detectedCountry);
-          return;
-        }
-      }
-
-      // Method 3: Try to get country from IP geolocation (async)
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            // This would require a geolocation API to get country from coordinates
-            // For now, we'll skip this method as it requires user permission
-          },
-          (error) => {
-            console.warn('Geolocation error:', error);
-          }
+    // Check if geolocation permission has been granted
+    const permissionKey = 'locationPermissionGranted';
+    const hasPermission = localStorage.getItem(permissionKey);
+    
+    const requestLocationPermission = () => {
+      if (!hasPermission && typeof window !== 'undefined' && window.confirm) {
+        const shouldAllow = window.confirm(
+          'This website would like to detect your location to show you the most accurate pricing for your region. ' +
+          'This helps us display prices in your local currency and apply any regional discounts. ' +
+          'Your location is only used for pricing purposes and is not stored or shared. ' +
+          '\n\nWould you like to allow location detection?'
         );
-      }
-
-      // Method 4: Try to get country from browser accept languages
-      const languages = navigator.languages || [];
-      for (const lang of languages) {
-        const match = lang.match(/([A-Z]{2})/);
-        if (match) {
-          resolve(match[1]);
-          return;
+        
+        if (shouldAllow) {
+          localStorage.setItem(permissionKey, 'true');
+          detectCountryFromBrowser();
+        } else {
+          localStorage.setItem(permissionKey, 'false');
+          resolve('US'); // Fallback to default
         }
+      } else {
+        detectCountryFromBrowser();
       }
+    };
 
-      // Fallback to default
-      resolve('US');
-    } catch (error) {
-      console.warn('Country detection error:', error);
-      resolve('US');
+    const detectCountryFromBrowser = () => {
+      try {
+        // Method 1: Try to get country from browser locale
+        const locale = navigator.language || (navigator as any).userLanguage;
+        if (locale) {
+          const countryCode = locale.split('-')[1] || locale.split('_')[1];
+          if (countryCode && countryCode.length === 2) {
+            resolve(countryCode.toUpperCase());
+            return;
+          }
+        }
+
+        // Method 2: Try to get country from timezone
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (timezone) {
+          // Enhanced timezone to country mapping
+          const timezoneToCountry: { [key: string]: string } = {
+            // Middle East
+            'Asia/Riyadh': 'SA',
+            'Asia/Dubai': 'AE',
+            'Asia/Kuwait': 'KW',
+            'Asia/Qatar': 'QA',
+            'Asia/Bahrain': 'BH',
+            'Asia/Muscat': 'OM',
+            'Asia/Tehran': 'IR',
+            'Asia/Baghdad': 'IQ',
+            'Asia/Jerusalem': 'IL',
+            'Asia/Damascus': 'SY',
+            'Asia/Beirut': 'LB',
+            'Asia/Amman': 'JO',
+            
+            // Europe
+            'Europe/London': 'GB',
+            'Europe/Paris': 'FR',
+            'Europe/Berlin': 'DE',
+            'Europe/Rome': 'IT',
+            'Europe/Madrid': 'ES',
+            'Europe/Amsterdam': 'NL',
+            'Europe/Brussels': 'BE',
+            'Europe/Vienna': 'AT',
+            'Europe/Zurich': 'CH',
+            'Europe/Stockholm': 'SE',
+            'Europe/Oslo': 'NO',
+            'Europe/Copenhagen': 'DK',
+            'Europe/Helsinki': 'FI',
+            'Europe/Warsaw': 'PL',
+            'Europe/Prague': 'CZ',
+            'Europe/Budapest': 'HU',
+            'Europe/Bucharest': 'RO',
+            'Europe/Sofia': 'BG',
+            'Europe/Belgrade': 'RS',
+            'Europe/Zagreb': 'HR',
+            'Europe/Athens': 'GR',
+            'Europe/Lisbon': 'PT',
+            'Europe/Dublin': 'IE',
+            
+            // Americas
+            'America/New_York': 'US',
+            'America/Los_Angeles': 'US',
+            'America/Chicago': 'US',
+            'America/Denver': 'US',
+            'America/Phoenix': 'US',
+            'America/Toronto': 'CA',
+            'America/Vancouver': 'CA',
+            'America/Montreal': 'CA',
+            'America/Sao_Paulo': 'BR',
+            'America/Mexico_City': 'MX',
+            'America/Argentina/Buenos_Aires': 'AR',
+            'America/Chile/Santiago': 'CL',
+            'America/Peru/Lima': 'PE',
+            'America/Colombia/Bogota': 'CO',
+            'America/Venezuela/Caracas': 'VE',
+            
+            // Asia Pacific
+            'Asia/Tokyo': 'JP',
+            'Asia/Shanghai': 'CN',
+            'Asia/Hong_Kong': 'HK',
+            'Asia/Singapore': 'SG',
+            'Asia/Seoul': 'KR',
+            'Asia/Bangkok': 'TH',
+            'Asia/Jakarta': 'ID',
+            'Asia/Manila': 'PH',
+            'Asia/Kuala_Lumpur': 'MY',
+            'Asia/Taipei': 'TW',
+            'Asia/Ho_Chi_Minh': 'VN',
+            
+            // Australia & Oceania
+            'Australia/Sydney': 'AU',
+            'Australia/Melbourne': 'AU',
+            'Australia/Perth': 'AU',
+            'New_Zealand/Auckland': 'NZ',
+            
+            // Africa
+            'Africa/Cairo': 'EG',
+            'Africa/Johannesburg': 'ZA',
+            'Africa/Lagos': 'NG',
+            'Africa/Nairobi': 'KE',
+            'Africa/Casablanca': 'MA',
+            'Africa/Algiers': 'DZ',
+            'Africa/Tunis': 'TN',
+            
+            // Add more as needed...
+          };
+        
+          const detectedCountry = timezoneToCountry[timezone];
+          if (detectedCountry) {
+            resolve(detectedCountry);
+            return;
+          }
+        }
+
+        // Method 3: Try to get country from IP geolocation (async)
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              // This would require a geolocation API to get country from coordinates
+              // For now, we'll skip this method as it requires user permission
+            },
+            (error) => {
+              console.warn('Geolocation error:', error);
+            }
+          );
+        }
+
+        // Method 4: Try to get country from browser accept languages
+        const languages = navigator.languages || [];
+        for (const lang of languages) {
+          const match = lang.match(/([A-Z]{2})/);
+          if (match) {
+            resolve(match[1]);
+            return;
+          }
+        }
+
+        // Fallback to default
+        resolve('US');
+      } catch (error) {
+        console.warn('Country detection error:', error);
+        resolve('US');
+      }
+    };
+
+    // If permission already granted, detect directly
+    if (hasPermission === 'true') {
+      detectCountryFromBrowser();
+    } else {
+      requestLocationPermission();
     }
   });
 }
