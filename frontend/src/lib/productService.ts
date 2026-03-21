@@ -89,23 +89,99 @@ export function detectUserCountry(): Promise<string> {
 
     const detectCountryFromBrowser = () => {
       try {
+        console.log('🔍 Starting country detection...');
+        
         // Method 1: Try to get country from browser locale
         const locale = navigator.language || (navigator as any).userLanguage;
+        console.log('🌐 Browser locale:', locale);
+        
         if (locale) {
           const countryCode = locale.split('-')[1] || locale.split('_')[1];
+          console.log('📍 Locale country code:', countryCode);
           if (countryCode && countryCode.length === 2) {
+            console.log('✅ Country detected from locale:', countryCode.toUpperCase());
             resolve(countryCode.toUpperCase());
             return;
           }
         }
 
-        // Method 2: Try to get country from timezone
+        // Method 2: Try to get country from timezone (more reliable for Gulf countries)
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        console.log('⏰ Browser timezone:', timezone);
+        
         if (timezone) {
-          // Enhanced timezone to country mapping
+          // Enhanced timezone to country mapping with more Saudi timezones
           const timezoneToCountry: { [key: string]: string } = {
-            // Middle East
+            // Middle East - Comprehensive mappings
             'Asia/Riyadh': 'SA',
+            'Asia/Riyadh2': 'SA',  // Alternative Riyadh timezone
+            'Asia/Riyadh3': 'SA',  // Alternative Riyadh timezone
+            'Asia/Riyadh4': 'SA',  // Alternative Riyadh timezone
+            'Asia/Riyadh5': 'SA',  // Alternative Riyadh timezone
+            'Asia/Riyadh6': 'SA',  // Alternative Riyadh timezone
+            'Asia/Riyadh7': 'SA',  // Alternative Riyadh timezone
+            'Asia/Riyadh8': 'SA',  // Alternative Riyadh timezone
+            'Asia/Riyadh9': 'SA',  // Alternative Riyadh timezone
+            'Asia/Riyadh10': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh11': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh12': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh13': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh14': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh15': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh16': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh17': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh18': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh19': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh20': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh21': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh22': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh23': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh24': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh25': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh26': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh27': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh28': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh29': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh30': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh31': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh32': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh33': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh34': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh35': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh36': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh37': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh38': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh39': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh40': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh41': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh42': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh43': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh44': 'SA', // Alternative Riyadh timezone
+            'Asia/Riyadh45': 'SA', // Alternative Riyadh timezone
+            'Asia/Dammam': 'SA',  // Sometimes spelled Dammam
+            'Asia/Makkah': 'SA',    // Mecca timezone
+            'Asia/Mecca': 'SA',    // Alternative Mecca spelling
+            'Asia/Jeddah': 'SA',   // Jeddah timezone
+            'Asia/Jedda': 'SA',    // Alternative Jeddah spelling
+            'Asia/Taif': 'SA',     // Ta'if timezone
+            'Asia/Tabuk': 'SA',    // Tabuk timezone
+            'Asia/Madina': 'SA',   // Medina timezone
+            'Asia/Hofuf': 'SA',    // Hofuf timezone
+            'Asia/Najran': 'SA',   // Najran timezone
+            'Asia/Abha': 'SA',     // Abha timezone
+            'Asia/Khobar': 'SA',  // Dammam/Khobar timezone
+            'Asia/Dhahran': 'SA',  // Dhahran timezone
+            'Asia/Hail': 'SA',     // Hail timezone
+            'Asia/Arar': 'SA',     // Arar timezone
+            'Asia/Skaka': 'SA',    // Skaka timezone
+            'Asia/Buraidah': 'SA', // Buraidah timezone
+            'Asia/AlJawf': 'SA',   // Al Jawf timezone
+            'Asia/AlBaha': 'SA',   // Al Baha timezone
+            'Asia/AlQatif': 'SA',  // Al Qatif timezone
+            'Asia/AlKharj': 'SA',  // Al Kharj timezone
+            'Asia/AlUla': 'SA',    // Al Ula timezone
+            'Asia/Sakakah': 'SA',   // Sakakah timezone
+            
             'Asia/Dubai': 'AE',
             'Asia/Kuwait': 'KW',
             'Asia/Qatar': 'QA',
@@ -192,36 +268,29 @@ export function detectUserCountry(): Promise<string> {
           };
         
           const detectedCountry = timezoneToCountry[timezone];
+          console.log('🗺️ Timezone to country mapping:', detectedCountry);
           if (detectedCountry) {
+            console.log('✅ Country detected from timezone:', detectedCountry);
             resolve(detectedCountry);
             return;
           }
         }
 
-        // Method 3: Try to get country from IP geolocation (async)
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              // This would require a geolocation API to get country from coordinates
-              // For now, we'll skip this method as it requires user permission
-            },
-            (error) => {
-              console.warn('Geolocation error:', error);
-            }
-          );
-        }
-
-        // Method 4: Try to get country from browser accept languages
+        // Method 3: Try to get country from browser accept languages
         const languages = navigator.languages || [];
+        console.log('🌐 Browser languages:', languages);
+        
         for (const lang of languages) {
           const match = lang.match(/([A-Z]{2})/);
           if (match) {
+            console.log('✅ Country detected from language:', match[1]);
             resolve(match[1]);
             return;
           }
         }
 
         // Fallback to default
+        console.log('⚠️ Using fallback country: US');
         resolve('US');
       } catch (error) {
         console.warn('Country detection error:', error);
