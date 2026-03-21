@@ -11,6 +11,19 @@ import AdPlaceholder from '@/components/AdPlaceholder';
 import ReviewModal from '@/components/ReviewModal';
 import LoadingScreen from '@/components/LoadingScreen';
 
+// Hash function to convert Firestore string ID to consistent numeric ID (same as shop page)
+function stringToHash(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  // Ensure positive ID and avoid 0, and make it larger to avoid conflicts with hardcoded products
+  const numericId = Math.abs(hash) || Math.floor(Math.random() * 1000000) + 1000;
+  return numericId;
+}
+
 interface CartItemCustomization {
   customFields?: Record<string, string>;
   size?: string;
@@ -45,9 +58,13 @@ export default function ProductDetailPage() {
     const loadData = async () => {
       try {
         console.log('Loading product with ID:', productId);
+        
+        // Convert Firestore string ID to consistent numeric ID for reviews
+        const numericProductId = productId ? stringToHash(productId) : Math.floor(Math.random() * 1000000) + 1000;
+        
         const [productData, reviewsData] = await Promise.all([
           productService.getById(productId),
-          reviewService.getProductReviews(parseInt(productId))
+          reviewService.getProductReviews(numericProductId)
         ]);
 
         console.log('Product loaded:', {
@@ -496,7 +513,7 @@ export default function ProductDetailPage() {
         <ReviewModal
           isOpen={showReviewModal}
           onClose={() => setShowReviewModal(false)}
-          productId={parseInt(productId)}
+          productId={productId ? stringToHash(productId) : Math.floor(Math.random() * 1000000) + 1000}
           productName={product?.name || 'Product'}
         />
       </div>
