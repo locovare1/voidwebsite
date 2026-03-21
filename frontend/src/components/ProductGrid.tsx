@@ -192,10 +192,11 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 									</div>
 									{(() => {
 											const displayPrice = getExtendedProductLocationPrice(product, userCountry || undefined);
-											const defaultPrice = product.onSale && product.salePrice ? product.salePrice : product.price;
-											const hasDiscount = displayPrice < defaultPrice && displayPrice > 0;
+											const basePrice = product.price; // Always use base price for comparison
+											const hasDiscount = displayPrice < basePrice && displayPrice > 0;
+											
 											if (hasDiscount) {
-												const discountPercentage = Math.round(((defaultPrice - displayPrice) / defaultPrice) * 100);
+												const discountPercentage = Math.round(((basePrice - displayPrice) / basePrice) * 100);
 												return (
 													<div className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
 														-{discountPercentage}%
