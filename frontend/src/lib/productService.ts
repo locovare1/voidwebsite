@@ -209,7 +209,42 @@ export function detectUserCountry(): Promise<string> {
           }
         }
 
-        // Method 2: Try to get country from timezone (with comprehensive mappings)
+        // Method 2: Enhanced Saudi Arabia detection
+        console.log('🇸🇦 Checking for Saudi Arabia indicators...');
+        
+        // Check for Saudi Arabia specific indicators
+        const isSaudiArabia = 
+          // Check locale for Arabic language
+          locale && (
+            locale.toLowerCase().includes('ar') || 
+            locale.toLowerCase().includes('sa') ||
+            locale.toLowerCase().includes('saudi') ||
+            locale.toLowerCase().includes('arab')
+          ) ||
+          // Check timezone for Saudi timezones
+          (Intl.DateTimeFormat().resolvedOptions().timeZone || '').toLowerCase().includes('riyadh') ||
+          (Intl.DateTimeFormat().resolvedOptions().timeZone || '').toLowerCase().includes('makkah') ||
+          (Intl.DateTimeFormat().resolvedOptions().timeZone || '').toLowerCase().includes('jeddah') ||
+          (Intl.DateTimeFormat().resolvedOptions().timeZone || '').toLowerCase().includes('dammam') ||
+          // Check currency settings if available
+          (Intl && Intl.NumberFormat && (new Intl.NumberFormat(undefined, { style: 'currency' }).resolvedOptions().currency === 'SAR')) ||
+          // Check time offset (Saudi Arabia is UTC+3)
+          new Date().getTimezoneOffset() === 180; // Saudi Arabia time zone
+          
+        console.log('🇸🇦 Saudi Arabia indicators:', {
+          locale,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          timeOffset: new Date().getTimezoneOffset(),
+          isSaudi: isSaudiArabia
+        });
+        
+        if (isSaudiArabia) {
+          console.log('✅ Saudi Arabia detected from browser indicators');
+          resolve('SA');
+          return;
+        }
+
+        // Method 3: Try to get country from timezone (with comprehensive mappings)
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         console.log('⏰ Browser timezone:', timezone);
         
@@ -363,7 +398,7 @@ export function detectUserCountry(): Promise<string> {
           }
         }
 
-        // Method 3: Try to get country from browser accept languages (fallback)
+        // Method 4: Try to get country from browser accept languages (fallback)
         const languages = navigator.languages || [];
         console.log('🌐 Browser languages:', languages);
         
