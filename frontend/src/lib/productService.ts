@@ -55,7 +55,7 @@ export function hasLocationPermission(): boolean {
   return localStorage.getItem('locationPermissionGranted') === 'true';
 }
 
-// Country detection utility
+// Country detection utility with HTML5 Geolocation API
 export function detectUserCountry(): Promise<string> {
   if (typeof window === 'undefined') {
     return Promise.resolve('US');
@@ -69,27 +69,80 @@ export function detectUserCountry(): Promise<string> {
     const requestLocationPermission = () => {
       if (!hasPermission && typeof window !== 'undefined' && window.confirm) {
         const shouldAllow = window.confirm(
-          'This website would like to detect your location to show you the most accurate pricing for your region. ' +
+          'This website would like to detect your location using GPS to show you the most accurate pricing for your region. ' +
           'This helps us display prices in your local currency and apply any regional discounts. ' +
           'Your location is only used for pricing purposes and is not stored or shared. ' +
-          '\n\nWould you like to allow location detection?'
+          '\n\nWould you like to allow GPS location detection?'
         );
         
         if (shouldAllow) {
           localStorage.setItem(permissionKey, 'true');
-          detectCountryDirectly();
+          detectCountryWithGeolocation();
         } else {
           localStorage.setItem(permissionKey, 'false');
           resolve('US'); // Fallback to default
         }
       } else {
-        detectCountryDirectly();
+        detectCountryWithGeolocation();
       }
     };
 
-    const detectCountryDirectly = () => {
+    const detectCountryWithGeolocation = () => {
       try {
-        console.log('🔍 Starting country detection...');
+        console.log('🔍 Starting country detection with Geolocation...');
+        
+        // Method 1: Try HTML5 Geolocation API (most accurate)
+        if (navigator.geolocation) {
+          console.log('📡 Geolocation API available, requesting position...');
+          navigator.geolocation.getCurrentPosition(
+            // Success callback
+            async (position) => {
+              console.log('📍 Got position:', position.coords.latitude, position.coords.longitude);
+              
+              try {
+                // Use a reverse geocoding service to get country from coordinates
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`);
+                const data = await response.json();
+                
+                if (data && data.address && data.address.country_code) {
+                  const countryCode = data.address.country_code.toUpperCase();
+                  console.log('🌍 Country detected from geolocation:', countryCode);
+                  resolve(countryCode);
+                  return;
+                }
+              } catch (geocodingError) {
+                console.warn('Geocoding error:', geocodingError);
+                // Fallback to browser-based detection
+                detectCountryFromBrowser();
+              }
+            },
+            // Error callback
+            (error) => {
+              console.warn('Geolocation error:', error);
+              // Fallback to browser-based detection
+              detectCountryFromBrowser();
+            },
+            // Options
+            {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 300000 // 5 minutes
+            }
+          );
+        } else {
+          console.log('📡 Geolocation API not available');
+          // Fallback to browser-based detection
+          detectCountryFromBrowser();
+        }
+      } catch (error) {
+        console.warn('Country detection error:', error);
+        resolve('US');
+      }
+    };
+
+    const detectCountryFromBrowser = () => {
+      try {
+        console.log('🔍 Starting browser-based country detection...');
         
         // Method 1: Try to get country from browser locale (most reliable)
         const locale = navigator.language || (navigator as any).userLanguage;
@@ -283,7 +336,7 @@ export function detectUserCountry(): Promise<string> {
 
     // If permission already granted, detect directly
     if (hasPermission === 'true') {
-      detectCountryFromBrowser();
+      detectCountryWithGeolocation();
     } else {
       requestLocationPermission();
     }
