@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Pagination from './Pagination';
@@ -8,13 +8,40 @@ import { useCart } from '@/contexts/CartContext';
 import ReviewButton from './ReviewButton';
 import { Product } from '@/data/products';
 import { AnimatedCard } from '@/components/FramerAnimations';
-import { calculateSalePercentage, getDisplayPrice } from '@/lib/productService';
+import { calculateSalePercentage, getDisplayPrice, detectUserCountry } from '@/lib/productService';
 
 // Extend the Product interface to include optional Firestore ID and sale fields
-interface ExtendedProduct extends Product {
+interface ExtendedProduct {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  category: string;
+  description: string;
+  link: string;
   firestoreId?: string;
   salePrice?: number;
   onSale?: boolean;
+  countryPrices?: {
+    [countryCode: string]: number;
+  };
+}
+
+// Helper function to get location-specific price for ExtendedProduct
+function getExtendedProductLocationPrice(product: ExtendedProduct, countryCode?: string): number {
+  if (!countryCode || !product.countryPrices) {
+    // Return sale price if on sale, otherwise regular price
+    return product.onSale && product.salePrice ? product.salePrice : product.price;
+  }
+  
+  // Check if there's a specific price for this country
+  const countrySpecificPrice = product.countryPrices[countryCode.toUpperCase()];
+  if (countrySpecificPrice) {
+    return countrySpecificPrice;
+  }
+  
+  // Fall back to sale price logic
+  return product.onSale && product.salePrice ? product.salePrice : product.price;
 }
 
 interface ProductGridProps {
@@ -26,6 +53,20 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 	const [currentPage, setCurrentPage] = useState(1);
 	const [selectedCategory, setSelectedCategory] = useState<string>('All');
 	const [sortBy, setSortBy] = useState<string>('name');
+	const [userCountry, setUserCountry] = useState<string | null>(null);
+
+	// Detect user country on component mount
+	useEffect(() => {
+		const detectCountry = async () => {
+			try {
+				const country = await detectUserCountry();
+				setUserCountry(country);
+			} catch {
+				setUserCountry(null);
+			}
+		};
+		detectCountry();
+	}, []);
 	const [addingToCart, setAddingToCart] = useState<number | null>(null);
 	const { addItem } = useCart();
 
@@ -138,16 +179,25 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 								/>
 								<div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex flex-col items-end gap-1">
 									<div className="bg-black/80 text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold shadow-lg">
-										{product.onSale && product.salePrice && product.salePrice < product.price 
-											? (product.salePrice === 0 ? 'FREE' : `$${product.salePrice.toFixed(2)}`)
-											: (product.price === 0 ? 'FREE' : `$${product.price.toFixed(2)}`)
-										}
+										{(() => {
+											const displayPrice = getExtendedProductLocationPrice(product, userCountry || undefined);
+											return displayPrice === 0 ? 'FREE' : `$${displayPrice.toFixed(2)}`;
+										})()}
 									</div>
-									{product.onSale && product.salePrice && product.salePrice < product.price && (
-										<div className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
-											-{Math.round(((product.price - product.salePrice) / product.price) * 100)}%
-										</div>
-									)}
+									{(() => {
+											const displayPrice = getExtendedProductLocationPrice(product, userCountry || undefined);
+											const defaultPrice = product.onSale && product.salePrice ? product.salePrice : product.price;
+											const hasDiscount = displayPrice < defaultPrice && displayPrice > 0;
+											if (hasDiscount) {
+												const discountPercentage = Math.round(((defaultPrice - displayPrice) / defaultPrice) * 100);
+												return (
+													<div className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+														-{discountPercentage}%
+													</div>
+												);
+											}
+											return null;
+										})()}
 								</div>
 							</div>
 

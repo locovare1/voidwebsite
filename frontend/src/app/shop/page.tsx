@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { productService, getLocationSpecificPrice, detectUserCountry, type Product } from '@/lib/productService';
 import ProductGrid from '@/components/ProductGrid';
 import AdPlaceholder from '@/components/AdPlaceholder';
-import { productService, type Product as FSProduct } from '@/lib/productService';
+import Link from 'next/link';
 
 // Map Firestore product to legacy product format
 type LegacyProduct = {
@@ -18,6 +19,10 @@ type LegacyProduct = {
   link: string;
   // Store the original Firestore ID for reference
   firestoreId?: string;
+  // Include country-specific pricing
+  countryPrices?: {
+    [countryCode: string]: number;
+  };
 };
 
 // Simple hash function to convert string IDs to consistent numeric IDs
@@ -35,6 +40,19 @@ function stringToHash(str: string): number {
 
 export default function ShopPage() {
   const [products, setProducts] = useState<LegacyProduct[]>([]);
+  const [userCountry, setUserCountry] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const country = await detectUserCountry();
+        setUserCountry(country);
+      } catch {
+        setUserCountry(null);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -44,7 +62,7 @@ export default function ShopPage() {
         if (!mounted) return;
         if (items && items.length > 0) {
           // Map Firestore products to legacy format using consistent hash of document ID
-          const mapped: LegacyProduct[] = items.map((p: FSProduct) => ({
+          const mapped: LegacyProduct[] = items.map((p: Product) => ({
             id: p.id ? stringToHash(p.id) : Math.floor(Math.random() * 1000000) + 1000,
             name: p.name,
             price: p.price,
@@ -54,7 +72,8 @@ export default function ShopPage() {
             category: p.category,
             description: p.description,
             link: p.link,
-            firestoreId: p.id // Store the original Firestore ID for routing
+            firestoreId: p.id, // Store the original Firestore ID for routing
+            countryPrices: p.countryPrices // Include country-specific pricing
           }));
           setProducts(mapped);
         } else {

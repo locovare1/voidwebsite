@@ -25,6 +25,85 @@ export function getDisplayPrice(product: Product): number {
   return product.onSale && product.salePrice ? product.salePrice : product.price;
 }
 
+// Utility function to get location-specific price
+export function getLocationSpecificPrice(product: Product, countryCode?: string): number {
+  // If no country code or no country-specific pricing, return default price
+  if (!countryCode || !product.countryPrices) {
+    return getDisplayPrice(product);
+  }
+  
+  // Check if there's a specific price for this country
+  const countrySpecificPrice = product.countryPrices[countryCode.toUpperCase()];
+  if (countrySpecificPrice) {
+    return countrySpecificPrice;
+  }
+  
+  // Fall back to default price
+  return getDisplayPrice(product);
+}
+
+// Country detection utility
+export function detectUserCountry(): string {
+  if (typeof window === 'undefined') return 'US';
+  
+  // Try to get country from browser locale
+  const locale = navigator.language || (navigator as any).userLanguage;
+  if (locale) {
+    const countryCode = locale.split('-')[1] || locale.split('_')[1];
+    if (countryCode) {
+      return countryCode.toUpperCase();
+    }
+  }
+  
+  // Fallback to timezone detection
+  try {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (timezone) {
+      // Map common timezones to countries
+      const timezoneToCountry: { [key: string]: string } = {
+        'Asia/Riyadh': 'SA',
+        'Asia/Dubai': 'AE',
+        'Asia/Kuwait': 'KW',
+        'Asia/Qatar': 'QA',
+        'Asia/Bahrain': 'BH',
+        'Asia/Oman': 'OM',
+        'Europe/London': 'GB',
+        'Europe/Paris': 'FR',
+        'Europe/Berlin': 'DE',
+        'Europe/Rome': 'IT',
+        'Europe/Madrid': 'ES',
+        'America/New_York': 'US',
+        'America/Los_Angeles': 'US',
+        'America/Chicago': 'US',
+        'America/Denver': 'US',
+        'America/Phoenix': 'US',
+        'America/Toronto': 'CA',
+        'America/Vancouver': 'CA',
+        'America/Sao_Paulo': 'BR',
+        'America/Mexico_City': 'MX',
+        'Asia/Tokyo': 'JP',
+        'Asia/Shanghai': 'CN',
+        'Asia/Hong_Kong': 'HK',
+        'Asia/Singapore': 'SG',
+        'Asia/Seoul': 'KR',
+        'Asia/Mumbai': 'IN',
+        'Australia/Sydney': 'AU',
+        'Australia/Melbourne': 'AU',
+        'Pacific/Auckland': 'NZ',
+        'Africa/Cairo': 'EG',
+        'Africa/Johannesburg': 'ZA',
+        'Africa/Lagos': 'NG',
+      };
+      
+      return timezoneToCountry[timezone] || 'US';
+    }
+  } catch (error) {
+    console.warn('Could not detect timezone:', error);
+  }
+  
+  return 'US'; // Default fallback
+}
+
 export interface Product {
   id?: string;
   name: string;
@@ -38,6 +117,10 @@ export interface Product {
   description: string;
   link: string;
   displayOnHomePage?: boolean;
+  // Country-specific pricing
+  countryPrices?: {
+    [countryCode: string]: number;
+  };
   createdAt: Timestamp;
 
   // New fields for customization

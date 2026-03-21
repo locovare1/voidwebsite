@@ -29,7 +29,8 @@ export default function ProductsPage() {
     category: '',
     description: '',
     link: '',
-    displayOnHomePage: false
+    displayOnHomePage: false,
+    countryPrices: {} as { [countryCode: string]: number }
   });
 
   // Product customization state
@@ -102,7 +103,7 @@ export default function ProductsPage() {
   };
 
   const resetProductForm = () => {
-    setProductForm({ name: '', price: 0, salePrice: 0, onSale: false, image: '', images: [], hoverImage: '', category: '', description: '', link: '', displayOnHomePage: false });
+    setProductForm({ name: '', price: 0, salePrice: 0, onSale: false, image: '', images: [], hoverImage: '', category: '', description: '', link: '', displayOnHomePage: false, countryPrices: {} });
     setEditingProduct(null);
     // Reset file inputs
     if (imageFileRef.current) imageFileRef.current.value = '';
@@ -344,7 +345,8 @@ export default function ProductsPage() {
                               category: product.category,
                               description: product.description,
                               link: product.link,
-                              displayOnHomePage: product.displayOnHomePage || false
+                              displayOnHomePage: product.displayOnHomePage || false,
+                              countryPrices: product.countryPrices || {}
                             });
                           }}
                           className="text-blue-400 hover:text-blue-300 p-1 rounded hover:bg-blue-400/10 transition-all duration-300"
@@ -683,6 +685,122 @@ export default function ProductsPage() {
                 )}
               </div>
             </div>
+            
+            {/* Country-Specific Pricing */}
+            <div className="md:col-span-2">
+              <label className="block text-sm text-gray-400 mb-1">Country-Specific Pricing (Optional)</label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value="SA"
+                    onChange={(e) => {
+                      const countryCode = e.target.value.toUpperCase();
+                      setProductForm(prev => ({
+                        ...prev,
+                        countryPrices: {
+                          ...prev.countryPrices,
+                          [countryCode]: prev.countryPrices?.[countryCode] || 0
+                        }
+                      }));
+                    }}
+                    placeholder="Country Code (e.g., SA, US, GB)"
+                    className="w-20 bg-[#2A2A2A] border border-[#3A3A3A] rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
+                  />
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={productForm.countryPrices?.SA || 0}
+                    onChange={(e) => {
+                      const price = parseFloat(e.target.value) || 0;
+                      setProductForm(prev => ({
+                        ...prev,
+                        countryPrices: {
+                          ...prev.countryPrices,
+                          SA: price
+                        }
+                      }));
+                    }}
+                    placeholder="Saudi Price"
+                    className="flex-1 bg-[#2A2A2A] border border-[#3A3A3A] rounded px-3 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value="US"
+                    onChange={(e) => {
+                      const countryCode = e.target.value.toUpperCase();
+                      setProductForm(prev => ({
+                        ...prev,
+                        countryPrices: {
+                          ...prev.countryPrices,
+                          [countryCode]: prev.countryPrices?.[countryCode] || 0
+                        }
+                      }));
+                    }}
+                    placeholder="Country Code (e.g., US, GB, CA)"
+                    className="w-20 bg-[#2A2A2A] border border-[#3A3A3A] rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
+                  />
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={productForm.countryPrices?.US || 0}
+                    onChange={(e) => {
+                      const price = parseFloat(e.target.value) || 0;
+                      setProductForm(prev => ({
+                        ...prev,
+                        countryPrices: {
+                          ...prev.countryPrices,
+                          US: price
+                        }
+                      }));
+                    }}
+                    placeholder="US Price"
+                    className="flex-1 bg-[#2A2A2A] border border-[#3A3A3A] rounded px-3 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value="GB"
+                    onChange={(e) => {
+                      const countryCode = e.target.value.toUpperCase();
+                      setProductForm(prev => ({
+                        ...prev,
+                        countryPrices: {
+                          ...prev.countryPrices,
+                          [countryCode]: prev.countryPrices?.[countryCode] || 0
+                        }
+                      }));
+                    }}
+                    placeholder="Country Code (e.g., GB, FR, DE)"
+                    className="w-20 bg-[#2A2A2A] border border-[#3A3A3A] rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
+                  />
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={productForm.countryPrices?.GB || 0}
+                    onChange={(e) => {
+                      const price = parseFloat(e.target.value) || 0;
+                      setProductForm(prev => ({
+                        ...prev,
+                        countryPrices: {
+                          ...prev.countryPrices,
+                          GB: price
+                        }
+                      }));
+                    }}
+                    placeholder="UK Price"
+                    className="flex-1 bg-[#2A2A2A] border border-[#3A3A3A] rounded px-3 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Add country codes and their specific prices. Leave empty to use default price.
+                </p>
+              </div>
+            </div>
+
             <div className="flex gap-2 pt-4">
               <button 
                 onClick={submitProduct} 
