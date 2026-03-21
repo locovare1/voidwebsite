@@ -67,6 +67,7 @@ export function detectUserCountry(): Promise<string> {
     const hasPermission = localStorage.getItem(permissionKey);
     
     const requestLocationPermission = () => {
+      // Always ask for permission first time
       if (!hasPermission && typeof window !== 'undefined' && window.confirm) {
         const shouldAllow = window.confirm(
           'This website would like to detect your location using GPS to show you the most accurate pricing for your region. ' +
@@ -77,12 +78,15 @@ export function detectUserCountry(): Promise<string> {
         
         if (shouldAllow) {
           localStorage.setItem(permissionKey, 'true');
+          console.log('✅ User granted GPS permission, starting detection...');
           detectCountryWithGeolocation();
         } else {
           localStorage.setItem(permissionKey, 'false');
+          console.log('❌ User denied GPS permission, using fallback...');
           resolve('US'); // Fallback to default
         }
       } else {
+        console.log('🔄 Permission already checked, proceeding with detection...');
         detectCountryWithGeolocation();
       }
     };
@@ -90,37 +94,83 @@ export function detectUserCountry(): Promise<string> {
     const detectCountryWithGeolocation = () => {
       try {
         console.log('🔍 Starting country detection with Geolocation...');
+        console.log('📡 Checking if geolocation is available...');
         
         // Method 1: Try HTML5 Geolocation API (most accurate)
         if (navigator.geolocation) {
-          console.log('📡 Geolocation API available, requesting position...');
+          console.log('✅ Geolocation API available, requesting position...');
+          console.log('🛰 Current position options:', {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000
+          });
+          
           navigator.geolocation.getCurrentPosition(
             // Success callback
             async (position) => {
-              console.log('📍 Got position:', position.coords.latitude, position.coords.longitude);
+              console.log('📍 SUCCESS! Got GPS position:', {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy,
+                altitude: position.coords.altitude,
+                altitudeAccuracy: position.coords.altitudeAccuracy,
+                heading: position.coords.heading,
+                speed: position.coords.speed
+              });
               
               try {
+                console.log('🌐 Starting reverse geocoding...');
                 // Use a reverse geocoding service to get country from coordinates
-                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`);
+                const geocodingUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`;
+                console.log('🔗 Geocoding URL:', geocodingUrl);
+                
+                const response = await fetch(geocodingUrl);
+                console.log('📡 Geocoding response status:', response.status);
+                
+                if (!response.ok) {
+                  throw new Error(`Geocoding failed: ${response.status} ${response.statusText}`);
+                }
+                
                 const data = await response.json();
+                console.log('📄 Geocoding response data:', data);
                 
                 if (data && data.address && data.address.country_code) {
                   const countryCode = data.address.country_code.toUpperCase();
-                  console.log('🌍 Country detected from geolocation:', countryCode);
+                  console.log('🌍 SUCCESS! Country detected from GPS:', countryCode);
+                  console.log('🏠 Address details:', data.address);
                   resolve(countryCode);
                   return;
+                } else {
+                  console.log('⚠️ No country code in geocoding response');
+                  // Fallback to browser-based detection
+                  detectCountryFromBrowser();
                 }
               } catch (geocodingError) {
-                console.warn('Geocoding error:', geocodingError);
+                console.warn('❌ Geocoding error:', geocodingError);
+                console.log('🔄 Falling back to browser-based detection...');
                 // Fallback to browser-based detection
                 detectCountryFromBrowser();
               }
             },
             // Error callback
             (error) => {
-              console.warn('Geolocation error:', error);
-              // Fallback to browser-based detection
-              detectCountryFromBrowser();
+              console.error('❌ GPS Geolocation error:', {
+                code: error.code,
+                message: error.message,
+                PERMISSION_DENIED: error.code === 1,
+                POSITION_UNAVAILABLE: error.code === 2,
+                TIMEOUT: error.code === 3
+              });
+              
+              if (error.code === 1) {
+                console.log('🚫 User denied GPS permission');
+                // Don't fallback immediately, let user decide
+                resolve('US');
+              } else {
+                console.log('🔄 GPS failed, falling back to browser-based detection...');
+                // Fallback to browser-based detection
+                detectCountryFromBrowser();
+              }
             },
             // Options
             {
@@ -130,13 +180,14 @@ export function detectUserCountry(): Promise<string> {
             }
           );
         } else {
-          console.log('📡 Geolocation API not available');
+          console.log('❌ Geolocation API not available in this browser');
           // Fallback to browser-based detection
           detectCountryFromBrowser();
         }
       } catch (error) {
-        console.warn('Country detection error:', error);
-        resolve('US');
+        console.error('❌ Critical error in geolocation detection:', error);
+        console.log('🔄 Falling back to browser-based detection...');
+        detectCountryFromBrowser();
       }
     };
 
