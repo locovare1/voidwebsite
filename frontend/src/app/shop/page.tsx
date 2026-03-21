@@ -47,11 +47,16 @@ export default function ShopPage() {
     (async () => {
       try {
         const country = await detectUserCountry();
-        setUserCountry(country);
+        if (mounted) {
+          setUserCountry(country);
+        }
       } catch {
-        setUserCountry(null);
+        if (mounted) {
+          setUserCountry(null);
+        }
       }
     })();
+    return () => { mounted = false; };
   }, []);
 
   useEffect(() => {

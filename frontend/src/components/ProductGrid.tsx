@@ -57,15 +57,21 @@ export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGrid
 
 	// Detect user country on component mount
 	useEffect(() => {
+		let mounted = true;
 		const detectCountry = async () => {
 			try {
 				const country = await detectUserCountry();
-				setUserCountry(country);
+				if (mounted) {
+					setUserCountry(country);
+				}
 			} catch {
-				setUserCountry(null);
+				if (mounted) {
+					setUserCountry(null);
+				}
 			}
 		};
 		detectCountry();
+		return () => { mounted = false; };
 	}, []);
 	const [addingToCart, setAddingToCart] = useState<number | null>(null);
 	const { addItem } = useCart();

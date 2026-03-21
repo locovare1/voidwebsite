@@ -33,6 +33,36 @@ export default function ProductsPage() {
     countryPrices: {} as { [countryCode: string]: number }
   });
 
+  // State for managing country-specific pricing
+  const [newCountryCode, setNewCountryCode] = useState('');
+  const [newCountryPrice, setNewCountryPrice] = useState(0);
+
+  // Helper functions for country pricing management
+  const addCountryPrice = () => {
+    if (newCountryCode.trim() && newCountryPrice > 0) {
+      setProductForm(prev => ({
+        ...prev,
+        countryPrices: {
+          ...prev.countryPrices,
+          [newCountryCode.toUpperCase()]: newCountryPrice
+        }
+      }));
+      setNewCountryCode('');
+      setNewCountryPrice(0);
+    }
+  };
+
+  const removeCountryPrice = (countryCode: string) => {
+    setProductForm(prev => {
+      const newCountryPrices = { ...prev.countryPrices };
+      delete newCountryPrices[countryCode.toUpperCase()];
+      return {
+        ...prev,
+        countryPrices: newCountryPrices
+      };
+    });
+  };
+
   // Product customization state
   const [selectedProductForCustomization, setSelectedProductForCustomization] = useState<any>(null);
   const [customizationForm, setCustomizationForm] = useState<{
@@ -686,117 +716,55 @@ export default function ProductsPage() {
               </div>
             </div>
             
-            {/* Country-Specific Pricing */}
+            {/* Dynamic Country-Specific Pricing */}
             <div className="md:col-span-2">
               <label className="block text-sm text-gray-400 mb-1">Country-Specific Pricing (Optional)</label>
               <div className="space-y-2">
+                {/* Display current country prices */}
+                {Object.entries(productForm.countryPrices).map(([countryCode, price]) => (
+                  <div key={countryCode} className="flex items-center justify-between bg-[#2A2A2A] p-3 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-white font-medium">{countryCode}</span>
+                      <span className="text-green-400 font-bold">${price.toFixed(2)}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeCountryPrice(countryCode)}
+                      className="text-red-400 hover:text-red-300 text-sm font-medium"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+                
+                {/* Add new country price */}
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
-                    value="SA"
-                    onChange={(e) => {
-                      const countryCode = e.target.value.toUpperCase();
-                      setProductForm(prev => ({
-                        ...prev,
-                        countryPrices: {
-                          ...prev.countryPrices,
-                          [countryCode]: prev.countryPrices?.[countryCode] || 0
-                        }
-                      }));
-                    }}
-                    placeholder="Country Code (e.g., SA, US, GB)"
-                    className="w-20 bg-[#2A2A2A] border border-[#3A3A3A] rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
+                    value={newCountryCode}
+                    onChange={(e) => setNewCountryCode(e.target.value.toUpperCase())}
+                    placeholder="Country Code (e.g., SA, US, GB, DE, FR)"
+                    className="w-24 bg-[#2A2A2A] border border-[#3A3A3A] rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
                   />
                   <input
                     type="number"
                     step="0.01"
-                    value={productForm.countryPrices?.SA || 0}
-                    onChange={(e) => {
-                      const price = parseFloat(e.target.value) || 0;
-                      setProductForm(prev => ({
-                        ...prev,
-                        countryPrices: {
-                          ...prev.countryPrices,
-                          SA: price
-                        }
-                      }));
-                    }}
-                    placeholder="Saudi Price"
-                    className="flex-1 bg-[#2A2A2A] border border-[#3A3A3A] rounded px-3 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
+                    value={newCountryPrice || ''}
+                    onChange={(e) => setNewCountryPrice(parseFloat(e.target.value) || 0)}
+                    placeholder="Price"
+                    className="flex-1 bg-[#2A2A2A] border border-[#3A3A3A] rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
                   />
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value="US"
-                    onChange={(e) => {
-                      const countryCode = e.target.value.toUpperCase();
-                      setProductForm(prev => ({
-                        ...prev,
-                        countryPrices: {
-                          ...prev.countryPrices,
-                          [countryCode]: prev.countryPrices?.[countryCode] || 0
-                        }
-                      }));
-                    }}
-                    placeholder="Country Code (e.g., US, GB, CA)"
-                    className="w-20 bg-[#2A2A2A] border border-[#3A3A3A] rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
-                  />
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={productForm.countryPrices?.US || 0}
-                    onChange={(e) => {
-                      const price = parseFloat(e.target.value) || 0;
-                      setProductForm(prev => ({
-                        ...prev,
-                        countryPrices: {
-                          ...prev.countryPrices,
-                          US: price
-                        }
-                      }));
-                    }}
-                    placeholder="US Price"
-                    className="flex-1 bg-[#2A2A2A] border border-[#3A3A3A] rounded px-3 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value="GB"
-                    onChange={(e) => {
-                      const countryCode = e.target.value.toUpperCase();
-                      setProductForm(prev => ({
-                        ...prev,
-                        countryPrices: {
-                          ...prev.countryPrices,
-                          [countryCode]: prev.countryPrices?.[countryCode] || 0
-                        }
-                      }));
-                    }}
-                    placeholder="Country Code (e.g., GB, FR, DE)"
-                    className="w-20 bg-[#2A2A2A] border border-[#3A3A3A] rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
-                  />
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={productForm.countryPrices?.GB || 0}
-                    onChange={(e) => {
-                      const price = parseFloat(e.target.value) || 0;
-                      setProductForm(prev => ({
-                        ...prev,
-                        countryPrices: {
-                          ...prev.countryPrices,
-                          GB: price
-                        }
-                      }));
-                    }}
-                    placeholder="UK Price"
-                    className="flex-1 bg-[#2A2A2A] border border-[#3A3A3A] rounded px-3 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]"
-                  />
+                  <button
+                    type="button"
+                    onClick={addCountryPrice}
+                    disabled={!newCountryCode.trim() || newCountryPrice <= 0}
+                    className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
+                  >
+                    Add Price
+                  </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Add country codes and their specific prices. Leave empty to use default price.
+                  Add unlimited country codes and their specific prices. Leave empty to use default price.
                 </p>
               </div>
             </div>

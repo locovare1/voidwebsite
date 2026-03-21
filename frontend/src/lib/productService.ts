@@ -43,65 +43,152 @@ export function getLocationSpecificPrice(product: Product, countryCode?: string)
 }
 
 // Country detection utility
-export function detectUserCountry(): string {
-  if (typeof window === 'undefined') return 'US';
-  
-  // Try to get country from browser locale
-  const locale = navigator.language || (navigator as any).userLanguage;
-  if (locale) {
-    const countryCode = locale.split('-')[1] || locale.split('_')[1];
-    if (countryCode) {
-      return countryCode.toUpperCase();
-    }
+export function detectUserCountry(): Promise<string> {
+  if (typeof window === 'undefined') {
+    return Promise.resolve('US');
   }
-  
-  // Fallback to timezone detection
-  try {
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (timezone) {
-      // Map common timezones to countries
-      const timezoneToCountry: { [key: string]: string } = {
-        'Asia/Riyadh': 'SA',
-        'Asia/Dubai': 'AE',
-        'Asia/Kuwait': 'KW',
-        'Asia/Qatar': 'QA',
-        'Asia/Bahrain': 'BH',
-        'Asia/Oman': 'OM',
-        'Europe/London': 'GB',
-        'Europe/Paris': 'FR',
-        'Europe/Berlin': 'DE',
-        'Europe/Rome': 'IT',
-        'Europe/Madrid': 'ES',
-        'America/New_York': 'US',
-        'America/Los_Angeles': 'US',
-        'America/Chicago': 'US',
-        'America/Denver': 'US',
-        'America/Phoenix': 'US',
-        'America/Toronto': 'CA',
-        'America/Vancouver': 'CA',
-        'America/Sao_Paulo': 'BR',
-        'America/Mexico_City': 'MX',
-        'Asia/Tokyo': 'JP',
-        'Asia/Shanghai': 'CN',
-        'Asia/Hong_Kong': 'HK',
-        'Asia/Singapore': 'SG',
-        'Asia/Seoul': 'KR',
-        'Asia/Mumbai': 'IN',
-        'Australia/Sydney': 'AU',
-        'Australia/Melbourne': 'AU',
-        'Pacific/Auckland': 'NZ',
-        'Africa/Cairo': 'EG',
-        'Africa/Johannesburg': 'ZA',
-        'Africa/Lagos': 'NG',
-      };
-      
-      return timezoneToCountry[timezone] || 'US';
+
+  return new Promise((resolve) => {
+    try {
+      // Method 1: Try to get country from browser locale
+      const locale = navigator.language || (navigator as any).userLanguage;
+      if (locale) {
+        const countryCode = locale.split('-')[1] || locale.split('_')[1];
+        if (countryCode && countryCode.length === 2) {
+          resolve(countryCode.toUpperCase());
+          return;
+        }
+      }
+
+      // Method 2: Try to get country from timezone
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (timezone) {
+        // Enhanced timezone to country mapping
+        const timezoneToCountry: { [key: string]: string } = {
+          // Middle East
+          'Asia/Riyadh': 'SA',
+          'Asia/Dubai': 'AE',
+          'Asia/Kuwait': 'KW',
+          'Asia/Qatar': 'QA',
+          'Asia/Bahrain': 'BH',
+          'Asia/Muscat': 'OM',
+          'Asia/Tehran': 'IR',
+          'Asia/Baghdad': 'IQ',
+          'Asia/Jerusalem': 'IL',
+          'Asia/Damascus': 'SY',
+          'Asia/Beirut': 'LB',
+          'Asia/Amman': 'JO',
+          
+          // Europe
+          'Europe/London': 'GB',
+          'Europe/Paris': 'FR',
+          'Europe/Berlin': 'DE',
+          'Europe/Rome': 'IT',
+          'Europe/Madrid': 'ES',
+          'Europe/Amsterdam': 'NL',
+          'Europe/Brussels': 'BE',
+          'Europe/Vienna': 'AT',
+          'Europe/Zurich': 'CH',
+          'Europe/Stockholm': 'SE',
+          'Europe/Oslo': 'NO',
+          'Europe/Copenhagen': 'DK',
+          'Europe/Helsinki': 'FI',
+          'Europe/Warsaw': 'PL',
+          'Europe/Prague': 'CZ',
+          'Europe/Budapest': 'HU',
+          'Europe/Bucharest': 'RO',
+          'Europe/Sofia': 'BG',
+          'Europe/Belgrade': 'RS',
+          'Europe/Zagreb': 'HR',
+          'Europe/Athens': 'GR',
+          'Europe/Lisbon': 'PT',
+          'Europe/Dublin': 'IE',
+          
+          // Americas
+          'America/New_York': 'US',
+          'America/Los_Angeles': 'US',
+          'America/Chicago': 'US',
+          'America/Denver': 'US',
+          'America/Phoenix': 'US',
+          'America/Toronto': 'CA',
+          'America/Vancouver': 'CA',
+          'America/Montreal': 'CA',
+          'America/Sao_Paulo': 'BR',
+          'America/Mexico_City': 'MX',
+          'America/Argentina/Buenos_Aires': 'AR',
+          'America/Chile/Santiago': 'CL',
+          'America/Peru/Lima': 'PE',
+          'America/Colombia/Bogota': 'CO',
+          'America/Venezuela/Caracas': 'VE',
+          
+          // Asia Pacific
+          'Asia/Tokyo': 'JP',
+          'Asia/Shanghai': 'CN',
+          'Asia/Hong_Kong': 'HK',
+          'Asia/Singapore': 'SG',
+          'Asia/Seoul': 'KR',
+          'Asia/Bangkok': 'TH',
+          'Asia/Jakarta': 'ID',
+          'Asia/Manila': 'PH',
+          'Asia/Kuala_Lumpur': 'MY',
+          'Asia/Taipei': 'TW',
+          'Asia/Ho_Chi_Minh': 'VN',
+          
+          // Australia & Oceania
+          'Australia/Sydney': 'AU',
+          'Australia/Melbourne': 'AU',
+          'Australia/Perth': 'AU',
+          'New_Zealand/Auckland': 'NZ',
+          
+          // Africa
+          'Africa/Cairo': 'EG',
+          'Africa/Johannesburg': 'ZA',
+          'Africa/Lagos': 'NG',
+          'Africa/Nairobi': 'KE',
+          'Africa/Casablanca': 'MA',
+          'Africa/Algiers': 'DZ',
+          'Africa/Tunis': 'TN',
+          
+          // Add more as needed...
+        };
+        
+        const detectedCountry = timezoneToCountry[timezone];
+        if (detectedCountry) {
+          resolve(detectedCountry);
+          return;
+        }
+      }
+
+      // Method 3: Try to get country from IP geolocation (async)
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            // This would require a geolocation API to get country from coordinates
+            // For now, we'll skip this method as it requires user permission
+          },
+          (error) => {
+            console.warn('Geolocation error:', error);
+          }
+        );
+      }
+
+      // Method 4: Try to get country from browser accept languages
+      const languages = navigator.languages || [];
+      for (const lang of languages) {
+        const match = lang.match(/([A-Z]{2})/);
+        if (match) {
+          resolve(match[1]);
+          return;
+        }
+      }
+
+      // Fallback to default
+      resolve('US');
+    } catch (error) {
+      console.warn('Country detection error:', error);
+      resolve('US');
     }
-  } catch (error) {
-    console.warn('Could not detect timezone:', error);
-  }
-  
-  return 'US'; // Default fallback
+  });
 }
 
 export interface Product {
