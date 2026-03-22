@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 interface Country {
   code: string;
@@ -88,6 +88,7 @@ export default function CountrySelector({ onCountryChange, initialCountry }: Cou
   const [selectedCountry, setSelectedCountry] = useState<string>(initialCountry || 'US');
   const [isOpen, setIsOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(!initialCountry);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     if (initialCountry) {
@@ -104,6 +105,12 @@ export default function CountrySelector({ onCountryChange, initialCountry }: Cou
   };
 
   const selectedCountryData = countries.find(c => c.code === selectedCountry);
+
+  // Filter countries based on search term
+  const filteredCountries = countries.filter(country => 
+    country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    country.code.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
@@ -126,31 +133,54 @@ export default function CountrySelector({ onCountryChange, initialCountry }: Cou
           )}
         </div>
 
-        <div className="space-y-2">
-          {countries.map((country) => (
-            <button
-              key={country.code}
-              onClick={() => handleCountrySelect(country.code)}
-              className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors ${
-                selectedCountry === country.code
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-              }`}
-            >
-              <span className="text-2xl">{country.flag}</span>
-              <div className="flex-1">
-                <div className="font-medium">{country.name}</div>
-                <div className="text-sm opacity-75">{country.code}</div>
-              </div>
-              {selectedCountry === country.code && (
-                <div className="text-blue-600">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414 1.414L8 12.586l7.293-7.293a1 1 0 011.414 1.414z" clipRule="evenodd" />
-                  </svg>
+        {/* Search Bar */}
+        <div className="mb-4">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search countries..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              autoFocus
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {filteredCountries.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No countries found matching "{searchTerm}"
+            </div>
+          ) : (
+            filteredCountries.map((country) => (
+              <button
+                key={country.code}
+                onClick={() => handleCountrySelect(country.code)}
+                className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors ${
+                  selectedCountry === country.code
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                }`}
+              >
+                <span className="text-2xl">{country.flag}</span>
+                <div className="flex-1">
+                  <div className="font-medium">{country.name}</div>
+                  <div className="text-sm opacity-75">{country.code}</div>
                 </div>
-              )}
-            </button>
-          ))}
+                {selectedCountry === country.code && (
+                  <div className="text-blue-600">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414 1.414L8 12.586l7.293-7.293a1 1 0 011.414 1.414z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+              </button>
+            ))
+          )}
         </div>
 
         <div className="mt-6 text-center">
