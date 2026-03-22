@@ -58,6 +58,13 @@ export default function ProductGrid({ products, itemsPerPage = 12, userCountry: 
 	const [addingToCart, setAddingToCart] = useState<number | null>(null);
 	const { addItem } = useCart();
 
+	// Sync userCountry prop with state when it changes (e.g., after localStorage load)
+	useEffect(() => {
+		if (propUserCountry !== undefined) {
+			setUserCountry(propUserCountry);
+		}
+	}, [propUserCountry]);
+
 	const categories = useMemo(() => {
 		const unique = Array.from(new Set(products.map(p => p.category)));
 		return ['All', ...unique];
