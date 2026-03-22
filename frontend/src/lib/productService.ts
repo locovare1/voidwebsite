@@ -94,7 +94,16 @@ export function detectUserCountry(): Promise<string> {
     const detectCountryWithGeolocation = () => {
       try {
         console.log('🔍 Starting country detection with Geolocation...');
-        console.log('📡 Checking if geolocation is available...');
+        
+        // Check if we're in a secure context (HTTPS required for geolocation)
+        if (!window.isSecureContext) {
+          console.log('⚠️ Not in secure context (HTTPS), geolocation may be blocked');
+          console.log('🔄 Falling back to browser-based detection...');
+          detectCountryFromBrowser();
+          return;
+        }
+        
+        console.log('✅ Secure context detected, checking geolocation availability...');
         
         // Method 1: Try HTML5 Geolocation API (most accurate)
         if (navigator.geolocation) {
@@ -105,80 +114,112 @@ export function detectUserCountry(): Promise<string> {
             maximumAge: 300000
           });
           
-          navigator.geolocation.getCurrentPosition(
-            // Success callback
-            async (position) => {
-              console.log('📍 SUCCESS! Got GPS position:', {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                accuracy: position.coords.accuracy,
-                altitude: position.coords.altitude,
-                altitudeAccuracy: position.coords.altitudeAccuracy,
-                heading: position.coords.heading,
-                speed: position.coords.speed
-              });
-              
-              try {
-                console.log('🌐 Starting reverse geocoding...');
-                // Use a reverse geocoding service to get country from coordinates
-                const geocodingUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`;
-                console.log('🔗 Geocoding URL:', geocodingUrl);
+          // Define the geolocation request function
+          const requestGeolocationPosition = () => {
+            navigator.geolocation.getCurrentPosition(
+              // Success callback
+              async (position) => {
+                console.log('📍 SUCCESS! Got GPS position:', {
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                  accuracy: position.coords.accuracy,
+                  altitude: position.coords.altitude,
+                  altitudeAccuracy: position.coords.altitudeAccuracy,
+                  heading: position.coords.heading,
+                  speed: position.coords.speed
+                });
                 
-                const response = await fetch(geocodingUrl);
-                console.log('📡 Geocoding response status:', response.status);
-                
-                if (!response.ok) {
-                  throw new Error(`Geocoding failed: ${response.status} ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                console.log('📄 Geocoding response data:', data);
-                
-                if (data && data.address && data.address.country_code) {
-                  const countryCode = data.address.country_code.toUpperCase();
-                  console.log('🌍 SUCCESS! Country detected from GPS:', countryCode);
-                  console.log('🏠 Address details:', data.address);
-                  resolve(countryCode);
-                  return;
-                } else {
-                  console.log('⚠️ No country code in geocoding response');
+                try {
+                  console.log('🌐 Starting reverse geocoding...');
+                  // Use a reverse geocoding service to get country from coordinates
+                  const geocodingUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`;
+                  console.log('🔗 Geocoding URL:', geocodingUrl);
+                  
+                  const response = await fetch(geocodingUrl);
+                  console.log('📡 Geocoding response status:', response.status);
+                  
+                  if (!response.ok) {
+                    throw new Error(`Geocoding failed: ${response.status} ${response.statusText}`);
+                  }
+                  
+                  const data = await response.json();
+                  console.log('📄 Geocoding response data:', data);
+                  
+                  if (data && data.address && data.address.country_code) {
+                    const countryCode = data.address.country_code.toUpperCase();
+                    console.log('🌍 SUCCESS! Country detected from GPS:', countryCode);
+                    console.log('🏠 Address details:', data.address);
+                    resolve(countryCode);
+                    return;
+                  } else {
+                    console.log('⚠️ No country code in geocoding response');
+                    // Fallback to browser-based detection
+                    detectCountryFromBrowser();
+                  }
+                } catch (geocodingError) {
+                  console.warn('❌ Geocoding error:', geocodingError);
+                  console.log('🔄 Falling back to browser-based detection...');
                   // Fallback to browser-based detection
                   detectCountryFromBrowser();
                 }
-              } catch (geocodingError) {
-                console.warn('❌ Geocoding error:', geocodingError);
-                console.log('🔄 Falling back to browser-based detection...');
-                // Fallback to browser-based detection
-                detectCountryFromBrowser();
+              },
+              // Error callback
+              (error) => {
+                console.error('❌ GPS Geolocation error:', {
+                  code: error.code,
+                  message: error.message,
+                  PERMISSION_DENIED: error.code === 1,
+                  POSITION_UNAVAILABLE: error.code === 2,
+                  TIMEOUT: error.code === 3
+                });
+                
+                if (error.code === 1) {
+                  console.log('🚫 User denied GPS permission');
+                  // Don't fallback immediately, let user decide
+                  resolve('US');
+                } else {
+                  console.log('🔄 GPS failed, falling back to browser-based detection...');
+                  // Fallback to browser-based detection
+                  detectCountryFromBrowser();
+                }
+              },
+              // Options
+              {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000 // 5 minutes
               }
-            },
-            // Error callback
-            (error) => {
-              console.error('❌ GPS Geolocation error:', {
-                code: error.code,
-                message: error.message,
-                PERMISSION_DENIED: error.code === 1,
-                POSITION_UNAVAILABLE: error.code === 2,
-                TIMEOUT: error.code === 3
-              });
+            );
+          };
+          
+          // Check if geolocation is actually blocked by permissions policy
+          try {
+            // Try to access geolocation permissions directly
+            navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+              console.log('🔐 Geolocation permission state:', result.state);
               
-              if (error.code === 1) {
-                console.log('🚫 User denied GPS permission');
-                // Don't fallback immediately, let user decide
-                resolve('US');
-              } else {
-                console.log('🔄 GPS failed, falling back to browser-based detection...');
-                // Fallback to browser-based detection
+              if (result.state === 'denied') {
+                console.log('🚫 Geolocation permission denied by user');
+                console.log('🔄 Falling back to browser-based detection...');
                 detectCountryFromBrowser();
+                return;
               }
-            },
-            // Options
-            {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 300000 // 5 minutes
-            }
-          );
+              
+              if (result.state === 'prompt') {
+                console.log('❓ Geolocation permission prompt required');
+              }
+              
+              // Proceed with geolocation request
+              requestGeolocationPosition();
+            }).catch((error) => {
+              console.log('⚠️ Could not query geolocation permissions:', error);
+              console.log('🔄 Proceeding with geolocation request anyway...');
+              requestGeolocationPosition();
+            });
+          } catch (permissionsError) {
+            console.log('⚠️ Permissions API not available, proceeding with geolocation...');
+            requestGeolocationPosition();
+          }
         } else {
           console.log('❌ Geolocation API not available in this browser');
           // Fallback to browser-based detection
