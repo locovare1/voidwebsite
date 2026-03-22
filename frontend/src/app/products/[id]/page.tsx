@@ -133,8 +133,8 @@ export default function ProductDetailPage() {
 
   const calculateTotalPrice = () => {
     if (!product) return 0;
-    // Use sale price if on sale, otherwise regular price
-    let basePrice = product.onSale && product.salePrice ? product.salePrice : product.price;
+    // Use country-specific price
+    let basePrice = getLocationSpecificPrice(product, userCountry || undefined);
     
     if (product.sizes && customization.size) {
       const selectedSize = product.sizes.find(s => s.id === customization.size);
@@ -326,20 +326,26 @@ export default function ProductDetailPage() {
                 {product.name}
               </h1>
               <div className="mb-4">
-                <div className="text-xl sm:text-2xl font-bold text-green-400">
-                  {product.onSale && product.salePrice && product.salePrice < product.price 
-                    ? (product.salePrice === 0 ? 'FREE' : `$${product.salePrice.toFixed(2)}`)
-                    : (product.price === 0 ? 'FREE' : `$${product.price.toFixed(2)}`)
-                  }
-                </div>
-                {product.onSale && product.salePrice && product.salePrice < product.price && (
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-gray-500 line-through text-lg">${product.price.toFixed(2)}</span>
-                    <span className="text-red-400 text-sm font-bold">
-                      -{Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF
-                    </span>
-                  </div>
-                )}
+                {(() => {
+                  const displayPrice = getLocationSpecificPrice(product, userCountry || undefined);
+                  const hasDiscount = displayPrice < product.price && displayPrice > 0;
+                  
+                  return (
+                    <>
+                      <div className="text-xl sm:text-2xl font-bold text-green-400">
+                        {displayPrice === 0 ? 'FREE' : `$${displayPrice.toFixed(2)}`}
+                      </div>
+                      {hasDiscount && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-gray-500 line-through text-lg">${product.price.toFixed(2)}</span>
+                          <span className="text-red-400 text-sm font-bold">
+                            -{Math.round(((product.price - displayPrice) / product.price) * 100)}% OFF
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
               <p className="text-gray-300 text-base sm:text-lg leading-relaxed">
                 {product.description}
