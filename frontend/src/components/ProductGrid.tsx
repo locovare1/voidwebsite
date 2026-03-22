@@ -47,32 +47,14 @@ function getExtendedProductLocationPrice(product: ExtendedProduct, countryCode?:
 interface ProductGridProps {
 	products: ExtendedProduct[];
 	itemsPerPage?: number;
+	userCountry?: string;
 }
 
-export default function ProductGrid({ products, itemsPerPage = 12 }: ProductGridProps) {
+export default function ProductGrid({ products, itemsPerPage = 12, userCountry: propUserCountry }: ProductGridProps) {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [selectedCategory, setSelectedCategory] = useState<string>('All');
 	const [sortBy, setSortBy] = useState<string>('name');
-	const [userCountry, setUserCountry] = useState<string | null>(null);
-
-	// Detect user country on component mount
-	useEffect(() => {
-		let mounted = true;
-		const detectCountry = async () => {
-			try {
-				const country = await detectUserCountry();
-				if (mounted) {
-					setUserCountry(country);
-				}
-			} catch {
-				if (mounted) {
-					setUserCountry(null);
-				}
-			}
-		};
-		detectCountry();
-		return () => { mounted = false; };
-	}, []);
+	const [userCountry, setUserCountry] = useState(propUserCountry || null);
 	const [addingToCart, setAddingToCart] = useState<number | null>(null);
 	const { addItem } = useCart();
 
