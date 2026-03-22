@@ -110,15 +110,15 @@ export default function ProductGrid({ products, itemsPerPage = 12, userCountry: 
 		// Add a small delay for better UX
 		await new Promise(resolve => setTimeout(resolve, 500));
 		
-		// Use sale price if on sale, otherwise regular price
-		const itemPrice = product.onSale && product.salePrice ? product.salePrice : product.price;
+		// Get country-specific price
+		const itemPrice = getExtendedProductLocationPrice(product, userCountry || undefined);
 		
 		addItem({
 			id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
 			productId: product.id,
 			name: product.name,
 			price: itemPrice,
-			originalPrice: product.onSale && product.salePrice ? product.price : undefined,
+			originalPrice: product.price !== itemPrice ? product.price : undefined,
 			image: product.image,
 			category: product.category,
 			description: product.description,

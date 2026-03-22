@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { productService, type Product, type CustomField, type Size } from '@/lib/productService';
+import { productService, type Product, type CustomField, type Size, getLocationSpecificPrice } from '@/lib/productService';
 import { reviewService, Review } from '@/lib/reviewService';
 import { useCart } from '@/contexts/CartContext';
 import { AnimatedCard } from '@/components/FramerAnimations';
@@ -43,6 +43,7 @@ export default function ProductDetailPage() {
   const [customization, setCustomization] = useState<CartItemCustomization>({
     quantity: 1
   });
+  const [userCountry, setUserCountry] = useState<string | null>(null);
 
   const { addItem } = useCart();
 
@@ -53,6 +54,14 @@ export default function ProductDetailPage() {
     console.log('Current product images:', product?.images);
     console.log('All images to display:', allImages);
   }, [product, allImages]);
+
+  // Load user country from localStorage
+  useEffect(() => {
+    const savedCountry = localStorage.getItem('selectedCountry');
+    if (savedCountry) {
+      setUserCountry(savedCountry);
+    }
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -166,15 +175,15 @@ export default function ProductDetailPage() {
       });
       const cartItemId = `${product.id}_${btoa(customizationKey).replace(/[^a-zA-Z0-9]/g, '')}`;
       
-      // Use sale price if on sale, otherwise regular price
-      const itemPrice = product.onSale && product.salePrice ? product.salePrice : product.price;
+      // Get country-specific price
+      const itemPrice = getLocationSpecificPrice(product, userCountry || undefined);
       
       await addItem({
         id: cartItemId,
         productId: parseInt(product.id!) || Math.floor(Math.random() * 1000000),
         name: product.name,
         price: itemPrice,
-        originalPrice: product.onSale && product.salePrice ? product.price : undefined,
+        originalPrice: product.price !== itemPrice ? product.price : undefined,
         image: product.image,
         category: product.category,
         description: product.description,
