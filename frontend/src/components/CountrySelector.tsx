@@ -86,22 +86,17 @@ interface CountrySelectorProps {
 
 export default function CountrySelector({ onCountryChange, initialCountry }: CountrySelectorProps) {
   const [selectedCountry, setSelectedCountry] = useState<string>(initialCountry || 'US');
-  const [isOpen, setIsOpen] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(!initialCountry);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     if (initialCountry) {
       setSelectedCountry(initialCountry);
-      setShowWelcome(false);
     }
   }, [initialCountry]);
 
   const handleCountrySelect = (countryCode: string) => {
     setSelectedCountry(countryCode);
     onCountryChange(countryCode);
-    setIsOpen(false);
-    setShowWelcome(false);
   };
 
   const selectedCountryData = countries.find(c => c.code === selectedCountry);
@@ -112,15 +107,21 @@ export default function CountrySelector({ onCountryChange, initialCountry }: Cou
     country.code.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleContinue = () => {
+    if (selectedCountry) {
+      onCountryChange(selectedCountry);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {showWelcome ? 'Welcome! 🌍' : 'Select Your Country 🌍'}
+            {!initialCountry ? 'Welcome! 🌍' : 'Select Your Country 🌍'}
           </h2>
           <p className="text-gray-600 mb-4">
-            {showWelcome 
+            {!initialCountry 
               ? 'Please choose your country of residence for the best results on our prices as they vary by country and region.'
               : 'Choose your country to see region-specific pricing and discounts.'
             }
@@ -185,8 +186,13 @@ export default function CountrySelector({ onCountryChange, initialCountry }: Cou
 
         <div className="mt-6 text-center">
           <button
-            onClick={() => handleCountrySelect(selectedCountry)}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={handleContinue}
+            disabled={!selectedCountry}
+            className={`px-6 py-2 rounded-lg transition-colors ${
+              selectedCountry
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
           >
             Continue Shopping
           </button>
