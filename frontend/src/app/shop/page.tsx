@@ -89,6 +89,7 @@ export default function ShopPage() {
 
   const handleCountryChange = (countryCode: string) => {
     setUserCountry(countryCode);
+    setShowCountrySelector(false);
     localStorage.setItem('selectedCountry', countryCode);
   };
 
