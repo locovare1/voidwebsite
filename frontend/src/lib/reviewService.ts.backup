@@ -230,111 +230,6 @@ export const reviewService = {
     }
   },
 
-  // Like/unlike a review
-  async toggleLikeReview(reviewId: string, userEmail: string): Promise<{ liked: boolean; likes: number }> {
-    // Skip if not in browser or db not available
-    if (!isBrowser || !db) {
-      debugLog('Skipping like toggle - not in browser or db not available');
-      return { liked: false, likes: 0 };
-    }
-    
-    try {
-      debugLog(`Toggling like for review ${reviewId} by user ${userEmail}`);
-      const reviewRef = doc(db, REVIEWS_COLLECTION, reviewId);
-      
-      // Get current review data
-      const reviewDoc = await getDocs(query(collection(db, REVIEWS_COLLECTION), where('__name__', '==', reviewId)));
-      if (reviewDoc.empty) {
-        throw new Error('Review not found');
-      }
-      
-      const reviewData = reviewDoc.docs[0].data() as Review;
-      const currentLikes = reviewData.likes || 0;
-      const userLiked = reviewData.userLiked || false;
-      
-      // Toggle the like
-      const newLiked = !userLiked;
-      const newLikes = newLiked ? currentLikes + 1 : Math.max(0, currentLikes - 1);
-      
-      await updateDoc(reviewRef, {
-        likes: newLikes,
-        userLiked: newLiked
-      });
-      
-      debugLog(`Review ${reviewId} like toggled successfully: ${newLiked ? 'liked' : 'unliked'}`);
-      return { liked: newLiked, likes: newLikes };
-    } catch (error) {
-      debugLog('Error toggling review like:', error);
-      throw new Error('Failed to toggle review like');
-    }
-  },
-
-  // Add a response to a review
-  async addReviewResponse(reviewId: string, response: Omit<ReviewResponse, 'id' | 'createdAt'>): Promise<string> {
-    // Skip if not in browser or db not available
-    if (!isBrowser || !db) {
-      debugLog('Skipping response addition - not in browser or db not available');
-      return 'mock-response-id';
-    }
-    
-    try {
-      debugLog(`Adding response to review ${reviewId}:`, response);
-      
-      const responseData: ReviewResponse = {
-        ...response,
-        createdAt: Timestamp.now()
-      };
-      
-      const reviewRef = doc(db, REVIEWS_COLLECTION, reviewId);
-      
-      // Get current review data
-      const reviewDoc = await getDocs(query(collection(db, REVIEWS_COLLECTION), where('__name__', '==', reviewId)));
-      if (reviewDoc.empty) {
-        throw new Error('Review not found');
-      }
-      
-      const reviewData = reviewDoc.docs[0].data() as Review;
-      const currentResponses = reviewData.responses || [];
-      
-      // Add the new response
-      const updatedResponses = [...currentResponses, responseData];
-      
-      await updateDoc(reviewRef, {
-        responses: updatedResponses
-      });
-      
-      debugLog(`Response added successfully to review ${reviewId}`);
-      return 'response-id'; // In a real implementation, you'd get the actual ID
-    } catch (error) {
-      debugLog('Error adding review response:', error);
-      throw new Error('Failed to add review response');
-    }
-  },
-
-  // Get user's like status for a review
-  async getUserLikeStatus(reviewId: string, userEmail: string): Promise<boolean> {
-    // Skip if not in browser or db not available
-    if (!isBrowser || !db) {
-      debugLog('Skipping like status check - not in browser or db not available');
-      return false;
-    }
-    
-    try {
-      debugLog(`Checking like status for review ${reviewId} by user ${userEmail}`);
-      const reviewDoc = await getDocs(query(collection(db, REVIEWS_COLLECTION), where('__name__', '==', reviewId)));
-      
-      if (reviewDoc.empty) {
-        return false;
-      }
-      
-      const reviewData = reviewDoc.docs[0].data() as Review;
-      return reviewData.userLiked || false;
-    } catch (error) {
-      debugLog('Error checking user like status:', error);
-      return false;
-    }
-  },
-
   // Delete a review
   async deleteReview(reviewId: string): Promise<void> {
     // Skip if not in browser or db not available
@@ -427,12 +322,186 @@ export const reviewService = {
     } catch (error) {
       debugLog('Firebase connection test failed:', error);
       return { 
-        status: 'error', 
-        details: { 
-          message: 'Firebase connection failed',
-          error: error instanceof Error ? error.message : 'Unknown error'
-        } 
-      };
-    }
   }
+}
+},
+
+// Get all reviews (for admin purposes)
+async getAllReviews(): Promise<Review[]> {
+// Return empty array if not in browser or db not available
+if (!isBrowser || !db) {
+  debugLog('Returning empty reviews list - not in browser or db not available');
+  return [];
+}
+  
+try {
+  debugLog('Fetching all reviews');
+  const q = query(
+    collection(db, REVIEWS_COLLECTION),
+    orderBy('createdAt', 'desc')
+  );
+
+  const querySnapshot = await getDocs(q);
+  const reviews: Review[] = [];
+
+  querySnapshot.forEach((doc) => {
+    const data = doc.data() as ReviewData;
+    reviews.push({
+      id: doc.id,
+      ...data
+    });
+  });
+
+  debugLog(`Found ${reviews.length} total reviews`);
+  return reviews;
+} catch (error: unknown) {
+  debugLog('Error fetching all reviews:', error);
+  const firebaseError = error as FirebaseError;
+  if (firebaseError?.code === 'permission-denied') {
+    throw new Error('Permission denied. Please check Firebase security rules.');
+  } else {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to fetch all reviews: ${errorMessage}`);
+  }
+}
+},
+  
+// Debug method to check Firebase connection
+async debugConnection(): Promise<{ status: string; details: any }> {
+if (!isBrowser || !db) {
+  return { 
+    status: 'error', 
+    details: { message: 'Firebase not initialized or not in browser environment' } 
+  };
+}
+  
+try {
+  debugLog('Testing Firebase connection');
+  const testQuery = query(collection(db, REVIEWS_COLLECTION));
+  const snapshot = await getDocs(testQuery);
+  
+  return { 
+    status: 'success', 
+    details: { 
+      message: 'Firebase connection successful', 
+      documentCount: snapshot.size,
+      collection: REVIEWS_COLLECTION
+    } 
+  };
+} catch (error) {
+  debugLog('Firebase connection test failed:', error);
+  return { 
+    status: 'error', 
+    details: { 
+      message: 'Firebase connection failed',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    } 
+  };
+}
+},
+
+// Like/unlike a review
+async toggleLikeReview(reviewId: string, userEmail: string): Promise<{ liked: boolean; likes: number }> {
+// Skip if not in browser or db not available
+if (!isBrowser || !db) {
+  debugLog('Skipping like toggle - not in browser or db not available');
+  return { liked: false, likes: 0 };
+}
+  
+try {
+  debugLog(`Toggling like for review ${reviewId} by user ${userEmail}`);
+  const reviewRef = doc(db, REVIEWS_COLLECTION, reviewId);
+  
+  // Get current review data
+  const reviewDoc = await getDocs(query(collection(db, REVIEWS_COLLECTION), where('__name__', '==', reviewId)));
+  if (reviewDoc.empty) {
+    throw new Error('Review not found');
+  }
+  
+  const reviewData = reviewDoc.docs[0].data() as Review;
+  const currentLikes = reviewData.likes || 0;
+  const userLiked = reviewData.userLiked || false;
+  
+  // Toggle the like
+  const newLiked = !userLiked;
+  const newLikes = newLiked ? currentLikes + 1 : Math.max(0, currentLikes - 1);
+  
+  await updateDoc(reviewRef, {
+    likes: newLikes,
+    userLiked: newLiked
+  });
+  
+  debugLog(`Review ${reviewId} like toggled successfully: ${newLiked ? 'liked' : 'unliked'}`);
+  return { liked: newLiked, likes: newLikes };
+} catch (error) {
+  debugLog('Error toggling review like:', error);
+  throw new Error('Failed to toggle review like');
+}
+},
+
+// Add a response to a review
+async addReviewResponse(reviewId: string, response: Omit<ReviewResponse, 'id' | 'createdAt'>): Promise<string> {
+// Skip if not in browser or db not available
+if (!isBrowser || !db) {
+  debugLog('Skipping response addition - not in browser or db not available');
+  return 'mock-response-id';
+}
+  
+try {
+  debugLog(`Adding response to review ${reviewId}:`, response);
+  
+  const responseData: ReviewResponse = {
+    ...response,
+    createdAt: Timestamp.now()
+  };
+  
+  const reviewRef = doc(db, REVIEWS_COLLECTION, reviewId);
+  
+  // Get current review data
+  const reviewDoc = await getDocs(query(collection(db, REVIEWS_COLLECTION), where('__name__', '==', reviewId)));
+  if (reviewDoc.empty) {
+    throw new Error('Review not found');
+  }
+  
+  const reviewData = reviewDoc.docs[0].data() as Review;
+  const currentResponses = reviewData.responses || [];
+  
+  // Add the new response
+  const updatedResponses = [...currentResponses, responseData];
+  
+  await updateDoc(reviewRef, {
+    responses: updatedResponses
+  });
+  
+  debugLog(`Response added successfully to review ${reviewId}`);
+  return 'response-id'; // In a real implementation, you'd get the actual ID
+} catch (error) {
+  debugLog('Error adding review response:', error);
+  throw new Error('Failed to add review response');
+}
+},
+
+// Get user's like status for a review
+async getUserLikeStatus(reviewId: string, userEmail: string): Promise<boolean> {
+// Skip if not in browser or db not available
+if (!isBrowser || !db) {
+  debugLog('Skipping like status check - not in browser or db not available');
+  return false;
+}
+  
+try {
+  debugLog(`Checking like status for review ${reviewId} by user ${userEmail}`);
+  const reviewDoc = await getDocs(query(collection(db, REVIEWS_COLLECTION), where('__name__', '==', reviewId)));
+  
+  if (reviewDoc.empty) {
+    return false;
+  }
+  
+  const reviewData = reviewDoc.docs[0].data() as Review;
+  return reviewData.userLiked || false;
+} catch (error) {
+  debugLog('Error checking user like status:', error);
+  return false;
+}
+}
 };

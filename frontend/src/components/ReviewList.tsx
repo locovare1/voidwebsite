@@ -1,29 +1,46 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { StarIcon, HandThumbUpIcon } from '@heroicons/react/24/solid';
-import { StarIcon as StarOutlineIcon, HandThumbUpIcon as HandThumbUpOutlineIcon } from '@heroicons/react/24/outline';
+import { StarIcon, HandThumbUpIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/solid';
+import { StarIcon as StarOutlineIcon, HandThumbUpIcon as HandThumbUpOutlineIcon, ChatBubbleLeftIcon as ChatBubbleLeftOutlineIcon } from '@heroicons/react/24/outline';
 import { useReviews } from '@/contexts/ReviewContext';
-import { Review } from '@/lib/reviewService';
+import { Review, ReviewResponse } from '@/lib/reviewService';
 
 interface ReviewListProps {
   productId: number;
   showAll?: boolean;
   limit?: number;
+  currentUserEmail?: string;
+  isOfficial?: boolean; // For admin responses
 }
 
-export default function ReviewList({ productId, showAll = false, limit = 5 }: ReviewListProps) {
-  const { getProductReviews, markReviewHelpful, loading } = useReviews();
+export default function ReviewList({ productId, showAll = false, limit = 5, currentUserEmail, isOfficial = false }: ReviewListProps) {
+  const { getProductReviews, markReviewHelpful, toggleLikeReview, addReviewResponse, loading } = useReviews();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [displayedReviews, setDisplayedReviews] = useState<Review[]>([]);
   const [showMore, setShowMore] = useState(false);
   const [helpfulClicks, setHelpfulClicks] = useState<Set<string>>(new Set());
+  const [likeStatuses, setLikeStatuses] = useState<Map<string, boolean>>(new Map());
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
+  const [responseText, setResponseText] = useState('');
+  const [submittingResponse, setSubmittingResponse] = useState(false);
 
   useEffect(() => {
     const fetchReviews = async () => {
       try {
         const productReviews = await getProductReviews(productId);
         setReviews(productReviews);
+        
+        // Check like status for each review if user is logged in
+        if (currentUserEmail) {
+          const statusMap = new Map<string, boolean>();
+          for (const review of productReviews) {
+            if (review.id) {
+              statusMap.set(review.id, review.userLiked || false);
+            }
+          }
+          setLikeStatuses(statusMap);
+        }
         
         if (showAll) {
           setDisplayedReviews(productReviews);
@@ -36,7 +53,7 @@ export default function ReviewList({ productId, showAll = false, limit = 5 }: Re
     };
 
     fetchReviews();
-  }, [productId, getProductReviews, showAll, limit]);
+  }, [productId, getProductReviews, showAll, limit, currentUserEmail]);
 
   const handleShowMore = () => {
     if (showMore) {
@@ -67,6 +84,67 @@ export default function ReviewList({ productId, showAll = false, limit = 5 }: Re
       ));
     } catch (error) {
       console.error('Error marking review as helpful:', error);
+    }
+  };
+
+  const handleLikeClick = async (reviewId: string) => {
+    if (!currentUserEmail) {
+      alert('Please log in to like reviews');
+      return;
+    }
+    
+    try {
+      const result = await toggleLikeReview(reviewId, currentUserEmail);
+      
+      // Update local state
+      setReviews(prev => prev.map(review =>
+        review.id === reviewId
+          ? { ...review, likes: result.likes, userLiked: result.liked }
+          : review
+      ));
+      setDisplayedReviews(prev => prev.map(review =>
+        review.id === reviewId
+          ? { ...review, likes: result.likes, userLiked: result.liked }
+          : review
+      ));
+      
+      // Update like status
+      setLikeStatuses(prev => new Map(prev).set(reviewId, result.liked));
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    }
+  };
+
+  const handleResponseSubmit = async (reviewId: string) => {
+    if (!responseText.trim()) return;
+    if (!currentUserEmail) {
+      alert('Please log in to respond to reviews');
+      return;
+    }
+    
+    setSubmittingResponse(true);
+    try {
+      await addReviewResponse(reviewId, {
+        reviewId,
+        userName: currentUserEmail.split('@')[0], // Extract name from email
+        userEmail: currentUserEmail,
+        comment: responseText.trim(),
+        isOfficial: isOfficial
+      });
+      
+      setResponseText('');
+      setRespondingTo(null);
+      
+      // Refresh reviews to show the new response
+      const updatedReviews = await getProductReviews(productId);
+      setReviews(updatedReviews);
+      setDisplayedReviews(showAll ? updatedReviews : updatedReviews.slice(0, limit));
+      
+    } catch (error) {
+      console.error('Error adding response:', error);
+      alert('Failed to add response. Please try again.');
+    } finally {
+      setSubmittingResponse(false);
     }
   };
 
@@ -168,25 +246,126 @@ export default function ReviewList({ productId, showAll = false, limit = 5 }: Re
 
           <p className="text-gray-300 mb-4 leading-relaxed">{review.comment}</p>
 
+          {/* Display responses */}
+          {review.responses && review.responses.length > 0 && (
+            <div className="mb-4 space-y-3">
+              {review.responses.map((response, index) => (
+                <div key={index} className="bg-[#2A2A2A] rounded-lg p-4 border-l-4 border-blue-500">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                      {response.userName.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h5 className="font-semibold text-white text-sm">
+                        {response.userName}
+                        {response.isOfficial && (
+                          <span className="ml-2 bg-blue-500/20 text-blue-400 text-xs px-2 py-0.5 rounded-full">
+                            Official Response
+                          </span>
+                        )}
+                      </h5>
+                      <span className="text-xs text-gray-400">
+                        {formatDate(response.createdAt)}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-gray-300 text-sm leading-relaxed">{response.comment}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Response form */}
+          {respondingTo === review.id && (
+            <div className="mb-4 p-4 bg-[#2A2A2A] rounded-lg border border-[#3A3A3A]">
+              <textarea
+                value={responseText}
+                onChange={(e) => setResponseText(e.target.value)}
+                placeholder="Write your response..."
+                className="w-full bg-[#1A1A1A] border border-[#3A3A3A] rounded-lg px-3 py-2 text-white placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={3}
+              />
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={() => handleResponseSubmit(review.id!)}
+                  disabled={submittingResponse || !responseText.trim()}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
+                >
+                  {submittingResponse ? 'Posting...' : 'Post Response'}
+                </button>
+                <button
+                  onClick={() => {
+                    setRespondingTo(null);
+                    setResponseText('');
+                  }}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
-            <button
-              onClick={() => handleHelpfulClick(review.id!)}
-              disabled={helpfulClicks.has(review.id!)}
-              className={`flex items-center gap-2 text-sm transition-all duration-300 ${
-                helpfulClicks.has(review.id!)
-                  ? 'text-blue-400 cursor-not-allowed'
-                  : 'text-gray-400 hover:text-blue-400'
-              }`}
-            >
-              {helpfulClicks.has(review.id!) ? (
-                <HandThumbUpIcon className="w-4 h-4" />
-              ) : (
-                <HandThumbUpOutlineIcon className="w-4 h-4" />
-              )}
-              <span>
-                Helpful ({review.helpful})
-              </span>
-            </button>
+            <div className="flex items-center gap-4">
+              {/* Like button */}
+              <button
+                onClick={() => handleLikeClick(review.id!)}
+                disabled={!currentUserEmail}
+                className={`flex items-center gap-2 text-sm transition-all duration-300 ${
+                  currentUserEmail
+                    ? likeStatuses.get(review.id!)
+                      ? 'text-red-400 hover:text-red-300'
+                      : 'text-gray-400 hover:text-red-400'
+                    : 'text-gray-500 cursor-not-allowed'
+                }`}
+                title={currentUserEmail ? 'Like this review' : 'Log in to like reviews'}
+              >
+                {likeStatuses.get(review.id!) ? (
+                  <HandThumbUpIcon className="w-4 h-4" />
+                ) : (
+                  <HandThumbUpOutlineIcon className="w-4 h-4" />
+                )}
+                <span>{review.likes || 0}</span>
+              </button>
+
+              {/* Helpful button */}
+              <button
+                onClick={() => handleHelpfulClick(review.id!)}
+                disabled={helpfulClicks.has(review.id!)}
+                className={`flex items-center gap-2 text-sm transition-all duration-300 ${
+                  helpfulClicks.has(review.id!)
+                    ? 'text-blue-400 cursor-not-allowed'
+                    : 'text-gray-400 hover:text-blue-400'
+                }`}
+              >
+                {helpfulClicks.has(review.id!) ? (
+                  <HandThumbUpIcon className="w-4 h-4" />
+                ) : (
+                  <HandThumbUpOutlineIcon className="w-4 h-4" />
+                )}
+                <span>
+                  Helpful ({review.helpful})
+                </span>
+              </button>
+
+              {/* Response button */}
+              <button
+                onClick={() => setRespondingTo(respondingTo === review.id ? null : review.id!)}
+                className={`flex items-center gap-2 text-sm transition-all duration-300 ${
+                  respondingTo === review.id
+                    ? 'text-blue-400'
+                    : 'text-gray-400 hover:text-blue-400'
+                }`}
+              >
+                {respondingTo === review.id ? (
+                  <ChatBubbleLeftIcon className="w-4 h-4" />
+                ) : (
+                  <ChatBubbleLeftOutlineIcon className="w-4 h-4" />
+                )}
+                <span>Respond</span>
+              </button>
+            </div>
           </div>
         </div>
       ))}
@@ -197,7 +376,7 @@ export default function ReviewList({ productId, showAll = false, limit = 5 }: Re
             onClick={handleShowMore}
             className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white px-6 py-2 rounded-lg transition-all duration-300 font-medium border border-[#3A3A3A]"
           >
-            {showMore ? `Show Less` : `Show ${reviews.length - limit} More Reviews`}
+            {showMore ? 'Show Less' : `Show More (${reviews.length - limit} more)`}
           </button>
         </div>
       )}

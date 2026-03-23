@@ -1,17 +1,20 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { Review, ReviewStats, reviewService } from '@/lib/reviewService';
+import { Review, ReviewStats, ReviewResponse, reviewService } from '@/lib/reviewService';
 
 interface ReviewContextType {
   reviews: { [productId: number]: Review[] };
   reviewStats: { [productId: number]: ReviewStats };
   loading: boolean;
   error: string | null;
-  addReview: (review: Omit<Review, 'id' | 'createdAt' | 'helpful' | 'verified'>) => Promise<void>;
+  addReview: (review: Omit<Review, 'id' | 'createdAt' | 'helpful' | 'verified' | 'likes' | 'userLiked' | 'responses'>) => Promise<void>;
   getProductReviews: (productId: number) => Promise<Review[]>;
   getReviewStats: (productId: number) => Promise<ReviewStats>;
   markReviewHelpful: (reviewId: string) => Promise<void>;
+  toggleLikeReview: (reviewId: string, userEmail: string) => Promise<{ liked: boolean; likes: number }>;
+  addReviewResponse: (reviewId: string, response: Omit<ReviewResponse, 'id' | 'createdAt'>) => Promise<string>;
+  getUserLikeStatus: (reviewId: string, userEmail: string) => Promise<boolean>;
   clearError: () => void;
 }
 
@@ -27,7 +30,7 @@ export function ReviewProvider({ children }: { children: React.ReactNode }) {
     setError(null);
   }, []);
 
-  const addReview = useCallback(async (reviewData: Omit<Review, 'id' | 'createdAt' | 'helpful' | 'verified'>) => {
+  const addReview = useCallback(async (reviewData: Omit<Review, 'id' | 'createdAt' | 'helpful' | 'verified' | 'likes' | 'userLiked' | 'responses'>) => {
     try {
       setLoading(true);
       setError(null);
@@ -131,6 +134,75 @@ export function ReviewProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const toggleLikeReview = useCallback(async (reviewId: string, userEmail: string) => {
+    try {
+      setError(null);
+      const result = await reviewService.toggleLikeReview(reviewId, userEmail);
+      
+      // Update the like count and user liked status in local state
+      setReviews(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(productId => {
+          updated[parseInt(productId)] = updated[parseInt(productId)].map(review =>
+            review.id === reviewId
+              ? { ...review, likes: result.likes, userLiked: result.liked }
+              : review
+          );
+        });
+        return updated;
+      });
+      
+      return result;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to toggle like');
+      throw err;
+    }
+  }, []);
+
+  const addReviewResponse = useCallback(async (reviewId: string, response: Omit<ReviewResponse, 'id' | 'createdAt'>) => {
+    try {
+      setError(null);
+      await reviewService.addReviewResponse(reviewId, response);
+      
+      // Refresh reviews to include the new response
+      // Find which product this review belongs to and refresh that product's reviews
+      setReviews(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(productId => {
+          const reviewIndex = updated[parseInt(productId)].findIndex(r => r.id === reviewId);
+          if (reviewIndex !== -1) {
+            // Add the new response to the local state immediately
+            const newResponse: ReviewResponse = {
+              ...response,
+              createdAt: { toDate: () => new Date() } as any, // Mock Timestamp
+              id: 'temp-id'
+            };
+            updated[parseInt(productId)][reviewIndex] = {
+              ...updated[parseInt(productId)][reviewIndex],
+              responses: [...(updated[parseInt(productId)][reviewIndex].responses || []), newResponse]
+            };
+          }
+        });
+        return updated;
+      });
+      
+      return 'response-id';
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add response');
+      throw err;
+    }
+  }, []);
+
+  const getUserLikeStatus = useCallback(async (reviewId: string, userEmail: string) => {
+    try {
+      setError(null);
+      return await reviewService.getUserLikeStatus(reviewId, userEmail);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to get like status');
+      return false;
+    }
+  }, []);
+
   const value: ReviewContextType = {
     reviews,
     reviewStats,
@@ -140,6 +212,9 @@ export function ReviewProvider({ children }: { children: React.ReactNode }) {
     getProductReviews,
     getReviewStats,
     markReviewHelpful,
+    toggleLikeReview,
+    addReviewResponse,
+    getUserLikeStatus,
     clearError,
   };
 
