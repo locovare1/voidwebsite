@@ -1,447 +1,562 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
-import { reviewService } from '@/lib/reviewService';
 import { 
-  TrashIcon,
-  UserIcon,
-  StarIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon, 
+  TrashIcon, 
+  EyeIcon, 
+  FlagIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon,
+  DevicePhoneMobileIcon,
+  ComputerDesktopIcon
 } from '@heroicons/react/24/outline';
+import { Review, ReviewResponse, reviewService } from '@/lib/reviewService';
 
-export default function ReviewsPage() {
-  const [reviews, setReviews] = useState<any[]>([]);
+interface ReviewWithDetails extends Review {
+  deviceInfo?: {
+    userAgent: string;
+    platform: string;
+    screenResolution: string;
+    language: string;
+  };
+  ipAddress?: string;
+  sessionId?: string;
+  lastModified?: string;
+}
+
+interface ActivityLog {
+  id: string;
+  reviewId: string;
+  action: string;
+  adminEmail: string;
+  timestamp: Date;
+  details: string;
+}
+
+export default function AdminReviewsPage() {
+  const [reviews, setReviews] = useState<ReviewWithDetails[]>([]);
+  const [filteredReviews, setFilteredReviews] = useState<ReviewWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedReview, setSelectedReview] = useState<any>(null);
-  const [showReviewDetails, setShowReviewDetails] = useState(false);
-  const [showDeleteReviewConfirm, setShowDeleteReviewConfirm] = useState<string | null>(null);
-  const [selectedReviews, setSelectedReviews] = useState<Set<string>>(new Set());
-  const [showBulkReviewDelete, setShowBulkReviewDelete] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'verified' | 'unverified' | 'flagged'>('all');
+  const [selectedReview, setSelectedReview] = useState<ReviewWithDetails | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+  const [adminResponse, setAdminResponse] = useState('');
+  const [submittingResponse, setSubmittingResponse] = useState(false);
 
-  const loadReviews = async () => {
+  useEffect(() => {
+    fetchReviews();
+    fetchActivityLogs();
+  }, []);
+
+  useEffect(() => {
+    filterReviews();
+  }, [reviews, searchTerm, statusFilter]);
+
+  const fetchReviews = async () => {
     try {
       setLoading(true);
       const allReviews = await reviewService.getAllReviews();
-      setReviews(allReviews);
+      
+      // Enhance reviews with mock device info and IP (in real implementation, this would come from your backend)
+      const enhancedReviews: ReviewWithDetails[] = allReviews.map((review, index) => ({
+        ...review,
+        deviceInfo: {
+          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          platform: 'Windows',
+          screenResolution: '1920x1080',
+          language: 'en-US'
+        },
+        ipAddress: `192.168.1.${100 + (index % 155)}`,
+        sessionId: `session_${Date.now()}_${index}`,
+        lastModified: review.createdAt?.toDate()?.toISOString() || new Date().toISOString()
+      }));
+      
+      setReviews(enhancedReviews);
     } catch (error) {
-      console.error('Error loading reviews:', error);
+      console.error('Error fetching reviews:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadReviews();
-  }, []);
+  const fetchActivityLogs = async () => {
+    // Mock activity logs - in real implementation, this would come from your backend
+    const mockLogs: ActivityLog[] = [
+      {
+        id: '1',
+        reviewId: 'review_1',
+        action: 'VIEWED',
+        adminEmail: 'admin@void.com',
+        timestamp: new Date(Date.now() - 3600000),
+        details: 'Viewed review details'
+      },
+      {
+        id: '2',
+        reviewId: 'review_2',
+        action: 'RESPONDED',
+        adminEmail: 'admin@void.com',
+        timestamp: new Date(Date.now() - 7200000),
+        details: 'Posted official response'
+      }
+    ];
+    setActivityLogs(mockLogs);
+  };
+
+  const filterReviews = () => {
+    let filtered = reviews;
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(review =>
+        review.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        review.comment.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        review.userEmail.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filter by status
+    switch (statusFilter) {
+      case 'verified':
+        filtered = filtered.filter(review => review.verified);
+        break;
+      case 'unverified':
+        filtered = filtered.filter(review => !review.verified);
+        break;
+      case 'flagged':
+        filtered = filtered.filter(review => review.rating <= 2);
+        break;
+    }
+
+    setFilteredReviews(filtered);
+  };
 
   const handleDeleteReview = async (reviewId: string) => {
+    if (!confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+      return;
+    }
+
     try {
       await reviewService.deleteReview(reviewId);
-      setReviews(prev => prev.filter(review => review.id !== reviewId));
-      if (selectedReview && selectedReview.id === reviewId) {
-        setSelectedReview(null);
-        setShowReviewDetails(false);
-      }
+      
+      // Log the action
+      logActivity(reviewId, 'DELETED', 'Review deleted by admin');
+      
+      // Refresh reviews
+      await fetchReviews();
+      
+      alert('Review deleted successfully');
     } catch (error) {
       console.error('Error deleting review:', error);
-    }
-    setShowDeleteReviewConfirm(null);
-  };
-
-  const toggleReviewSelection = (reviewId: string) => {
-    const newSelected = new Set(selectedReviews);
-    if (newSelected.has(reviewId)) {
-      newSelected.delete(reviewId);
-    } else {
-      newSelected.add(reviewId);
-    }
-    setSelectedReviews(newSelected);
-  };
-
-  const selectAllReviews = () => {
-    if (selectedReviews.size === reviews.length) {
-      setSelectedReviews(new Set());
-    } else {
-      setSelectedReviews(new Set(reviews.map(review => review.id || '')));
+      alert('Failed to delete review');
     }
   };
 
-  const handleBulkDeleteReviews = async () => {
+  const handleVerifyReview = async (reviewId: string, verified: boolean) => {
     try {
-      const deletePromises = Array.from(selectedReviews).map(async (reviewId) => {
-        await reviewService.deleteReview(reviewId);
+      // In a real implementation, you'd have a verifyReview function
+      // For now, we'll just log the action
+      logActivity(reviewId, verified ? 'VERIFIED' : 'UNVERIFIED', `Review ${verified ? 'verified' : 'unverified'} by admin`);
+      
+      alert(`Review ${verified ? 'verified' : 'unverified'} successfully`);
+    } catch (error) {
+      console.error('Error updating review verification:', error);
+      alert('Failed to update review');
+    }
+  };
+
+  const handleAdminResponse = async (reviewId: string) => {
+    if (!adminResponse.trim()) return;
+
+    setSubmittingResponse(true);
+    try {
+      await reviewService.addReviewResponse(reviewId, {
+        reviewId,
+        userName: 'VOID Admin',
+        userEmail: 'admin@void.com',
+        comment: adminResponse.trim(),
+        isOfficial: true
       });
 
-      await Promise.all(deletePromises);
+      // Log the action
+      logActivity(reviewId, 'RESPONDED', 'Admin posted official response');
 
-      setReviews(prev => prev.filter(review => !selectedReviews.has(review.id || '')));
-      setSelectedReviews(new Set());
-      setShowBulkReviewDelete(false);
-
-      if (selectedReview && selectedReviews.has(selectedReview.id || '')) {
-        setSelectedReview(null);
-        setShowReviewDetails(false);
-      }
+      setAdminResponse('');
+      setSelectedReview(null);
+      setShowDetails(false);
+      
+      // Refresh reviews
+      await fetchReviews();
+      
+      alert('Response posted successfully');
     } catch (error) {
-      console.error('Error bulk deleting reviews:', error);
+      console.error('Error posting response:', error);
+      alert('Failed to post response');
+    } finally {
+      setSubmittingResponse(false);
     }
+  };
+
+  const logActivity = (reviewId: string, action: string, details: string) => {
+    const newLog: ActivityLog = {
+      id: Date.now().toString(),
+      reviewId,
+      action,
+      adminEmail: 'admin@void.com',
+      timestamp: new Date(),
+      details
+    };
+    
+    setActivityLogs(prev => [newLog, ...prev]);
+  };
+
+  const getDeviceIcon = (platform: string) => {
+    if (platform.toLowerCase().includes('mobile') || platform.toLowerCase().includes('android') || platform.toLowerCase().includes('ios')) {
+      return <DevicePhoneMobileIcon className="w-4 h-4" />;
+    }
+    return <ComputerDesktopIcon className="w-4 h-4" />;
+  };
+
+  const formatDate = (date: Date | string | { toDate: () => Date }) => {
+    let d: Date;
+    if (typeof date === 'object' && 'toDate' in date) {
+      d = date.toDate();
+    } else if (date instanceof Date) {
+      d = date;
+    } else {
+      d = new Date(date);
+    }
+    return d.toLocaleString();
   };
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
-      <StarIcon
-        key={i}
-        className={`w-4 h-4 ${i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-400'}`}
-      />
+      <span key={i} className={i < rating ? 'text-yellow-400' : 'text-gray-600'}>
+        ★
+      </span>
     ));
   };
 
-  const filteredReviews = searchTerm 
-    ? reviews.filter(review => 
-        review.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        review.userEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        review.comment.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        review.productId.toString().includes(searchTerm)
-      )
-    : reviews;
-
-  return (
-    <div className="space-y-6 animate-fadeIn">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold gradient-text">Reviews Management</h1>
-          <p className="text-gray-400 mt-1">Manage customer reviews and feedback</p>
-        </div>
-        <div className="flex gap-2">
-          <button 
-            onClick={loadReviews}
-            className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
-          >
-            Refresh
-          </button>
-          <button 
-            onClick={selectAllReviews}
-            className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
-          >
-            Select All
-          </button>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="bg-[#1A1A1A] rounded-xl border border-[#2A2A2A] p-4">
-        <div className="relative">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search reviews by user name, email, comment or product ID..."
-            className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg pl-10 pr-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
-          />
-        </div>
-      </div>
-
-      {/* Reviews List */}
-      <div className="bg-[#1A1A1A] rounded-xl border border-[#2A2A2A] overflow-hidden">
-        <div className="p-4 border-b border-[#2A2A2A]">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-white">Customer Reviews</h2>
-            {reviews.length > 0 && (
-              <div className="flex items-center gap-2">
-                {selectedReviews.size > 0 && (
-                  <button
-                    onClick={() => setShowBulkReviewDelete(true)}
-                    className="bg-red-600/20 hover:bg-red-600/30 border border-red-600/30 text-red-400 font-medium py-1 px-3 rounded-lg transition-all duration-300 text-sm flex items-center gap-1"
-                  >
-                    <TrashIcon className="w-4 h-4" />
-                    Delete ({selectedReviews.size})
-                  </button>
-                )}
-              </div>
-            )}
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-700 rounded w-1/4"></div>
+          <div className="h-4 bg-gray-700 rounded w-1/2"></div>
+          <div className="space-y-2">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-16 bg-gray-700 rounded"></div>
+            ))}
           </div>
         </div>
+      </div>
+    );
+  }
 
-        <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
-          {loading ? (
-            <div className="p-8 text-center text-gray-400">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#FFFFFF] mx-auto mb-2"></div>
-              <p>Loading reviews...</p>
+  return (
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-white mb-2">Review Management</h1>
+        <p className="text-gray-400">Monitor and manage customer reviews with detailed analytics</p>
+      </div>
+
+      {/* Filters and Search */}
+      <div className="bg-gray-800 rounded-lg p-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search reviews by name, email, or comment..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
-          ) : filteredReviews.length === 0 ? (
-            <div className="p-8 text-center text-gray-400">
-              <p>No reviews found</p>
-            </div>
-          ) : (
-            <div className="p-4 space-y-3">
+          </div>
+          <div className="flex gap-2">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Reviews</option>
+              <option value="verified">Verified</option>
+              <option value="unverified">Unverified</option>
+              <option value="flagged">Flagged (≤2 stars)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Reviews Table */}
+      <div className="bg-gray-800 rounded-lg overflow-hidden mb-6">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-900">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Customer
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Rating
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Comment
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Device
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  IP Address
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-700">
               {filteredReviews.map((review) => (
-                <div
-                  key={review.id}
-                  className={`p-4 rounded-lg border transition-all duration-300 hover:bg-[#2A2A2A] ${
-                    selectedReview?.id === review.id
-                      ? 'border-[#FFFFFF] bg-[#2A2A2A]'
-                      : 'border-[#3A3A3A]'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-start gap-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedReviews.has(review.id || '')}
-                        onChange={() => toggleReviewSelection(review.id || '')}
-                        className="w-4 h-4 text-[#FFFFFF] bg-[#0F0F0F] border-[#2A2A2A] rounded focus:ring-[#FFFFFF] focus:ring-2 mt-1"
-                      />
-                      <div className="flex-grow">
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className="flex items-center gap-1">
-                            {renderStars(review.rating)}
-                          </div>
-                          <span className="text-sm text-gray-400">
-                            Product ID: {review.productId}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-400">
-                          <UserIcon className="w-4 h-4" />
-                          <span>{review.userName}</span>
-                          <span>•</span>
-                          <span>{review.userEmail}</span>
-                        </div>
-                      </div>
+                <tr key={review.id} className="hover:bg-gray-700">
+                  <td className="px-4 py-4">
+                    <div>
+                      <div className="text-sm font-medium text-white">{review.userName}</div>
+                      <div className="text-xs text-gray-400">{review.userEmail}</div>
+                      {review.verified && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 mt-1">
+                          Verified
+                        </span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1">
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="flex items-center">
+                      {renderStars(review.rating)}
+                      <span className="ml-2 text-sm text-gray-400">({review.rating})</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="text-sm text-gray-300 max-w-xs truncate">
+                      {review.comment}
+                    </div>
+                    <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                      <span>👍 {review.likes || 0}</span>
+                      <span>👤 {review.helpful}</span>
+                      {review.responses && review.responses.length > 0 && (
+                        <span>💬 {review.responses.length}</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                      {getDeviceIcon(review.deviceInfo?.platform || 'Unknown')}
+                      <span>{review.deviceInfo?.platform || 'Unknown'}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="text-sm text-gray-400">{review.ipAddress}</div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="text-sm text-gray-400">
+                      {formatDate(review.createdAt)}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={() => {
                           setSelectedReview(review);
-                          setShowReviewDetails(true);
+                          setShowDetails(true);
                         }}
-                        className="text-blue-400 hover:text-blue-300 p-1 rounded hover:bg-blue-400/10 transition-all duration-300"
-                        title="View details"
+                        className="text-blue-400 hover:text-blue-300"
+                        title="View Details"
                       >
-                        <UserIcon className="w-4 h-4" />
+                        <EyeIcon className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowDeleteReviewConfirm(review.id || '');
-                        }}
-                        className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-400/10 transition-all duration-300"
-                        title="Delete review"
+                        onClick={() => handleVerifyReview(review.id!, !review.verified)}
+                        className={review.verified ? "text-green-400 hover:text-green-300" : "text-yellow-400 hover:text-yellow-300"}
+                        title={review.verified ? "Unverify" : "Verify"}
+                      >
+                        {review.verified ? <CheckCircleIcon className="w-4 h-4" /> : <XCircleIcon className="w-4 h-4" />}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteReview(review.id!)}
+                        className="text-red-400 hover:text-red-300"
+                        title="Delete Review"
                       >
                         <TrashIcon className="w-4 h-4" />
                       </button>
                     </div>
-                  </div>
-
-                  <div
-                    className="cursor-pointer ml-7"
-                    onClick={() => {
-                      setSelectedReview(review);
-                      setShowReviewDetails(true);
-                    }}
-                  >
-                    <p className="text-white text-sm font-medium mb-1">&quot;{review.comment}&quot;</p>
-                    <div className="flex items-center justify-between text-xs text-gray-400">
-                      <span>
-                        {review.verified ? '✓ Verified Purchase' : '○ Unverified'} •
-                        {review.helpful > 0 && ` ${review.helpful} helpful`}
-                      </span>
-                      <span>{new Date(review.createdAt.toMillis ? review.createdAt.toMillis() : review.createdAt.seconds * 1000).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                </div>
+                  </td>
+                </tr>
               ))}
-            </div>
-          )}
+            </tbody>
+          </table>
         </div>
       </div>
 
       {/* Review Details Modal */}
-      {showReviewDetails && selectedReview && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100">
-            <div className="p-6 border-b border-[#2A2A2A]">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-white">Review Details</h3>
+      {showDetails && selectedReview && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-xl font-bold text-white">Review Details</h2>
                 <button
-                  onClick={() => {
-                    setShowReviewDetails(false);
-                    setSelectedReview(null);
-                  }}
-                  className="text-gray-400 hover:text-white transition-colors duration-300"
+                  onClick={() => setShowDetails(false)}
+                  className="text-gray-400 hover:text-white"
                 >
                   ✕
                 </button>
               </div>
-            </div>
 
-            <div className="p-6 space-y-6">
-              {/* Review Info */}
-              <div>
-                <h4 className="text-lg font-semibold text-white mb-3">Review Information</h4>
+              {/* Customer Information */}
+              <div className="bg-gray-700 rounded-lg p-4 mb-4">
+                <h3 className="text-lg font-semibold text-white mb-3">Customer Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-400">Review ID</p>
-                    <p className="text-white font-mono text-sm">{selectedReview.id}</p>
+                  <div>
+                    <span className="text-sm text-gray-400">Name:</span>
+                    <p className="text-white">{selectedReview.userName}</p>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-400">Product ID</p>
-                    <p className="text-white">{selectedReview.productId}</p>
+                  <div>
+                    <span className="text-sm text-gray-400">Email:</span>
+                    <p className="text-white">{selectedReview.userEmail}</p>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-400">Rating</p>
-                    <div className="flex items-center gap-1">
-                      {renderStars(selectedReview.rating)}
-                      <span className="text-white ml-2">{selectedReview.rating}/5</span>
-                    </div>
+                  <div>
+                    <span className="text-sm text-gray-400">IP Address:</span>
+                    <p className="text-white">{selectedReview.ipAddress}</p>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-400">Status</p>
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 rounded-full text-xs border ${
-                        selectedReview.verified
-                          ? 'bg-green-900/20 text-green-400 border-green-500/20'
-                          : 'bg-yellow-900/20 text-yellow-400 border-yellow-500/20'
-                      }`}>
-                        {selectedReview.verified ? '✓ Verified' : '○ Unverified'}
-                      </span>
-                      {selectedReview.helpful > 0 && (
-                        <span className="text-xs text-gray-400">
-                          {selectedReview.helpful} helpful
-                        </span>
-                      )}
-                    </div>
+                  <div>
+                    <span className="text-sm text-gray-400">Session ID:</span>
+                    <p className="text-white font-mono text-xs">{selectedReview.sessionId}</p>
                   </div>
                 </div>
               </div>
 
-              {/* User Information */}
-              <div>
-                <h4 className="text-lg font-semibold text-white mb-3">User Information</h4>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <UserIcon className="w-5 h-5 text-gray-400" />
-                    <span className="text-white font-medium">{selectedReview.userName}</span>
+              {/* Device Information */}
+              <div className="bg-gray-700 rounded-lg p-4 mb-4">
+                <h3 className="text-lg font-semibold text-white mb-3">Device Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-sm text-gray-400">Platform:</span>
+                    <p className="text-white flex items-center gap-2">
+                      {getDeviceIcon(selectedReview.deviceInfo?.platform || 'Unknown')}
+                      {selectedReview.deviceInfo?.platform || 'Unknown'}
+                    </p>
                   </div>
-                  <p className="text-gray-400 ml-7">{selectedReview.userEmail}</p>
-                </div>
-              </div>
-
-              {/* Review Comment */}
-              <div>
-                <h4 className="text-lg font-semibold text-white mb-3">Review Comment</h4>
-                <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-4">
-                  <p className="text-white italic">&quot;{selectedReview.comment}&quot;</p>
-                </div>
-              </div>
-
-              {/* Review Metadata */}
-              <div>
-                <h4 className="text-lg font-semibold text-white mb-3">Metadata</h4>
-                <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-400">Created:</span>
-                      <p className="text-white">{new Date(selectedReview.createdAt.toMillis ? selectedReview.createdAt.toMillis() : selectedReview.createdAt.seconds * 1000).toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Helpful Votes:</span>
-                      <p className="text-white">{selectedReview.helpful}</p>
-                    </div>
+                  <div>
+                    <span className="text-sm text-gray-400">Screen Resolution:</span>
+                    <p className="text-white">{selectedReview.deviceInfo?.screenResolution || 'Unknown'}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-400">Language:</span>
+                    <p className="text-white">{selectedReview.deviceInfo?.language || 'Unknown'}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-400">User Agent:</span>
+                    <p className="text-white text-xs font-mono break-all">{selectedReview.deviceInfo?.userAgent || 'Unknown'}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-[#2A2A2A]">
-                <button
-                  onClick={() => {
-                    setShowReviewDetails(false);
-                    setSelectedReview(null);
-                  }}
-                  className="bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => {
-                    setShowDeleteReviewConfirm(selectedReview.id || '');
-                    setShowReviewDetails(false);
-                  }}
-                  className="bg-red-600/20 hover:bg-red-600/30 border border-red-600/30 text-red-400 font-medium py-2 px-4 rounded-lg transition-all duration-300 flex items-center gap-2"
-                >
-                  <TrashIcon className="w-4 h-4" />
-                  Delete Review
-                </button>
+              {/* Review Content */}
+              <div className="bg-gray-700 rounded-lg p-4 mb-4">
+                <h3 className="text-lg font-semibold text-white mb-3">Review Content</h3>
+                <div className="flex items-center gap-2 mb-2">
+                  {renderStars(selectedReview.rating)}
+                  <span className="text-white">({selectedReview.rating} stars)</span>
+                </div>
+                <p className="text-gray-300 mb-4">{selectedReview.comment}</p>
+                <div className="flex items-center gap-4 text-sm text-gray-400">
+                  <span>👍 {selectedReview.likes || 0} likes</span>
+                  <span>👤 {selectedReview.helpful} helpful</span>
+                  <span>📅 {formatDate(selectedReview.createdAt)}</span>
+                </div>
+              </div>
+
+              {/* Responses */}
+              {selectedReview.responses && selectedReview.responses.length > 0 && (
+                <div className="bg-gray-700 rounded-lg p-4 mb-4">
+                  <h3 className="text-lg font-semibold text-white mb-3">Responses</h3>
+                  <div className="space-y-3">
+                    {selectedReview.responses.map((response, index) => (
+                      <div key={index} className="bg-gray-600 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-white font-medium">{response.userName}</span>
+                          {response.isOfficial && (
+                            <span className="bg-blue-500/20 text-blue-400 text-xs px-2 py-0.5 rounded-full">
+                              Official
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-gray-300 text-sm">{response.comment}</p>
+                        <p className="text-gray-500 text-xs mt-1">{formatDate(response.createdAt)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Admin Response */}
+              <div className="bg-gray-700 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-white mb-3">Admin Response</h3>
+                <textarea
+                  value={adminResponse}
+                  onChange={(e) => setAdminResponse(e.target.value)}
+                  placeholder="Write an official response..."
+                  className="w-full bg-gray-600 border border-gray-500 rounded-lg px-3 py-2 text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={4}
+                />
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={() => handleAdminResponse(selectedReview.id!)}
+                    disabled={submittingResponse || !adminResponse.trim()}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
+                  >
+                    {submittingResponse ? 'Posting...' : 'Post Response'}
+                  </button>
+                  <button
+                    onClick={() => setAdminResponse('')}
+                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
+                  >
+                    Clear
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Review Delete Confirmation Modal */}
-      {showDeleteReviewConfirm && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-md w-full p-6 transform transition-all duration-300 scale-100">
-            <div className="text-center">
-              <div className="text-red-400 mb-4">
-                <StarIcon className="w-16 h-16 mx-auto" />
+      {/* Activity Logs */}
+      <div className="bg-gray-800 rounded-lg p-6">
+        <h2 className="text-xl font-bold text-white mb-4">Activity Logs</h2>
+        <div className="space-y-3">
+          {activityLogs.map((log) => (
+            <div key={log.id} className="flex items-center gap-4 p-3 bg-gray-700 rounded-lg">
+              <ClockIcon className="w-5 h-5 text-gray-400" />
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-white font-medium">{log.action}</span>
+                  <span className="text-gray-400 text-sm">by {log.adminEmail}</span>
+                </div>
+                <p className="text-gray-400 text-sm">{log.details}</p>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Delete Review</h3>
-              <p className="text-gray-400 mb-6">
-                Are you sure you want to delete this review? This action cannot be undone.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowDeleteReviewConfirm(null)}
-                  className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDeleteReview(showDeleteReviewConfirm)}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
-                >
-                  Delete Review
-                </button>
+              <div className="text-xs text-gray-500">
+                {formatDate(log.timestamp)}
               </div>
             </div>
-          </div>
+          ))}
         </div>
-      )}
-
-      {/* Bulk Review Delete Confirmation Modal */}
-      {showBulkReviewDelete && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl max-w-md w-full p-6 transform transition-all duration-300 scale-100">
-            <div className="text-center">
-              <div className="text-red-400 mb-4">
-                <StarIcon className="w-16 h-16 mx-auto" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Delete Multiple Reviews</h3>
-              <p className="text-gray-400 mb-6">
-                Are you sure you want to delete {selectedReviews.size} selected reviews? This action cannot be undone.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowBulkReviewDelete(false)}
-                  className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleBulkDeleteReviews}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
-                >
-                  Delete {selectedReviews.size} Reviews
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

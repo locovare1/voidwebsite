@@ -138,7 +138,11 @@ export default function ReviewList({ productId, showAll = false, limit = 5, curr
       // Refresh reviews to show the new response
       const updatedReviews = await getProductReviews(productId);
       setReviews(updatedReviews);
-      setDisplayedReviews(showAll ? updatedReviews : updatedReviews.slice(0, limit));
+      if (showAll) {
+        setDisplayedReviews(updatedReviews);
+      } else {
+        setDisplayedReviews(updatedReviews.slice(0, limit));
+      }
       
     } catch (error) {
       console.error('Error adding response:', error);
@@ -162,7 +166,7 @@ export default function ReviewList({ productId, showAll = false, limit = 5, curr
     return stars;
   };
 
-  const formatDate = (timestamp: { toDate?: () => Date } | string | Date) => {
+  const formatDate = (timestamp: { toDate?: () => Date } | string | Date | undefined) => {
     if (!timestamp) return '';
     let date: Date;
     
@@ -170,8 +174,15 @@ export default function ReviewList({ productId, showAll = false, limit = 5, curr
       date = timestamp.toDate();
     } else if (timestamp instanceof Date) {
       date = timestamp;
+    } else if (typeof timestamp === 'string') {
+      date = new Date(timestamp);
     } else {
-      date = new Date(timestamp as string);
+      return '';
+    }
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return '';
     }
     
     return date.toLocaleDateString('en-US', {
@@ -225,10 +236,10 @@ export default function ReviewList({ productId, showAll = false, limit = 5, curr
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-[#FFFFFF] to-[#CCCCCC] rounded-full flex items-center justify-center text-black font-bold text-sm">
-                {review.userName.charAt(0).toUpperCase()}
+                {review.userName?.charAt(0)?.toUpperCase() || '?'}
               </div>
               <div>
-                <h4 className="font-semibold text-white">{review.userName}</h4>
+                <h4 className="font-semibold text-white">{review.userName || 'Anonymous'}</h4>
                 <div className="flex items-center gap-2">
                   <div className="flex">{renderStars(review.rating)}</div>
                   <span className="text-sm text-gray-400">
@@ -253,11 +264,11 @@ export default function ReviewList({ productId, showAll = false, limit = 5, curr
                 <div key={index} className="bg-[#2A2A2A] rounded-lg p-4 border-l-4 border-blue-500">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
-                      {response.userName.charAt(0).toUpperCase()}
+                      {response.userName?.charAt(0)?.toUpperCase() || '?'}
                     </div>
                     <div>
                       <h5 className="font-semibold text-white text-sm">
-                        {response.userName}
+                        {response.userName || 'Anonymous'}
                         {response.isOfficial && (
                           <span className="ml-2 bg-blue-500/20 text-blue-400 text-xs px-2 py-0.5 rounded-full">
                             Official Response
@@ -287,7 +298,7 @@ export default function ReviewList({ productId, showAll = false, limit = 5, curr
               />
               <div className="flex gap-2 mt-2">
                 <button
-                  onClick={() => handleResponseSubmit(review.id!)}
+                  onClick={() => review.id && handleResponseSubmit(review.id)}
                   disabled={submittingResponse || !responseText.trim()}
                   className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
                 >
@@ -310,18 +321,18 @@ export default function ReviewList({ productId, showAll = false, limit = 5, curr
             <div className="flex items-center gap-4">
               {/* Like button */}
               <button
-                onClick={() => handleLikeClick(review.id!)}
+                onClick={() => review.id && handleLikeClick(review.id)}
                 disabled={!currentUserEmail}
                 className={`flex items-center gap-2 text-sm transition-all duration-300 ${
-                  currentUserEmail
-                    ? likeStatuses.get(review.id!)
+                  currentUserEmail && review.id
+                    ? likeStatuses.get(review.id)
                       ? 'text-red-400 hover:text-red-300'
                       : 'text-gray-400 hover:text-red-400'
                     : 'text-gray-500 cursor-not-allowed'
                 }`}
                 title={currentUserEmail ? 'Like this review' : 'Log in to like reviews'}
               >
-                {likeStatuses.get(review.id!) ? (
+                {currentUserEmail && review.id && likeStatuses.get(review.id) ? (
                   <HandThumbUpIcon className="w-4 h-4" />
                 ) : (
                   <HandThumbUpOutlineIcon className="w-4 h-4" />
@@ -331,27 +342,27 @@ export default function ReviewList({ productId, showAll = false, limit = 5, curr
 
               {/* Helpful button */}
               <button
-                onClick={() => handleHelpfulClick(review.id!)}
-                disabled={helpfulClicks.has(review.id!)}
+                onClick={() => review.id && handleHelpfulClick(review.id)}
+                disabled={!review.id || helpfulClicks.has(review.id)}
                 className={`flex items-center gap-2 text-sm transition-all duration-300 ${
-                  helpfulClicks.has(review.id!)
+                  review.id && helpfulClicks.has(review.id)
                     ? 'text-blue-400 cursor-not-allowed'
                     : 'text-gray-400 hover:text-blue-400'
                 }`}
               >
-                {helpfulClicks.has(review.id!) ? (
+                {review.id && helpfulClicks.has(review.id) ? (
                   <HandThumbUpIcon className="w-4 h-4" />
                 ) : (
                   <HandThumbUpOutlineIcon className="w-4 h-4" />
                 )}
                 <span>
-                  Helpful ({review.helpful})
+                  Helpful ({review.helpful || 0})
                 </span>
               </button>
 
               {/* Response button */}
               <button
-                onClick={() => setRespondingTo(respondingTo === review.id ? null : review.id!)}
+                onClick={() => setRespondingTo(respondingTo === review.id ? null : review.id || null)}
                 className={`flex items-center gap-2 text-sm transition-all duration-300 ${
                   respondingTo === review.id
                     ? 'text-blue-400'

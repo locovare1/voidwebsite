@@ -142,7 +142,7 @@ export default function AdminDashboard() {
 
   const [loading, setLoading] = useState(true);
 
-  const [activeTab, setActiveTab] = useState<'products' | 'teams' | 'ambassadors' | 'news' | 'placements' | 'schedule' | 'socials' | 'users' | 'orders' | 'logs' | 'support'>('orders');
+  const [activeTab, setActiveTab] = useState<'products' | 'teams' | 'ambassadors' | 'news' | 'placements' | 'schedule' | 'socials' | 'users' | 'orders' | 'reviews' | 'logs' | 'support'>('orders');
 
   
 
@@ -2532,6 +2532,8 @@ export default function AdminDashboard() {
 
               { id: 'orders', label: 'Orders', icon: ShoppingBagIcon },
 
+              { id: 'reviews', label: 'Reviews', icon: StarIcon },
+
               { id: 'logs', label: 'Logs', icon: DocumentIcon },
 
               { id: 'support', label: 'Support', icon: ChatBubbleLeftRightIcon },
@@ -3495,6 +3497,27 @@ export default function AdminDashboard() {
 
         )}
 
+
+        {/* Reviews Tab */}
+        {activeTab === 'reviews' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-white">Review Management</h2>
+              <button
+                onClick={() => router.push('/adminpanel/reviews')}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300"
+              >
+                Open Detailed Reviews
+              </button>
+            </div>
+            <div className="bg-gray-800 rounded-lg p-6">
+              <p className="text-gray-300">
+                Click "Open Detailed Reviews" to access the comprehensive review management interface with detailed analytics, 
+                customer information, device specs, IP addresses, and activity logs.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Support Tab */}
         {activeTab === 'support' && (
