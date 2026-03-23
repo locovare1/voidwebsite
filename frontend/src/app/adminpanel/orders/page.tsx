@@ -509,7 +509,7 @@ export default function OrdersPage() {
                                 
                                 return (
                                   <span key={fieldId} className="bg-blue-900/30 text-blue-300 px-2 py-1 rounded">
-                                    {label}: {value}
+                                    {String(label)}: {String(value)}
                                   </span>
                                 );
                               })}
