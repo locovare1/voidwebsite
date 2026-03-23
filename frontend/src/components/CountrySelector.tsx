@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 interface Country {
   code: string;
@@ -114,88 +114,104 @@ export default function CountrySelector({ onCountryChange, initialCountry }: Cou
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center backdrop-blur-sm">
+      {/* Background gradient matching shop page */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#1a0a2e] via-[#2a1a3a] to-[#1a0a2e] -z-10" />
+      <div className="absolute inset-0 opacity-20 -z-10">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+      </div>
+      
+      <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6 max-w-md w-full mx-4 max-h-[85vh] overflow-y-auto shadow-2xl">
+        {/* Header */}
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {!initialCountry ? 'Welcome! 🌍' : 'Select Your Country 🌍'}
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+            {!initialCountry ? 'Welcome to VOID' : 'Select Your Region'}
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-400 text-sm mb-4">
             {!initialCountry 
-              ? 'Please choose your country of residence for the best results on our prices as they vary by country and region.'
-              : 'Choose your country to see region-specific pricing and discounts.'
+              ? 'Choose your country for localized pricing and exclusive regional offers.'
+              : 'Update your region to see location-specific pricing and discounts.'
             }
           </p>
+          
+          {/* Selected Country Badge */}
           {selectedCountryData && (
-            <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full">
-              <span className="text-2xl">{selectedCountryData.flag}</span>
+            <div className="inline-flex items-center gap-2 bg-green-500/20 border border-green-500/30 text-green-400 px-4 py-2 rounded-full">
+              <span className="text-xl">{selectedCountryData.flag}</span>
               <span className="font-medium">{selectedCountryData.name}</span>
+              <span className="text-xs bg-green-500/30 px-2 py-0.5 rounded">{selectedCountryData.code}</span>
             </div>
           )}
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar - Dark Theme */}
         <div className="mb-4">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+              <MagnifyingGlassIcon className="h-5 w-5 text-gray-500" />
             </div>
             <input
               type="text"
               placeholder="Search countries..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF]/50 focus:border-[#FFFFFF]/50 transition-all"
               autoFocus
             />
           </div>
         </div>
 
-        <div className="space-y-2 max-h-96 overflow-y-auto">
+        {/* Countries List - Dark Theme */}
+        <div className="space-y-2 max-h-80 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-[#2A2A2A] scrollbar-track-transparent">
           {filteredCountries.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              No countries found matching "{searchTerm}"
+              No countries found matching &quot;{searchTerm}&quot;
             </div>
           ) : (
             filteredCountries.map((country) => (
               <button
                 key={country.code}
                 onClick={() => handleCountrySelect(country.code)}
-                className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors ${
+                className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all duration-200 ${
                   selectedCountry === country.code
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                    ? 'bg-[#FFFFFF] text-black shadow-lg'
+                    : 'bg-[#0F0F0F] hover:bg-[#2A2A2A] text-white border border-[#2A2A2A]'
                 }`}
               >
                 <span className="text-2xl">{country.flag}</span>
-                <div className="flex-1">
-                  <div className="font-medium">{country.name}</div>
-                  <div className="text-sm opacity-75">{country.code}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">{country.name}</div>
+                  <div className={`text-sm ${selectedCountry === country.code ? 'text-gray-600' : 'text-gray-500'}`}>
+                    {country.code}
+                  </div>
                 </div>
                 {selectedCountry === country.code && (
-                  <div className="text-blue-600">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414 1.414L8 12.586l7.293-7.293a1 1 0 011.414 1.414z" clipRule="evenodd" />
-                    </svg>
-                  </div>
+                  <svg className="w-5 h-5 text-black flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414 1.414L8 12.586l7.293-7.293a1 1 0 011.414 1.414z" clipRule="evenodd" />
+                  </svg>
                 )}
               </button>
             ))
           )}
         </div>
 
+        {/* Continue Button - VOID Style */}
         <div className="mt-6 text-center">
           <button
             onClick={handleContinue}
             disabled={!selectedCountry}
-            className={`px-6 py-2 rounded-lg transition-colors ${
+            className={`w-full py-3 px-6 rounded-lg font-bold text-base transition-all duration-300 ${
               selectedCountry
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? 'bg-[#FFFFFF] text-black hover:bg-[#FFFFFF]/90 hover:shadow-lg hover:scale-[1.02] glow-on-hover'
+                : 'bg-[#2A2A2A] text-gray-500 cursor-not-allowed'
             }`}
           >
-            Continue Shopping
+            Continue to Shop
           </button>
+          <p className="text-gray-500 text-xs mt-3">
+            Prices and availability may vary by region
+          </p>
         </div>
       </div>
     </div>

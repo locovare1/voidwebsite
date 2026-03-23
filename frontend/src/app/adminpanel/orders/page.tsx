@@ -487,16 +487,14 @@ export default function OrdersPage() {
                                   Size: {item.customization.size}
                                 </span>
                               )}
-                              {item.customization.customFields?.jerseyName && (
-                                <span className="bg-blue-900/30 text-blue-300 px-2 py-1 rounded">
-                                  Name: {item.customization.customFields.jerseyName}
-                                </span>
-                              )}
-                              {item.customization.customFields?.jerseyNumber && (
-                                <span className="bg-green-900/30 text-green-300 px-2 py-1 rounded">
-                                  Number: {item.customization.customFields.jerseyNumber}
-                                </span>
-                              )}
+                              {item.customization.customFields && Object.entries(item.customization.customFields).map(([fieldId, value]) => {
+                                const label = item.customization?.customFieldLabels?.[fieldId] || fieldId;
+                                return (
+                                  <span key={fieldId} className="bg-blue-900/30 text-blue-300 px-2 py-1 rounded">
+                                    {label}: {value}
+                                  </span>
+                                );
+                              })}
                             </div>
                           </div>
                         )}
