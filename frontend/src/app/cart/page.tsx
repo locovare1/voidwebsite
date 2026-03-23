@@ -3,7 +3,7 @@
 import { useCart } from '@/contexts/CartContext';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TrashIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import CheckoutModal from '@/components/CheckoutModal';
 import AdPlaceholder from '@/components/AdPlaceholder';
@@ -11,6 +11,17 @@ import AdPlaceholder from '@/components/AdPlaceholder';
 export default function CartPage() {
   const { items, total, updateQuantity, removeItem, clearCart } = useCart();
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+
+  // Debug cart items
+  useEffect(() => {
+    console.log('Cart items:', items.map(item => ({
+      name: item.name,
+      size: item.customization?.size,
+      sizeType: typeof item.customization?.size,
+      sizeModifier: item.customization?.sizeModifier,
+      fullCustomization: item.customization
+    })));
+  }, [items]);
 
   // Calculate discount savings
   const calculateDiscountSavings = () => {
