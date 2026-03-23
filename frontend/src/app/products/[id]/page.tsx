@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { productService, type Product, type CustomField, type Size, getLocationSpecificPrice } from '@/lib/productService';
-import { reviewService, Review } from '@/lib/reviewService';
 import { useCart } from '@/contexts/CartContext';
 import { AnimatedCard } from '@/components/FramerAnimations';
 import AdPlaceholder from '@/components/AdPlaceholder';
 import ReviewModal from '@/components/ReviewModal';
+import ReviewList from '@/components/ReviewList';
 import LoadingScreen from '@/components/LoadingScreen';
 
 // Hash function to convert Firestore string ID to consistent numeric ID (same as shop page)
@@ -35,7 +35,6 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const productId = params.id as string;
   const [product, setProduct] = useState<Product | null>(null);
-  const [reviews, setReviews] = useState<Review[]>([]);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
@@ -44,6 +43,7 @@ export default function ProductDetailPage() {
     quantity: 1
   });
   const [userCountry, setUserCountry] = useState<string | null>(null);
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | undefined>(undefined);
 
   const { addItem } = useCart();
 
@@ -63,18 +63,19 @@ export default function ProductDetailPage() {
     }
   }, []);
 
+  // Load current user email (mock for now - in real app, this would come from auth context)
+  useEffect(() => {
+    // Mock user email - in a real implementation, this would come from your auth system
+    const mockUserEmail = localStorage.getItem('userEmail') || undefined;
+    setCurrentUserEmail(mockUserEmail);
+  }, []);
+
   useEffect(() => {
     const loadData = async () => {
       try {
         console.log('Loading product with ID:', productId);
         
-        // Convert Firestore string ID to consistent numeric ID for reviews
-        const numericProductId = productId ? stringToHash(productId) : Math.floor(Math.random() * 1000000) + 1000;
-        
-        const [productData, reviewsData] = await Promise.all([
-          productService.getById(productId),
-          reviewService.getProductReviews(numericProductId)
-        ]);
+        const productData = await productService.getById(productId);
 
         console.log('Product loaded:', {
           id: productData?.id,
@@ -84,7 +85,6 @@ export default function ProductDetailPage() {
           hoverImage: productData?.hoverImage
         });
         console.log('All images array will be:', productData ? [productData.image, ...(productData.hoverImage ? [productData.hoverImage] : []), ...(productData.images || [])].filter(Boolean) : []);
-        console.log('Reviews data:', reviewsData);
 
         if (!productData) {
           console.log('No product data found, redirecting to shop');
@@ -93,7 +93,6 @@ export default function ProductDetailPage() {
         }
 
         setProduct(productData);
-        setReviews(reviewsData || []);
       } catch (error) {
         console.error('Error loading product:', error);
         router.push('/shop');
@@ -489,39 +488,11 @@ export default function ProductDetailPage() {
             </button>
           </div>
 
-          {reviews.length === 0 ? (
-            <div className="text-center py-12 bg-[#0F0F0F] rounded-lg border border-[#2A2A2A]">
-              <p className="text-gray-400 text-sm sm:text-base">No reviews yet. Be the first to leave a review!</p>
-            </div>
-          ) : (
-            <div className="grid gap-4">
-              {reviews.slice(0, 5).map((review) => (
-                <AnimatedCard key={review.id} className="void-card p-4 sm:p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <span className="font-semibold text-white text-sm sm:text-base">{review.userName}</span>
-                        <div className="flex items-center gap-1">
-                          {[...Array(5)].map((_, i) => (
-                            <span
-                              key={i}
-                              className={`text-sm ${i < review.rating ? 'text-yellow-400' : 'text-gray-600'}`}
-                            >
-                              ★
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-gray-300 text-sm sm:text-base">{review.comment}</p>
-                    </div>
-                    <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
-                      {new Date(review.createdAt.toDate()).toLocaleDateString()}
-                    </span>
-                  </div>
-                </AnimatedCard>
-              ))}
-            </div>
-          )}
+          <ReviewList 
+            productId={productId ? stringToHash(productId) : Math.floor(Math.random() * 1000000) + 1000}
+            currentUserEmail={currentUserEmail}
+            showAll={true}
+          />
         </div>
 
         {/* Review Modal */}
