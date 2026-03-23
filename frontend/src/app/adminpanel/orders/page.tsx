@@ -502,9 +502,84 @@ export default function OrdersPage() {
                                     'playerName': 'Player Name',
                                     'teamNumber': 'Team Number',
                                     'customColor': 'Custom Color',
-                                    'customSize': 'Custom Size'
+                                    'customSize': 'Custom Size',
+                                    'firstName': 'First Name',
+                                    'lastName': 'Last Name',
+                                    'fullName': 'Full Name',
+                                    'email': 'Email',
+                                    'phone': 'Phone Number',
+                                    'address': 'Address',
+                                    'city': 'City',
+                                    'country': 'Country',
+                                    'zipCode': 'ZIP Code',
+                                    'postalCode': 'Postal Code',
+                                    'state': 'State',
+                                    'province': 'Province',
+                                    'birthDate': 'Birth Date',
+                                    'age': 'Age',
+                                    'gender': 'Gender',
+                                    'height': 'Height',
+                                    'weight': 'Weight',
+                                    'position': 'Position',
+                                    'team': 'Team',
+                                    'league': 'League',
+                                    'division': 'Division',
+                                    'coach': 'Coach',
+                                    'emergencyContact': 'Emergency Contact',
+                                    'medicalInfo': 'Medical Information',
+                                    'allergies': 'Allergies',
+                                    'medications': 'Medications',
+                                    'insurance': 'Insurance',
+                                    'parentName': 'Parent Name',
+                                    'parentPhone': 'Parent Phone',
+                                    'parentEmail': 'Parent Email',
+                                    'school': 'School',
+                                    'grade': 'Grade',
+                                    'graduationYear': 'Graduation Year',
+                                    'studentId': 'Student ID',
+                                    'notes': 'Notes',
+                                    'comments': 'Comments',
+                                    'specialRequests': 'Special Requests',
+                                    'dietaryRestrictions': 'Dietary Restrictions',
+                                    'tShirtSize': 'T-Shirt Size',
+                                    'shortSize': 'Short Size',
+                                    'shoeSize': 'Shoe Size',
+                                    'preferredNumber': 'Preferred Number',
+                                    'nickname': 'Nickname',
+                                    'sponsorName': 'Sponsor Name',
+                                    'sponsorLogo': 'Sponsor Logo',
+                                    'uniformNumber': 'Uniform Number',
+                                    'captain': 'Captain',
+                                    'assistantCaptain': 'Assistant Captain',
+                                    'rightHanded': 'Right Handed',
+                                    'leftHanded': 'Left Handed',
+                                    'dominantHand': 'Dominant Hand',
+                                    'experience': 'Experience',
+                                    'skillLevel': 'Skill Level',
+                                    'yearsPlayed': 'Years Played',
+                                    'previousTeams': 'Previous Teams',
+                                    'achievements': 'Achievements',
+                                    'goals': 'Goals',
+                                    'assists': 'Assists',
+                                    'points': 'Points',
+                                    'penalties': 'Penalties',
+                                    'gamesPlayed': 'Games Played'
                                   };
-                                  label = legacyLabels[fieldId] || fieldId;
+                                  // Helper function to format field names
+                              const formatFieldName = (fieldId: string): string => {
+                                // First check if it's in legacy labels
+                                if (legacyLabels[fieldId]) {
+                                  return legacyLabels[fieldId];
+                                }
+                                
+                                // Convert camelCase to readable format
+                                return fieldId
+                                  .replace(/([A-Z])/g, ' $1') // Insert space before capital letters
+                                  .replace(/^./, (str) => str.toUpperCase()) // Capitalize first letter
+                                  .trim();
+                              };
+                              
+                              label = formatFieldName(fieldId);
                                 }
                                 
                                 return (
