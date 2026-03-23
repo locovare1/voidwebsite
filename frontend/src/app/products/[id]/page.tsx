@@ -82,9 +82,22 @@ export default function ProductDetailPage() {
           name: productData?.name,
           imageCount: productData?.images?.length || 0,
           images: productData?.images,
-          hoverImage: productData?.hoverImage
+          hoverImage: productData?.hoverImage,
+          sizes: productData?.sizes,
+          hasSizes: productData?.hasSizes
         });
         console.log('All images array will be:', productData ? [productData.image, ...(productData.hoverImage ? [productData.hoverImage] : []), ...(productData.images || [])].filter(Boolean) : []);
+
+        // Debug size data specifically
+        if (productData?.sizes) {
+          console.log('Size data:', productData.sizes.map(size => ({
+            id: size.id,
+            name: size.name,
+            nameLength: size.name?.length,
+            priceModifier: size.priceModifier,
+            available: size.available
+          })));
+        }
 
         if (!productData) {
           console.log('No product data found, redirecting to shop');
@@ -356,7 +369,16 @@ export default function ProductDetailPage() {
               <div className="space-y-3">
                 <h3 className="text-base sm:text-lg font-semibold text-white">Size</h3>
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
-                  {product.sizes.filter(size => size.available).map((size) => (
+                  {product.sizes.filter(size => size.available).map((size) => {
+                    console.log('Rendering size:', {
+                      id: size.id,
+                      name: size.name,
+                      nameType: typeof size.name,
+                      priceModifier: size.priceModifier,
+                      priceModifierType: typeof size.priceModifier,
+                      showPrice: size.priceModifier && size.priceModifier !== 0
+                    });
+                    return (
                     <button
                       key={size.id}
                       onClick={() => handleSizeChange(size.id)}
@@ -373,7 +395,8 @@ export default function ProductDetailPage() {
                         </span>
                       )}
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
