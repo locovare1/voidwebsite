@@ -367,9 +367,9 @@ export default function ProductDetailPage() {
                       }`}
                     >
                       {size.name}
-                      {size.priceModifier && size.priceModifier > 0 && (
+                      {size.priceModifier && size.priceModifier !== 0 && (
                         <span className="block text-xs text-gray-400 mt-1">
-                          +${size.priceModifier}
+                          {size.priceModifier > 0 ? `+$${size.priceModifier}` : `-$${Math.abs(size.priceModifier)}`}
                         </span>
                       )}
                     </button>
