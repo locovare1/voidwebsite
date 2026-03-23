@@ -488,7 +488,25 @@ export default function OrdersPage() {
                                 </span>
                               )}
                               {item.customization.customFields && Object.entries(item.customization.customFields).map(([fieldId, value]) => {
-                                const label = item.customization?.customFieldLabels?.[fieldId] || fieldId;
+                                let label = fieldId;
+                                
+                                // Try to get label from customFieldLabels (new format)
+                                if (item.customization?.customFieldLabels?.[fieldId]) {
+                                  label = item.customization.customFieldLabels[fieldId];
+                                } else {
+                                  // Handle legacy field IDs with hardcoded labels
+                                  const legacyLabels: Record<string, string> = {
+                                    'jerseyName': 'Jersey Name',
+                                    'jerseyNumber': 'Jersey Number',
+                                    'customText': 'Custom Text',
+                                    'playerName': 'Player Name',
+                                    'teamNumber': 'Team Number',
+                                    'customColor': 'Custom Color',
+                                    'customSize': 'Custom Size'
+                                  };
+                                  label = legacyLabels[fieldId] || fieldId;
+                                }
+                                
                                 return (
                                   <span key={fieldId} className="bg-blue-900/30 text-blue-300 px-2 py-1 rounded">
                                     {label}: {value}
