@@ -9,6 +9,7 @@ import ReviewButton from './ReviewButton';
 import { Product } from '@/data/products';
 import { AnimatedCard } from '@/components/FramerAnimations';
 import { calculateSalePercentage, getDisplayPrice, detectUserCountry } from '@/lib/productService';
+import { getCurrencyForCountry, formatFromUSD } from '@/lib/currencyService';
 
 // Extend the Product interface to include optional Firestore ID and sale fields
 interface ExtendedProduct {
@@ -176,7 +177,8 @@ export default function ProductGrid({ products, itemsPerPage = 12, userCountry: 
 									<div className="bg-black/80 text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold shadow-lg">
 										{(() => {
 											const displayPrice = getExtendedProductLocationPrice(product, userCountry || undefined);
-											return displayPrice === 0 ? 'FREE' : `$${displayPrice.toFixed(2)}`;
+											const currency = getCurrencyForCountry(userCountry || 'US');
+											return displayPrice === 0 ? 'FREE' : formatFromUSD(displayPrice, currency);
 										})()}
 									</div>
 									{(() => {

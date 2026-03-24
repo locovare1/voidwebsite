@@ -11,7 +11,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import OrderSuccessModal from './OrderSuccessModal';
 import { generateOrderNumber } from '@/lib/orderUtils';
-import { SUPPORTED_CURRENCIES, convertFromUSD, formatCurrency } from '@/lib/currencyService';
+import { SUPPORTED_CURRENCIES, convertFromUSD, formatCurrency, getCurrencyForCountry } from '@/lib/currencyService';
 
 
 interface CheckoutModalProps {
@@ -60,6 +60,14 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
   
   // Add currency state
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
+  
+  // Auto-update currency when country changes
+  useEffect(() => {
+    if (customerInfo.country) {
+      const currencyForCountry = getCurrencyForCountry(customerInfo.country);
+      setSelectedCurrency(currencyForCountry);
+    }
+  }, [customerInfo.country]);
   
   const [clientSecret, setClientSecret] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -551,7 +559,10 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                     ))}
                   </select>
                   <p className="text-xs text-gray-500 mt-1">
-                    Prices will be converted to your selected currency
+                    {customerInfo.country ? 
+                      `Currency auto-selected for ${customerInfo.country}. You can change it manually.` : 
+                      'Select a country to auto-select currency, or choose manually.'
+                    }
                   </p>
                 </div>
                 

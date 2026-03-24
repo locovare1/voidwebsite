@@ -10,6 +10,7 @@ import AdPlaceholder from '@/components/AdPlaceholder';
 import ReviewModal from '@/components/ReviewModal';
 import ReviewList from '@/components/ReviewList';
 import LoadingScreen from '@/components/LoadingScreen';
+import { getCurrencyForCountry, formatFromUSD } from '@/lib/currencyService';
 
 // Hash function to convert Firestore string ID to consistent numeric ID (same as shop page)
 function stringToHash(str: string): number {
@@ -341,15 +342,16 @@ export default function ProductDetailPage() {
                 {(() => {
                   const displayPrice = getLocationSpecificPrice(product, userCountry || undefined);
                   const hasDiscount = displayPrice < product.price && displayPrice > 0;
+                  const currency = getCurrencyForCountry(userCountry || 'US');
                   
                   return (
                     <>
                       <div className="text-xl sm:text-2xl font-bold text-green-400">
-                        {displayPrice === 0 ? 'FREE' : `$${displayPrice.toFixed(2)}`}
+                        {displayPrice === 0 ? 'FREE' : formatFromUSD(displayPrice, currency)}
                       </div>
                       {hasDiscount && (
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-gray-500 line-through text-lg">${product.price.toFixed(2)}</span>
+                          <span className="text-gray-500 line-through text-lg">{formatFromUSD(product.price, currency)}</span>
                           <span className="text-red-400 text-sm font-bold">
                             -{Math.round(((product.price - displayPrice) / product.price) * 100)}% OFF
                           </span>
@@ -475,21 +477,31 @@ export default function ProductDetailPage() {
               </div>
 
               <div className="flex items-center justify-between py-4 border-t border-[#2A2A2A]">
-                <span className="text-lg sm:text-xl font-semibold text-white">Total: ${calculateTotalPrice().toFixed(2)}</span>
+                <span className="text-lg sm:text-xl font-semibold text-white">
+                  Total: {(() => {
+                    const total = calculateTotalPrice();
+                    const currency = getCurrencyForCountry(userCountry || 'US');
+                    return total === 0 ? 'FREE' : formatFromUSD(total, currency);
+                  })()}
+                </span>
               </div>
 
               <button
                 onClick={handleAddToCart}
                 disabled={addingToCart}
-                className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black text-center py-3 sm:py-4 px-6 rounded-lg transition-all duration-300 font-bold text-base sm:text-lg hover:shadow-lg transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed glow-on-hover"
+                className="void-button glow-on-hover w-full py-3 px-4 sm:py-4 sm:px-6 text-base sm:text-lg font-bold transition-all duration-300"
               >
                 {addingToCart ? (
                   <div className="flex items-center justify-center gap-2">
-                    <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     Adding to Cart...
                   </div>
                 ) : (
-                  `Add ${customization.quantity} to Cart - $${calculateTotalPrice().toFixed(2)}`
+                  `Add ${customization.quantity} to Cart - ${(() => {
+                    const total = calculateTotalPrice();
+                    const currency = getCurrencyForCountry(userCountry || 'US');
+                    return total === 0 ? 'FREE' : formatFromUSD(total, currency);
+                  })()}`
                 )}
               </button>
             </div>
