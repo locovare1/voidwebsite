@@ -7,10 +7,20 @@ import { useState, useEffect } from 'react';
 import { TrashIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import CheckoutModal from '@/components/CheckoutModal';
 import AdPlaceholder from '@/components/AdPlaceholder';
+import { getCurrencyForCountry, formatFromUSD } from '@/lib/currencyService';
 
 export default function CartPage() {
   const { items, total, updateQuantity, removeItem, clearCart } = useCart();
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [userCountry, setUserCountry] = useState<string | null>(null);
+
+  // Get user country from localStorage
+  useEffect(() => {
+    const savedCountry = localStorage.getItem('selectedCountry');
+    if (savedCountry) {
+      setUserCountry(savedCountry);
+    }
+  }, []);
 
   // Debug cart items
   useEffect(() => {
@@ -180,7 +190,10 @@ export default function CartPage() {
                           <div className="space-y-1">
                             <div className="flex items-center justify-end gap-2">
                               <span className="text-lg font-bold text-green-400">
-                                {item.price === 0 ? 'FREE' : `$${item.price.toFixed(2)}`}
+                                {(() => {
+                                  const currency = getCurrencyForCountry(userCountry || 'US');
+                                  return item.price === 0 ? 'FREE' : formatFromUSD(item.price, currency);
+                                })()}
                               </span>
                               <span className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-bold">
                                 -{Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}%
@@ -188,7 +201,10 @@ export default function CartPage() {
                             </div>
                             <div className="flex items-center justify-end gap-2">
                               <span className="text-sm text-gray-500 line-through">
-                                ${item.originalPrice.toFixed(2)}
+                                {(() => {
+                                  const currency = getCurrencyForCountry(userCountry || 'US');
+                                  return formatFromUSD(item.originalPrice, currency);
+                                })()}
                               </span>
                               <span className="text-xs text-gray-400">each</span>
                             </div>
@@ -196,7 +212,10 @@ export default function CartPage() {
                         ) : (
                           <div>
                             <p className="text-lg font-bold text-white">
-                              {item.price === 0 ? 'FREE' : `$${item.price.toFixed(2)}`}
+                              {(() => {
+                                const currency = getCurrencyForCountry(userCountry || 'US');
+                                return item.price === 0 ? 'FREE' : formatFromUSD(item.price, currency);
+                              })()}
                             </p>
                             <p className="text-sm text-gray-400">each</p>
                           </div>
@@ -227,7 +246,11 @@ export default function CartPage() {
                       
                       <div className="flex items-center justify-between sm:justify-end gap-4">
                         <p className="text-lg font-bold text-white">
-                          {item.price === 0 ? 'FREE' : `$${(item.price * item.quantity).toFixed(2)}`}
+                          {(() => {
+                            const currency = getCurrencyForCountry(userCountry || 'US');
+                            const itemTotal = item.price * item.quantity;
+                            return itemTotal === 0 ? 'FREE' : formatFromUSD(itemTotal, currency);
+                          })()}
                         </p>
                         
                         <button
@@ -253,13 +276,19 @@ export default function CartPage() {
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-gray-400">
                   <span>Subtotal</span>
-                  <span>{total === 0 ? 'FREE' : `$${total.toFixed(2)}`}</span>
+                  <span>{(() => {
+                    const currency = getCurrencyForCountry(userCountry || 'US');
+                    return total === 0 ? 'FREE' : formatFromUSD(total, currency);
+                  })()}</span>
                 </div>
                 
                 {discountSavings > 0 && (
                   <div className="flex justify-between text-green-400">
                     <span>Discount Savings</span>
-                    <span>-${discountSavings.toFixed(2)}</span>
+                    <span>-{(() => {
+                      const currency = getCurrencyForCountry(userCountry || 'US');
+                      return formatFromUSD(discountSavings, currency);
+                    })()}</span>
                   </div>
                 )}
                 
@@ -271,18 +300,28 @@ export default function CartPage() {
                 {total > 0 && (
                   <div className="flex justify-between text-gray-400">
                     <span>Tax</span>
-                    <span>${(total * 0.08).toFixed(2)}</span>
+                    <span>{(() => {
+                      const currency = getCurrencyForCountry(userCountry || 'US');
+                      return formatFromUSD(total * 0.08, currency);
+                    })()}</span>
                   </div>
                 )}
                 
                 <div className="border-t border-[#2A2A2A] pt-4">
                   <div className="flex justify-between text-white text-lg font-bold">
                     <span>Total</span>
-                    <span>{total === 0 ? 'FREE' : `$${(total * 1.08).toFixed(2)}`}</span>
+                    <span>{(() => {
+                      const currency = getCurrencyForCountry(userCountry || 'US');
+                      const finalTotal = total * 1.08;
+                      return finalTotal === 0 ? 'FREE' : formatFromUSD(finalTotal, currency);
+                    })()}</span>
                   </div>
                   {discountSavings > 0 && (
                     <div className="text-sm text-green-400 mt-1">
-                      You saved ${discountSavings.toFixed(2)} on this order!
+                      You saved {(() => {
+                        const currency = getCurrencyForCountry(userCountry || 'US');
+                        return formatFromUSD(discountSavings, currency);
+                      })()} on this order!
                     </div>
                   )}
                 </div>
@@ -292,7 +331,11 @@ export default function CartPage() {
                 onClick={handleCheckout}
                 className="w-full bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-black font-bold py-3 px-4 rounded-lg transition-all duration-300 glow-on-hover"
               >
-                {total === 0 ? 'Place Free Order' : `Checkout - $${(total * 1.08).toFixed(2)}`}
+                {(() => {
+                  const finalTotal = total * 1.08;
+                  const currency = getCurrencyForCountry(userCountry || 'US');
+                  return finalTotal === 0 ? 'Place Free Order' : `Checkout - ${formatFromUSD(finalTotal, currency)}`;
+                })()}
               </button>
               
               <Link
