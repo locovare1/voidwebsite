@@ -45,6 +45,7 @@ export default function TeamsTab({
   });
 
   const handleAddPlayer = async (teamId: string) => {
+    console.log('Attempting to add player:', newPlayer);
     if (!newPlayer.name.trim() || !newPlayer.role.trim() || !newPlayer.game.trim()) {
       alert('Please fill in name, role, and game fields');
       return;
@@ -95,6 +96,7 @@ export default function TeamsTab({
   };
 
   const handleEditPlayer = async (teamId: string, playerIndex: number, updatedPlayer: Player) => {
+    console.log('Attempting to update player:', updatedPlayer);
     try {
       setLoadingTeams(true);
       console.log('Updating player:', teamId, playerIndex, updatedPlayer);
