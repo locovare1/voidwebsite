@@ -29,6 +29,7 @@ export default function TeamsTab({
     role: '',
     image: '',
     game: '',
+    description: '',
     achievements: [],
     socialLinks: {}
   });
@@ -66,6 +67,7 @@ export default function TeamsTab({
         role: '',
         image: '',
         game: '',
+        description: '',
         achievements: [],
         socialLinks: {}
       });
@@ -109,7 +111,7 @@ export default function TeamsTab({
       await onLogAction('update', 'team', teamId, `Updated player "${updatedPlayer.name}" in team`, {
         level: 'info',
         status: 'success',
-        metadata: { playerName: updatedPlayer.name, updatedFields: ['name', 'role', 'game', 'achievements'] }
+        metadata: { playerName: updatedPlayer.name, updatedFields: ['name', 'role', 'game', 'description', 'achievements'] }
       });
     } catch (error) {
       console.error('Error updating player:', error);
@@ -420,7 +422,7 @@ export default function TeamsTab({
                               </div>
 
                               {/* Basic Info */}
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <input
                                   type="text"
                                   value={editingPlayer.player.name}
@@ -450,6 +452,20 @@ export default function TeamsTab({
                                   })}
                                   className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm"
                                   placeholder="Game"
+                                />
+                              </div>
+
+                              {/* Description */}
+                              <div>
+                                <textarea
+                                  value={editingPlayer.player.description || ''}
+                                  onChange={(e) => setEditingPlayer({
+                                    ...editingPlayer,
+                                    player: { ...editingPlayer.player, description: e.target.value }
+                                  })}
+                                  className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white text-sm resize-none"
+                                  placeholder="Player Description (optional) - Tell us about this player's background, playstyle, achievements, etc."
+                                  rows={4}
                                 />
                               </div>
 
@@ -617,6 +633,9 @@ export default function TeamsTab({
                                 </div>
                                 <div className="text-sm text-gray-400 space-y-1">
                                   <div>Game: {player.game}</div>
+                                  {player.description && (
+                                    <div className="text-gray-300">Description: {player.description}</div>
+                                  )}
                                   {player.achievements && player.achievements.length > 0 && (
                                     <div>Achievements: {player.achievements.slice(0, 2).join(', ')}{player.achievements.length > 2 ? '...' : ''}</div>
                                   )}
@@ -871,6 +890,13 @@ export default function TeamsTab({
                   onChange={(e) => setNewPlayer({ ...newPlayer, game: e.target.value })}
                   className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white"
                   placeholder="Game (e.g., Valorant, CS2)"
+                />
+                <textarea
+                  value={newPlayer.description || ''}
+                  onChange={(e) => setNewPlayer({ ...newPlayer, description: e.target.value })}
+                  className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white resize-none"
+                  placeholder="Player Description (optional) - Tell us about this player's background, playstyle, achievements, etc."
+                  rows={4}
                 />
                 <input
                   type="text"
