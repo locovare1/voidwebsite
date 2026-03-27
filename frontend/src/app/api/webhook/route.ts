@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { db } from '@/lib/firebase';
-import { doc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
 import { sendOrderConfirmationEmail } from '@/lib/mailService';
 import { sendCriticalAlert } from '@/lib/alertService';
 
@@ -32,8 +32,12 @@ const getWebhookSecret = () => {
 };
 
 const verifyOrderInFirebase = async (orderId: string, orderData: any) => {
+  if (!db) {
+    throw new Error('Firebase not available for order verification');
+  }
+  
   const orderRef = doc(db, 'orders', orderId);
-  const orderSnapshot = await orderRef.get();
+  const orderSnapshot = await getDoc(orderRef);
   if (!orderSnapshot.exists()) {
     // CRITICAL: Order not found - create it instead of failing
     console.log('CRITICAL: Order not found, creating new order:', orderId);
@@ -47,7 +51,7 @@ const verifyOrderInFirebase = async (orderId: string, orderData: any) => {
       });
       console.log('CRITICAL RECOVERY: Order created successfully:', orderId);
       return true;
-    } catch (creationError) {
+    } catch (creationError: any) {
       console.error('CRITICAL: Failed to create missing order:', creationError);
       throw new Error(`Order creation failed: ${creationError.message}`);
     }
@@ -145,7 +149,7 @@ export async function POST(req: NextRequest) {
               console.error('CRITICAL: Missing database connection or order ID', { db: !!db, firestoreOrderId });
               break;
             }
-          } catch (error) {
+          } catch (error: unknown) {
             retryCount++;
             console.error(`Order creation attempt ${retryCount} failed:`, error);
             
@@ -154,7 +158,7 @@ export async function POST(req: NextRequest) {
                 type: 'ORDER_CREATION_FAILED',
                 paymentIntentId: paymentIntent.id,
                 orderId: firestoreOrderId,
-                error: error.message,
+                error: error instanceof Error ? error.message : 'Unknown error',
                 retryCount
               });
             } else {
