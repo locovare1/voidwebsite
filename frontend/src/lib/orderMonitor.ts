@@ -149,7 +149,7 @@ export class OrderMonitor {
         });
       });
 
-    } catch (error) {
+    } catch (error: any) {
       alerts.push({
         type: 'CRITICAL_PAYMENT_MISMATCH',
         severity: 'CRITICAL',
