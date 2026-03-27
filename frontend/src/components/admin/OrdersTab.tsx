@@ -5,6 +5,7 @@ import { ShoppingBagIcon } from '@heroicons/react/24/outline';
 import { Order } from '@/contexts/OrderContext';
 import { formatOrderNumber } from '@/lib/orderUtils';
 import { AnimatedCard } from '@/components/FramerAnimations';
+import OrderRecovery from './OrderRecovery';
 
 interface OrdersTabProps {
   orders: Order[];
@@ -50,6 +51,9 @@ export default function OrdersTab({
 
   return (
     <div className="space-y-6">
+      {/* CRITICAL: Order Recovery System */}
+      <OrderRecovery />
+      
       <AnimatedCard className="admin-card p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">

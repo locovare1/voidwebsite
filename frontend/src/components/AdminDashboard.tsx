@@ -45,6 +45,7 @@ import ScheduleTab from './admin/ScheduleTab';
 import SocialsTab from './admin/SocialsTab';
 import UsersTab from './admin/UsersTab';
 import SupportTab from './admin/SupportTab';
+import OrderMonitorTab from './admin/OrderMonitorTab';
 
 import { Timestamp } from 'firebase/firestore';
 
@@ -142,7 +143,7 @@ export default function AdminDashboard() {
 
   const [loading, setLoading] = useState(true);
 
-  const [activeTab, setActiveTab] = useState<'products' | 'teams' | 'ambassadors' | 'news' | 'placements' | 'schedule' | 'socials' | 'users' | 'orders' | 'reviews' | 'logs' | 'support'>('orders');
+  const [activeTab, setActiveTab] = useState<'products' | 'teams' | 'ambassadors' | 'news' | 'placements' | 'schedule' | 'socials' | 'users' | 'orders' | 'reviews' | 'logs' | 'support' | 'monitor'>('orders');
 
   
 
@@ -2532,6 +2533,8 @@ export default function AdminDashboard() {
 
               { id: 'orders', label: 'Orders', icon: ShoppingBagIcon },
 
+              { id: 'monitor', label: 'Monitor', icon: AlertTriangleIcon },
+
               { id: 'reviews', label: 'Reviews', icon: StarIcon },
 
               { id: 'logs', label: 'Logs', icon: DocumentIcon },
@@ -3193,7 +3196,10 @@ export default function AdminDashboard() {
 
         )}
 
-
+        {/* Order Monitor Tab */}
+        {activeTab === 'monitor' && (
+          <OrderMonitorTab />
+        )}
 
         {/* Logs Tab */}
 
