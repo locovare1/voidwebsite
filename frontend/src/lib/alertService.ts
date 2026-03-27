@@ -16,7 +16,7 @@ export async function sendCriticalAlert(alert: CriticalAlert) {
   try {
     // Log critical error with maximum detail
     console.error('🚨 CRITICAL ALERT 🚨:', {
-      type: alert.type,
+      alertType: alert.type,
       timestamp: new Date().toISOString(),
       ...alert
     });
