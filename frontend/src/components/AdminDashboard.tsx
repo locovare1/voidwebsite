@@ -2533,7 +2533,7 @@ export default function AdminDashboard() {
 
               { id: 'orders', label: 'Orders', icon: ShoppingBagIcon },
 
-              { id: 'monitor', label: 'Monitor', icon: AlertTriangleIcon },
+              { id: 'monitor', label: 'Monitor', icon: ExclamationTriangleIcon },
 
               { id: 'reviews', label: 'Reviews', icon: StarIcon },
 

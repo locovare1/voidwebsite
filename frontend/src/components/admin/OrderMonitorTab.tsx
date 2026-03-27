@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { AlertTriangleIcon, CheckCircleIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { ExclamationTriangleIcon, CheckCircleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 
 interface OrderAlert {
   type: 'CRITICAL_PAYMENT_MISMATCH' | 'DUPLICATE_ORDER' | 'ORPHANED_PAYMENT' | 'UNUSUAL_ACTIVITY';
@@ -69,7 +69,7 @@ export default function OrderMonitorTab() {
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
       case 'CRITICAL':
-        return <AlertTriangleIcon className="w-5 h-5 text-red-500" />;
+        return <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />;
       case 'HIGH':
         return <ExclamationTriangleIcon className="w-5 h-5 text-orange-500" />;
       case 'MEDIUM':
@@ -112,7 +112,7 @@ export default function OrderMonitorTab() {
     return (
       <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
         <div className="flex items-center gap-3 mb-4">
-          <AlertTriangleIcon className="w-6 h-6 text-red-500" />
+          <ExclamationTriangleIcon className="w-6 h-6 text-red-500" />
           <h2 className="text-xl font-bold text-white">Order Monitor Error</h2>
         </div>
         <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
@@ -134,7 +134,7 @@ export default function OrderMonitorTab() {
       <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-3">
-            <AlertTriangleIcon className="w-6 h-6 text-yellow-500" />
+            <ExclamationTriangleIcon className="w-6 h-6 text-yellow-500" />
             <h2 className="text-xl font-bold text-white">Order System Monitor</h2>
           </div>
           <div className="flex items-center gap-3">
