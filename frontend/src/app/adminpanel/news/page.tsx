@@ -25,6 +25,7 @@ export default function NewsPage() {
     date: '',
     image: '',
     description: '',
+    content: '',
     category: '',
     isEvent: false,
     eventDate: ''
@@ -51,7 +52,7 @@ export default function NewsPage() {
   }, []);
 
   const resetNewsForm = () => {
-    setNewsForm({ title: '', date: '', image: '', description: '', category: '', isEvent: false, eventDate: '' });
+    setNewsForm({ title: '', date: '', image: '', description: '', content: '', category: '', isEvent: false, eventDate: '' });
     setEditingArticle(null);
     // Reset file input
     if (imageFileRef.current) imageFileRef.current.value = '';
@@ -78,6 +79,7 @@ export default function NewsPage() {
         title: newsForm.title,
         image: newsForm.image,
         description: newsForm.description,
+        content: newsForm.content,
         category: newsForm.category,
       };
       
@@ -134,6 +136,7 @@ export default function NewsPage() {
     ? news.filter(article => 
         article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         article.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (article.content || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         article.category.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : news;
@@ -165,7 +168,7 @@ export default function NewsPage() {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search articles by title, description or category..."
+            placeholder="Search articles by title, description, content or category..."
             className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg pl-10 pr-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] focus:border-transparent transition-all duration-300"
           />
         </div>
@@ -226,6 +229,7 @@ export default function NewsPage() {
                               date: dateStr,
                               image: article.image,
                               description: article.description,
+                              content: article.content || '',
                               category: article.category,
                               isEvent: article.isEvent ?? false,
                               eventDate: eventDateStr
@@ -364,9 +368,16 @@ export default function NewsPage() {
               <textarea 
                 value={newsForm.description} 
                 onChange={e=>setNewsForm(p=>({...p,description:e.target.value}))} 
-                placeholder="Description" 
-                rows={5} 
+                placeholder="Short Description (shown on homepage/news cards)" 
+                rows={3} 
                 className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] md:col-span-2" 
+              />
+              <textarea
+                value={newsForm.content}
+                onChange={e=>setNewsForm(p=>({...p,content:e.target.value}))}
+                placeholder="Full Article Content (shown when opening the article)"
+                rows={8}
+                className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] md:col-span-2"
               />
             </div>
             <div className="flex gap-2 pt-4">

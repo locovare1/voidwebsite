@@ -18,14 +18,14 @@ export default function NewsTab({ onLogAction }: NewsTabProps) {
   const [newsMode, setNewsMode] = useState<'create' | 'edit'>('create');
   const [editingNewsId, setEditingNewsId] = useState<string | null>(null);
   const [newsForm, setNewsForm] = useState<Omit<NewsArticle, 'id' | 'date'>>({
-    title: '', image: '', description: '', category: ''
+    title: '', image: '', description: '', content: '', category: ''
   });
   const [newsDate, setNewsDate] = useState<string>('');
 
   const openCreateNews = () => {
     setNewsMode('create');
     setEditingNewsId(null);
-    setNewsForm({ title: '', image: '', description: '', category: '' });
+    setNewsForm({ title: '', image: '', description: '', content: '', category: '' });
     setNewsDate('');
     setShowNewsModal(true);
   };
@@ -103,7 +103,8 @@ export default function NewsTab({ onLogAction }: NewsTabProps) {
                 )}
                 <input className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" placeholder="Category" value={newsForm.category} onChange={e => setNewsForm({ ...newsForm, category: e.target.value })} />
                 <input type="datetime-local" className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white" value={newsDate} onChange={e => setNewsDate(e.target.value)} />
-                <textarea className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white h-24" placeholder="Description" value={newsForm.description} onChange={e => setNewsForm({ ...newsForm, description: e.target.value })} />
+                <textarea className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white h-20" placeholder="Short Description (homepage preview)" value={newsForm.description} onChange={e => setNewsForm({ ...newsForm, description: e.target.value })} />
+                <textarea className="bg-[#0F0F0F] border border-[#2A2A2A] rounded px-3 py-2 text-white h-32" placeholder="Full Article Content (full news page view)" value={newsForm.content || ''} onChange={e => setNewsForm({ ...newsForm, content: e.target.value })} />
               </div>
               <div className="flex gap-3 mt-4">
                 <button onClick={() => setShowNewsModal(false)} className="flex-1 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white py-2 rounded">Cancel</button>

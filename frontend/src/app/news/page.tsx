@@ -14,6 +14,7 @@ type DisplayArticle = {
   date: string; // YYYY-MM-DD
   image: string;
   description: string;
+  content?: string;
   category: string;
   isEvent?: boolean;
   eventDate?: string; // YYYY-MM-DD
@@ -46,6 +47,7 @@ export default function NewsPage() {
               date: (a.date as any)?.toDate ? (a.date as any).toDate().toISOString().slice(0,10) : '',
               image: imageUrl,
               description: a.description,
+              content: a.content,
               category: a.category,
               isEvent: a.isEvent ?? false,
               eventDate: a.eventDate && (a.eventDate as any)?.toDate ? (a.eventDate as any).toDate().toISOString().slice(0,10) : undefined,

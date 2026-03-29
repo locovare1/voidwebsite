@@ -1,0 +1,147 @@
+"filename", "language", "JavaScript", "TypeScript", "JSON with Comments", "Markdown", "JSON", "TypeScript JSX", "CSS", "comment", "blank", "total"
+"d:\Aayan\voidwebsite\frontend\AUDIT_LOGGING_GUIDE.md", "Markdown", 0, 0, 0, 115, 0, 0, 0, 0, 28, 143
+"d:\Aayan\voidwebsite\frontend\README.md", "Markdown", 0, 0, 0, 1, 0, 0, 0, 0, 1, 2
+"d:\Aayan\voidwebsite\frontend\eslint.config.mjs", "JavaScript", 19, 0, 0, 0, 0, 0, 0, 0, 4, 23
+"d:\Aayan\voidwebsite\frontend\firebase.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 2, 10
+"d:\Aayan\voidwebsite\frontend\next-env.d.ts", "TypeScript", 0, 1, 0, 0, 0, 0, 0, 4, 2, 7
+"d:\Aayan\voidwebsite\frontend\next.config.ts", "TypeScript", 0, 34, 0, 0, 0, 0, 0, 7, 6, 47
+"d:\Aayan\voidwebsite\frontend\package-lock.json", "JSON", 0, 0, 0, 0, 9167, 0, 0, 0, 1, 9168
+"d:\Aayan\voidwebsite\frontend\package.json", "JSON", 0, 0, 0, 0, 51, 0, 0, 0, 1, 52
+"d:\Aayan\voidwebsite\frontend\postcss.config.mjs", "JavaScript", 6, 0, 0, 0, 0, 0, 0, 1, 2, 9
+"d:\Aayan\voidwebsite\frontend\src\app\about\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 101, 0, 7, 8, 116
+"d:\Aayan\voidwebsite\frontend\src\app\adminpanel\ambassadors\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 393, 0, 10, 26, 429
+"d:\Aayan\voidwebsite\frontend\src\app\adminpanel\analytics\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 147, 0, 6, 18, 171
+"d:\Aayan\voidwebsite\frontend\src\app\adminpanel\contact\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 272, 0, 5, 17, 294
+"d:\Aayan\voidwebsite\frontend\src\app\adminpanel\layout.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 60, 0, 1, 10, 71
+"d:\Aayan\voidwebsite\frontend\src\app\adminpanel\news\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 381, 0, 18, 22, 421
+"d:\Aayan\voidwebsite\frontend\src\app\adminpanel\orders\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 639, 0, 29, 41, 709
+"d:\Aayan\voidwebsite\frontend\src\app\adminpanel\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 150, 0, 1, 19, 170
+"d:\Aayan\voidwebsite\frontend\src\app\adminpanel\placements\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 324, 0, 6, 16, 346
+"d:\Aayan\voidwebsite\frontend\src\app\adminpanel\products\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 756, 0, 21, 44, 821
+"d:\Aayan\voidwebsite\frontend\src\app\adminpanel\reviews\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 500, 0, 19, 44, 563
+"d:\Aayan\voidwebsite\frontend\src\app\adminpanel\schedule\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 471, 0, 6, 21, 498
+"d:\Aayan\voidwebsite\frontend\src\app\adminpanel\settings\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 543, 0, 16, 56, 615
+"d:\Aayan\voidwebsite\frontend\src\app\adminpanel\socials\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 266, 0, 5, 17, 288
+"d:\Aayan\voidwebsite\frontend\src\app\ambassadors\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 177, 0, 10, 20, 207
+"d:\Aayan\voidwebsite\frontend\src\app\api\calculate-shipping\route.ts", "TypeScript", 0, 61, 0, 0, 0, 0, 0, 3, 8, 72
+"d:\Aayan\voidwebsite\frontend\src\app\api\contact\route.ts", "TypeScript", 0, 59, 0, 0, 0, 0, 0, 4, 6, 69
+"d:\Aayan\voidwebsite\frontend\src\app\api\create-admin-user\route.ts", "TypeScript", 0, 48, 0, 0, 0, 0, 0, 1, 11, 60
+"d:\Aayan\voidwebsite\frontend\src\app\api\create-payment-intent\route.ts", "TypeScript", 0, 58, 0, 0, 0, 0, 0, 3, 9, 70
+"d:\Aayan\voidwebsite\frontend\src\app\api\debug-env\route.ts", "TypeScript", 0, 31, 0, 0, 0, 0, 0, 2, 3, 36
+"d:\Aayan\voidwebsite\frontend\src\app\api\seed-placements\route.ts", "TypeScript", 0, 12, 0, 0, 0, 0, 0, 0, 1, 13
+"d:\Aayan\voidwebsite\frontend\src\app\api\send-order-email\route.ts", "TypeScript", 0, 28, 0, 0, 0, 0, 0, 0, 5, 33
+"d:\Aayan\voidwebsite\frontend\src\app\api\test-shipping-formula\route.ts", "TypeScript", 0, 12, 0, 0, 0, 0, 0, 0, 2, 14
+"d:\Aayan\voidwebsite\frontend\src\app\api\upload\route.ts", "TypeScript", 0, 102, 0, 0, 0, 0, 0, 14, 20, 136
+"d:\Aayan\voidwebsite\frontend\src\app\api\webhook\route.ts", "TypeScript", 0, 106, 0, 0, 0, 0, 0, 4, 16, 126
+"d:\Aayan\voidwebsite\frontend\src\app\careers\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 111, 0, 9, 11, 131
+"d:\Aayan\voidwebsite\frontend\src\app\cart\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 326, 0, 13, 33, 372
+"d:\Aayan\voidwebsite\frontend\src\app\contact\contact.ts", "TypeScript", 0, 32, 0, 0, 0, 0, 0, 1, 7, 40
+"d:\Aayan\voidwebsite\frontend\src\app\contact\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 142, 0, 3, 17, 162
+"d:\Aayan\voidwebsite\frontend\src\app\globals.css", "CSS", 0, 0, 0, 0, 0, 0, 508, 42, 96, 646
+"d:\Aayan\voidwebsite\frontend\src\app\layout.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 84, 0, 3, 7, 94
+"d:\Aayan\voidwebsite\frontend\src\app\live-stream\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 120, 0, 9, 14, 143
+"d:\Aayan\voidwebsite\frontend\src\app\loading.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 4, 0, 0, 2, 6
+"d:\Aayan\voidwebsite\frontend\src\app\news\layout.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 20, 0, 0, 4, 24
+"d:\Aayan\voidwebsite\frontend\src\app\news\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 287, 0, 14, 29, 330
+"d:\Aayan\voidwebsite\frontend\src\app\not-found.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 25, 0, 0, 1, 26
+"d:\Aayan\voidwebsite\frontend\src\app\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 329, 0, 22, 31, 382
+"d:\Aayan\voidwebsite\frontend\src\app\payment-success\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 45, 0, 3, 8, 56
+"d:\Aayan\voidwebsite\frontend\src\app\placements\layout.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 20, 0, 0, 4, 24
+"d:\Aayan\voidwebsite\frontend\src\app\placements\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 175, 0, 6, 15, 196
+"d:\Aayan\voidwebsite\frontend\src\app\products\[id]\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 467, 0, 24, 53, 544
+"d:\Aayan\voidwebsite\frontend\src\app\reviews\[productId]\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 230, 0, 14, 27, 271
+"d:\Aayan\voidwebsite\frontend\src\app\robots.ts", "TypeScript", 0, 13, 0, 0, 0, 0, 0, 0, 2, 15
+"d:\Aayan\voidwebsite\frontend\src\app\schedule\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 167, 0, 5, 13, 185
+"d:\Aayan\voidwebsite\frontend\src\app\shop\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 136, 0, 11, 14, 161
+"d:\Aayan\voidwebsite\frontend\src\app\sitemap.ts", "TypeScript", 0, 12, 0, 0, 0, 0, 0, 0, 2, 14
+"d:\Aayan\voidwebsite\frontend\src\app\teams\[teamId]\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 200, 0, 7, 21, 228
+"d:\Aayan\voidwebsite\frontend\src\app\teams\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 145, 0, 5, 16, 166
+"d:\Aayan\voidwebsite\frontend\src\app\track-order\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 195, 0, 8, 15, 218
+"d:\Aayan\voidwebsite\frontend\src\components\AdPlaceholder.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 39, 0, 3, 8, 50
+"d:\Aayan\voidwebsite\frontend\src\components\AdminDashboard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 3030, 0, 90, 3377, 6497
+"d:\Aayan\voidwebsite\frontend\src\components\AdvancedPageTransition.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 117, 0, 4, 20, 141
+"d:\Aayan\voidwebsite\frontend\src\components\AnimatedSection.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 53, 0, 2, 7, 62
+"d:\Aayan\voidwebsite\frontend\src\components\Badge.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 22, 0, 0, 7, 29
+"d:\Aayan\voidwebsite\frontend\src\components\CareersContent.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 53, 0, 5, 6, 64
+"d:\Aayan\voidwebsite\frontend\src\components\CartIcon.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 73, 0, 1, 8, 82
+"d:\Aayan\voidwebsite\frontend\src\components\CheckoutForm.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 106, 0, 3, 15, 124
+"d:\Aayan\voidwebsite\frontend\src\components\CheckoutModal.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 615, 0, 31, 69, 715
+"d:\Aayan\voidwebsite\frontend\src\components\CountrySelector.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 196, 0, 7, 17, 220
+"d:\Aayan\voidwebsite\frontend\src\components\CustomerSupportButton.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 56, 0, 5, 7, 68
+"d:\Aayan\voidwebsite\frontend\src\components\CustomerSupportChat.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 290, 0, 11, 21, 322
+"d:\Aayan\voidwebsite\frontend\src\components\Footer.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 164, 0, 6, 14, 184
+"d:\Aayan\voidwebsite\frontend\src\components\FramerAnimations.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 590, 0, 26, 47, 663
+"d:\Aayan\voidwebsite\frontend\src\components\GlobalErrorBoundary.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 90, 0, 11, 20, 121
+"d:\Aayan\voidwebsite\frontend\src\components\GradualBlur.css", "CSS", 0, 0, 0, 0, 0, 0, 27, 0, 4, 31
+"d:\Aayan\voidwebsite\frontend\src\components\LoadingScreen.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 104, 0, 8, 10, 122
+"d:\Aayan\voidwebsite\frontend\src\components\Navbar.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 143, 0, 11, 16, 170
+"d:\Aayan\voidwebsite\frontend\src\components\NewsArticleModal.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 97, 0, 7, 13, 117
+"d:\Aayan\voidwebsite\frontend\src\components\OrderSuccessModal.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 179, 0, 7, 18, 204
+"d:\Aayan\voidwebsite\frontend\src\components\Pagination.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 53, 0, 0, 4, 57
+"d:\Aayan\voidwebsite\frontend\src\components\ParallaxElement.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 64, 0, 2, 11, 77
+"d:\Aayan\voidwebsite\frontend\src\components\PlacementGrid.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 171, 0, 3, 12, 186
+"d:\Aayan\voidwebsite\frontend\src\components\PlayerCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 136, 0, 5, 10, 151
+"d:\Aayan\voidwebsite\frontend\src\components\PlayerDetailModal.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 256, 0, 14, 21, 291
+"d:\Aayan\voidwebsite\frontend\src\components\ProductCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 76, 0, 2, 6, 84
+"d:\Aayan\voidwebsite\frontend\src\components\ProductGrid.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 213, 0, 8, 29, 250
+"d:\Aayan\voidwebsite\frontend\src\components\ReviewButton.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 91, 0, 0, 9, 100
+"d:\Aayan\voidwebsite\frontend\src\components\ReviewList.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 350, 0, 11, 35, 396
+"d:\Aayan\voidwebsite\frontend\src\components\ReviewModal.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 195, 0, 6, 23, 224
+"d:\Aayan\voidwebsite\frontend\src\components\SafeImage.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 108, 0, 5, 18, 131
+"d:\Aayan\voidwebsite\frontend\src\components\ScrollToTop.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 14, 0, 5, 5, 24
+"d:\Aayan\voidwebsite\frontend\src\components\SectionHeader.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 23, 0, 0, 6, 29
+"d:\Aayan\voidwebsite\frontend\src\components\SiteGate.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 86, 0, 1, 13, 100
+"d:\Aayan\voidwebsite\frontend\src\components\admin\AmbassadorsTab.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 265, 0, 2, 14, 281
+"d:\Aayan\voidwebsite\frontend\src\components\admin\NewsTab.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 108, 0, 2, 9, 119
+"d:\Aayan\voidwebsite\frontend\src\components\admin\OrdersTab.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 107, 0, 2, 11, 120
+"d:\Aayan\voidwebsite\frontend\src\components\admin\PlacementsTab.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 109, 0, 2, 11, 122
+"d:\Aayan\voidwebsite\frontend\src\components\admin\ProductsTab.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 568, 0, 11, 38, 617
+"d:\Aayan\voidwebsite\frontend\src\components\admin\ScheduleTab.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 104, 0, 2, 10, 116
+"d:\Aayan\voidwebsite\frontend\src\components\admin\SocialsTab.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 28, 0, 0, 4, 32
+"d:\Aayan\voidwebsite\frontend\src\components\admin\SupportTab.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 335, 0, 6, 33, 374
+"d:\Aayan\voidwebsite\frontend\src\components\admin\TeamsTab.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 847, 0, 28, 66, 941
+"d:\Aayan\voidwebsite\frontend\src\components\admin\UsersTab.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 112, 0, 0, 7, 119
+"d:\Aayan\voidwebsite\frontend\src\components\index.ts", "TypeScript", 0, 26, 0, 0, 0, 0, 0, 7, 7, 40
+"d:\Aayan\voidwebsite\frontend\src\components\useIntersectionObserver.ts", "TypeScript", 0, 38, 0, 0, 0, 0, 0, 0, 8, 46
+"d:\Aayan\voidwebsite\frontend\src\contexts\CartContext.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 156, 0, 5, 29, 190
+"d:\Aayan\voidwebsite\frontend\src\contexts\DebugContext.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 481, 0, 1, 27, 509
+"d:\Aayan\voidwebsite\frontend\src\contexts\OrderContext.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 408, 0, 27, 68, 503
+"d:\Aayan\voidwebsite\frontend\src\contexts\ReviewContext.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 193, 0, 8, 33, 234
+"d:\Aayan\voidwebsite\frontend\src\contexts\SupportContext.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 236, 0, 11, 43, 290
+"d:\Aayan\voidwebsite\frontend\src\data\products.ts", "TypeScript", 0, 164, 0, 0, 0, 0, 0, 0, 1, 165
+"d:\Aayan\voidwebsite\frontend\src\data\teamsData.ts", "TypeScript", 0, 165, 0, 0, 0, 0, 0, 0, 3, 168
+"d:\Aayan\voidwebsite\frontend\src\hooks\useAnimationPerformance.ts", "TypeScript", 0, 178, 0, 0, 0, 0, 0, 12, 33, 223
+"d:\Aayan\voidwebsite\frontend\src\hooks\useDebug.ts", "TypeScript", 0, 250, 0, 0, 0, 0, 0, 12, 47, 309
+"d:\Aayan\voidwebsite\frontend\src\hooks\useOrderTracking.ts", "TypeScript", 0, 115, 0, 0, 0, 0, 0, 7, 13, 135
+"d:\Aayan\voidwebsite\frontend\src\hooks\useTheme.ts", "TypeScript", 0, 18, 0, 0, 0, 0, 0, 0, 4, 22
+"d:\Aayan\voidwebsite\frontend\src\lib\ambassadorService.ts", "TypeScript", 0, 74, 0, 0, 0, 0, 0, 0, 9, 83
+"d:\Aayan\voidwebsite\frontend\src\lib\contactService.ts", "TypeScript", 0, 71, 0, 0, 0, 0, 0, 0, 10, 81
+"d:\Aayan\voidwebsite\frontend\src\lib\countries.ts", "TypeScript", 0, 68, 0, 0, 0, 0, 0, 1, 3, 72
+"d:\Aayan\voidwebsite\frontend\src\lib\currencyService.ts", "TypeScript", 0, 339, 0, 0, 0, 0, 0, 46, 19, 404
+"d:\Aayan\voidwebsite\frontend\src\lib\firebase.ts", "TypeScript", 0, 29, 0, 0, 0, 0, 0, 6, 4, 39
+"d:\Aayan\voidwebsite\frontend\src\lib\fourthwallService.ts", "TypeScript", 0, 55, 0, 0, 0, 0, 0, 15, 6, 76
+"d:\Aayan\voidwebsite\frontend\src\lib\imageUtils.ts", "TypeScript", 0, 67, 0, 0, 0, 0, 0, 25, 19, 111
+"d:\Aayan\voidwebsite\frontend\src\lib\logService.ts", "TypeScript", 0, 198, 0, 0, 0, 0, 0, 13, 29, 240
+"d:\Aayan\voidwebsite\frontend\src\lib\mailService.ts", "TypeScript", 0, 55, 0, 0, 0, 0, 0, 0, 12, 67
+"d:\Aayan\voidwebsite\frontend\src\lib\newsService.ts", "TypeScript", 0, 108, 0, 0, 0, 0, 0, 6, 16, 130
+"d:\Aayan\voidwebsite\frontend\src\lib\orderUtils.ts", "TypeScript", 0, 30, 0, 0, 0, 0, 0, 20, 8, 58
+"d:\Aayan\voidwebsite\frontend\src\lib\placementService.ts", "TypeScript", 0, 58, 0, 0, 0, 0, 0, 0, 7, 65
+"d:\Aayan\voidwebsite\frontend\src\lib\productService.ts", "TypeScript", 0, 461, 0, 0, 0, 0, 0, 48, 59, 568
+"d:\Aayan\voidwebsite\frontend\src\lib\reviewService.ts", "TypeScript", 0, 349, 0, 0, 0, 0, 0, 29, 61, 439
+"d:\Aayan\voidwebsite\frontend\src\lib\scheduleService.ts", "TypeScript", 0, 108, 0, 0, 0, 0, 0, 2, 15, 125
+"d:\Aayan\voidwebsite\frontend\src\lib\seedPlacements.ts", "TypeScript", 0, 97, 0, 0, 0, 0, 0, 5, 6, 108
+"d:\Aayan\voidwebsite\frontend\src\lib\shippingCalculator.ts", "TypeScript", 0, 46, 0, 0, 0, 0, 0, 1, 6, 53
+"d:\Aayan\voidwebsite\frontend\src\lib\socialService.ts", "TypeScript", 0, 77, 0, 0, 0, 0, 0, 1, 13, 91
+"d:\Aayan\voidwebsite\frontend\src\lib\stripe.ts", "TypeScript", 0, 21, 0, 0, 0, 0, 0, 1, 6, 28
+"d:\Aayan\voidwebsite\frontend\src\lib\teamService.ts", "TypeScript", 0, 119, 0, 0, 0, 0, 0, 1, 13, 133
+"d:\Aayan\voidwebsite\frontend\src\lib\uploadService.ts", "TypeScript", 0, 163, 0, 0, 0, 0, 0, 28, 37, 228
+"d:\Aayan\voidwebsite\frontend\src\lib\youtubeService.ts", "TypeScript", 0, 184, 0, 0, 0, 0, 0, 2, 31, 217
+"d:\Aayan\voidwebsite\frontend\src\scripts\migrateData.ts", "TypeScript", 0, 286, 0, 0, 0, 0, 0, 16, 18, 320
+"d:\Aayan\voidwebsite\frontend\src\types\gsap.d.ts", "TypeScript", 0, 1, 0, 0, 0, 0, 0, 0, 1, 2
+"d:\Aayan\voidwebsite\frontend\src\utils\animations.ts", "TypeScript", 0, 88, 0, 0, 0, 0, 0, 14, 19, 121
+"d:\Aayan\voidwebsite\frontend\tailwind.config.ts", "TypeScript", 0, 35, 0, 0, 0, 0, 0, 0, 2, 37
+"d:\Aayan\voidwebsite\frontend\test-per-mile.js", "JavaScript", 76, 0, 0, 0, 0, 0, 0, 2, 15, 93
+"d:\Aayan\voidwebsite\frontend\test-surcharge.js", "JavaScript", 68, 0, 0, 0, 0, 0, 0, 2, 15, 85
+"d:\Aayan\voidwebsite\frontend\tsconfig.json", "JSON with Comments", 0, 0, 42, 0, 0, 0, 0, 0, 1, 43
+"d:\Aayan\voidwebsite\frontend\verify-shipping.js", "JavaScript", 60, 0, 0, 0, 0, 0, 0, 3, 15, 78
+"Total", "-", 229, 4750, 42, 116, 9226, 20318, 535, 1134, 5849, 42199

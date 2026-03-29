@@ -20,16 +20,22 @@ let db: Firestore | null;
 let auth: Auth | null;
 let storage: FirebaseStorage | null;
 
-if (typeof window !== 'undefined') {
-  // Client-side initialization
+try {
+  // Firestore can be initialized for both client and server usage.
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
   db = getFirestore(app);
+} catch (error) {
+  console.error("Firebase app/firestore initialization failed:", error);
+  app = null;
+  db = null;
+}
+
+if (typeof window !== 'undefined' && app) {
+  // Client-only services
   auth = getAuth(app);
   storage = getStorage(app);
 } else {
-  // Server-side - provide mock objects
-  app = null;
-  db = null;
+  // Server-side - avoid auth/storage usage in API routes.
   auth = null;
   storage = null;
 }

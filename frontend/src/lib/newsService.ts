@@ -20,6 +20,7 @@ export interface NewsArticle {
   date: Timestamp;
   image: string;
   description: string;
+  content?: string;
   category: string;
   isEvent?: boolean;
   eventDate?: Timestamp;
@@ -79,6 +80,7 @@ export const newsService = {
       title: input.title,
       image: input.image,
       description: input.description,
+      content: input.content ?? '',
       category: input.category,
       date: typeof input.date === 'string' ? Timestamp.fromDate(new Date(input.date)) : (input.date ?? now),
       isEvent: input.isEvent ?? false,
@@ -103,6 +105,7 @@ export const newsService = {
     if (updates.title !== undefined) payload.title = updates.title;
     if (updates.image !== undefined) payload.image = updates.image;
     if (updates.description !== undefined) payload.description = updates.description;
+    if (updates.content !== undefined) payload.content = updates.content;
     if (updates.category !== undefined) payload.category = updates.category;
     if (updates.isEvent !== undefined) payload.isEvent = updates.isEvent;
     

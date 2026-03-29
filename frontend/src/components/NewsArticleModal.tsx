@@ -10,6 +10,7 @@ interface NewsArticleModalProps {
     date: string;
     image: string;
     description: string;
+    content?: string;
     category: string;
     isEvent?: boolean;
     eventDate?: string;
@@ -64,7 +65,7 @@ export default function NewsArticleModal({ article, isOpen, onClose }: NewsArtic
         </button>
 
         {/* Scrollable Content */}
-        <div className="overflow-y-auto flex-1">
+        <div className="overflow-y-auto overscroll-contain flex-1">
           {/* Article Image */}
           {article.image && (article.image.startsWith('/') || article.image.startsWith('http://') || article.image.startsWith('https://')) && (
             <div className="relative w-full h-64 sm:h-80 lg:h-96 bg-[#050505] overflow-hidden flex-shrink-0">
@@ -101,10 +102,10 @@ export default function NewsArticleModal({ article, isOpen, onClose }: NewsArtic
               {article.title}
             </h1>
 
-            {/* Description */}
+            {/* Full article body (falls back to description for older entries) */}
             <div className="prose prose-invert max-w-none">
               <p className="text-gray-300 text-base sm:text-lg leading-relaxed whitespace-pre-wrap">
-                {article.description}
+                {article.content?.trim() || article.description}
               </p>
             </div>
           </div>

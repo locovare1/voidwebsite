@@ -44,7 +44,6 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
     const monitor = OrderMonitor;
     
     // Check if the request has a secret key for security

@@ -35,15 +35,25 @@ export default function OrderMonitorTab() {
     
     try {
       const response = await fetch('/api/monitor-orders', {
-        method: 'POST',
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ORDER_MONITOR_SECRET || 'default-secret-key'}`
         }
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        let serverMessage = '';
+        try {
+          const errorPayload = await response.json();
+          serverMessage = errorPayload?.message || errorPayload?.error || '';
+        } catch {
+          // Ignore JSON parsing errors and fall back to status text.
+        }
+        throw new Error(
+          serverMessage
+            ? `HTTP ${response.status}: ${serverMessage}`
+            : `HTTP ${response.status}: ${response.statusText}`
+        );
       }
       
       const data = await response.json();
