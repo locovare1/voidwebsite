@@ -22,17 +22,6 @@ export default function CartPage() {
     }
   }, []);
 
-  // Debug cart items
-  useEffect(() => {
-    console.log('Cart items:', items.map(item => ({
-      name: item.name,
-      size: item.customization?.size,
-      sizeType: typeof item.customization?.size,
-      sizeModifier: item.customization?.sizeModifier,
-      fullCustomization: item.customization
-    })));
-  }, [items]);
-
   // Calculate discount savings
   const calculateDiscountSavings = () => {
     return items.reduce((total, item) => {

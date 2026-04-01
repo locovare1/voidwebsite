@@ -175,14 +175,11 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
         };
         
         try {
-          console.log('Saving order to Firebase:', newOrder.id);
-          
           if (db) {
             await setDoc(doc(db, 'orders', newOrder.id), {
               ...newOrder,
               createdAt: new Date(),
             });
-            console.log('Order saved to Firebase successfully');
           }
         } catch (error) {
           console.error('Error saving free order to Firebase:', error);
@@ -259,7 +256,6 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
         throw new Error('No client secret received from server');
       }
       
-      console.log('Payment intent created, client secret received');
       setClientSecret(clientSecret);
       setShowPayment(true);
     } catch (error: any) {
@@ -285,7 +281,6 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
         const stripe = await getStripe();
         if (mounted && stripe) {
           setStripeInstance(stripe);
-          console.log('Stripe loaded successfully in CheckoutModal');
         }
       } catch (error) {
         console.error('Error loading Stripe:', error);
@@ -628,15 +623,12 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
                       
                       // Save to Firebase after successful payment
                       try {
-                        console.log('Saving paid order to Firebase:', finalOrderId);
-                        
                         if (db) {
                           await setDoc(doc(db, 'orders', finalOrderId), {
                             ...completedOrderData,
                             createdAt: new Date(),
                             updatedAt: new Date(),
                           });
-                          console.log('Paid order saved to Firebase successfully');
                         }
                       } catch (error) {
                         console.error('Error saving paid order to Firebase:', error);

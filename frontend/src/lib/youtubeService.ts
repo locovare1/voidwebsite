@@ -14,19 +14,7 @@ export interface YouTubeVideo {
 }
 
 class YouTubeService {
-  private apiKey: string = '';
-  private channelId: string = '';
-  private baseUrl = 'https://www.googleapis.com/youtube/v3';
-
-  constructor() {
-    this.apiKey = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || '';
-    this.channelId = process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_ID || '';
-  }
-
-  setCredentials(apiKey: string, channelId: string) {
-    this.apiKey = apiKey;
-    this.channelId = channelId;
-  }
+  private baseUrl = '/api/youtube';
 
   private formatViewCount(viewCount: string): string {
     const count = parseInt(viewCount);
@@ -53,61 +41,13 @@ class YouTubeService {
   }
 
   async getLatestVideos(maxResults: number = 10): Promise<YouTubeVideo[]> {
-    if (!this.apiKey || !this.channelId) {
-      if (!this.apiKey) console.error('❌ YouTube API Key is MISSING!');
-      if (!this.channelId) console.error('❌ YouTube Channel ID is MISSING!');
-      return this.getFallbackVideos();
-    }
-
     try {
-      console.log('📡 Attempting YouTube fetch for:', this.channelId);
+      const response = await fetch(`${this.baseUrl}?mode=latest&maxResults=${maxResults}`);
+      if (!response.ok) throw new Error('Failed to fetch YouTube videos');
+      const { items } = await response.json();
+      if (!items || items.length === 0) return [];
 
-      let identifierParam = '';
-      if (this.channelId.startsWith('@')) {
-        identifierParam = `forHandle=${this.channelId.substring(1)}`;
-      } else if (this.channelId.startsWith('UC')) {
-        identifierParam = `id=${this.channelId}`;
-      } else {
-        identifierParam = `forHandle=${this.channelId}`;
-      }
-
-      const channelResponse = await fetch(
-        `${this.baseUrl}/channels?part=contentDetails&${identifierParam}&key=${this.apiKey}`
-      );
-
-      if (!channelResponse.ok) {
-        const errorData = await channelResponse.json();
-        console.error('❌ YouTube API Error Response:', errorData);
-        throw new Error(`Failed to fetch channel data: ${channelResponse.statusText}`);
-      }
-
-      const channelData = await channelResponse.json();
-      if (!channelData.items || channelData.items.length === 0) {
-        console.warn('⚠️ No channel found for:', this.channelId);
-        throw new Error('Channel not found');
-      }
-
-      const uploadsPlaylistId = channelData.items[0]?.contentDetails?.relatedPlaylists?.uploads;
-      if (!uploadsPlaylistId) throw new Error('Could not find uploads playlist');
-
-      const playlistResponse = await fetch(
-        `${this.baseUrl}/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=${maxResults}&key=${this.apiKey}`
-      );
-
-      if (!playlistResponse.ok) throw new Error('Failed to fetch playlist items');
-
-      const playlistData = await playlistResponse.json();
-      if (!playlistData.items || playlistData.items.length === 0) return [];
-
-      const videoIds = playlistData.items.map((item: any) => item.snippet.resourceId.videoId).join(',');
-
-      const videosResponse = await fetch(
-        `${this.baseUrl}/videos?part=snippet,contentDetails,statistics&id=${videoIds}&key=${this.apiKey}`
-      );
-
-      if (!videosResponse.ok) throw new Error('Failed to fetch video details');
-
-      const videosData = await videosResponse.json();
+      const videosData = { items };
       return videosData.items.map((video: any): YouTubeVideo => ({
         id: video.id,
         title: video.snippet.title,
@@ -123,7 +63,7 @@ class YouTubeService {
       }));
 
     } catch (error) {
-      console.error('❌ YouTube API Error:', error);
+      console.error('YouTube API Error:', error);
       return this.getFallbackVideos();
     }
   }
@@ -179,23 +119,14 @@ class YouTubeService {
   }
 
   async searchVideos(query: string, maxResults: number = 10): Promise<YouTubeVideo[]> {
-    if (!this.apiKey) return this.getFallbackVideos();
-
     try {
-      const searchResponse = await fetch(
-        `${this.baseUrl}/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=${maxResults}&key=${this.apiKey}`
+      const response = await fetch(
+        `${this.baseUrl}?mode=search&query=${encodeURIComponent(query)}&maxResults=${maxResults}`
       );
-      if (!searchResponse.ok) throw new Error('Failed to search videos');
+      if (!response.ok) throw new Error('Failed to search videos');
+      const { items } = await response.json();
+      const videosData = { items: items || [] };
 
-      const searchData = await searchResponse.json();
-      const videoIds = searchData.items.map((item: any) => item.id.videoId).join(',');
-
-      const videosResponse = await fetch(
-        `${this.baseUrl}/videos?part=snippet,contentDetails,statistics&id=${videoIds}&key=${this.apiKey}`
-      );
-      if (!videosResponse.ok) throw new Error('Failed to fetch video details');
-
-      const videosData = await videosResponse.json();
       return videosData.items.map((video: any): YouTubeVideo => ({
         id: video.id,
         title: video.snippet.title,
