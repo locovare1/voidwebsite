@@ -20,10 +20,10 @@ export default function SecurityInit({ children }: SecurityInitProps) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Initialize storage protection (encrypts sensitive data automatically)
+    // Initialize storage protection (provides secureStorage helpers)
     initializeStorageProtection();
 
-    // Initialize window object protection (blocks credential harvesting)
+    // Initialize window object protection (minimal, non-breaking version)
     initializeWindowProtection();
 
     // Additional runtime protections

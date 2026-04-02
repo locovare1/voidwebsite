@@ -193,33 +193,16 @@ export const secureStorage = {
 
 /**
  * Initialize storage protection
- * This monkey-patches localStorage and sessionStorage to automatically encrypt sensitive data
+ * This provides helper functions but DOESN'T monkey-patch Storage.prototype
+ * to avoid breaking React/Next.js internals
  */
 export const initializeStorageProtection = (): void => {
   if (typeof window === 'undefined') return;
 
-  // Protect localStorage
-  const originalLocalStorageSetItem = Storage.prototype.setItem;
-  const originalLocalStorageGetItem = Storage.prototype.getItem;
-
-  Storage.prototype.setItem = function(this: Storage, key: string, value: string) {
-    if (this === localStorage) {
-      secureStorage.setItem(key, value);
-    } else if (this === sessionStorage) {
-      secureStorage.setSessionItem(key, value);
-    } else {
-      originalLocalStorageSetItem.call(this, key, value);
-    }
-  };
-
-  Storage.prototype.getItem = function(this: Storage, key: string) {
-    if (this === localStorage) {
-      return secureStorage.getItem(key);
-    } else if (this === sessionStorage) {
-      return secureStorage.getSessionItem(key);
-    }
-    return originalLocalStorageGetItem.call(this, key);
-  };
+  // DO NOT monkey-patch Storage.prototype - this breaks React/Next.js
+  // Instead, just use secureStorage helper functions directly in your code
+  
+  console.log("🔒 Secure storage utilities available - use secureStorage.setItem/getItem instead of localStorage");
 };
 
 export default secureStorage;
