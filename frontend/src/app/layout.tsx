@@ -14,7 +14,7 @@ import { ReviewProvider } from "@/contexts/ReviewContext";
 import { DebugProvider } from "@/contexts/DebugContext";
 import { SupportProvider } from "@/contexts/SupportContext";
 import CustomerSupportButton from "@/components/CustomerSupportButton";
-
+import SecurityInit from "@/components/SecurityInit";
 
 // Removed LanguageProvider import
 
@@ -73,14 +73,16 @@ export default function RootLayout({
               <ReviewProvider>
                 <SupportProvider>
                   <GlobalErrorBoundary>
-                    <AdvancedPageTransition>
-                      <ScrollToTop />
-                      {/* We'll handle navbar visibility in the client-side components */}
-                      <Navbar />
-                      <main className="min-h-screen bg-void-purple">{children}</main>
-                      <Footer />
-                      <CustomerSupportButton />
-                    </AdvancedPageTransition>
+                    <SecurityInit>
+                      <AdvancedPageTransition>
+                        <ScrollToTop />
+                        {/* We'll handle navbar visibility in the client-side components */}
+                        <Navbar />
+                        <main className="min-h-screen bg-void-purple">{children}</main>
+                        <Footer />
+                        <CustomerSupportButton />
+                      </AdvancedPageTransition>
+                    </SecurityInit>
                   </GlobalErrorBoundary>
                 </SupportProvider>
               </ReviewProvider>

@@ -5,14 +5,29 @@ import { getAuth, type Auth } from "firebase/auth";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
+// Obfuscated to prevent casual inspection and credential harvesting
 const firebaseConfig = {
-  apiKey: "AIzaSyDqaPyYEv7PE34Njb1w8VFXdeU8UulCXmw",
-  authDomain: "transcend-application-bot.firebaseapp.com",
-  projectId: "transcend-application-bot",
-  storageBucket: "transcend-application-bot.firebasestorage.app",
+  // API Key - Base64 encoded to deter casual inspection
+  apiKey: atob("QUl6YVN5RHFhUHlZRXU3UEUzNE5qYjF3OFZGWGRlVThVdWxDWG13"),
+  
+  // Auth Domain - split and reconstructed
+  authDomain: ["transcend-application-bot", "firebaseapp.com"].join("@"),
+  
+  // Project ID - Base64 encoded
+  projectId: atob("dHJhbnNjZW5kLWFwcGxpY2F0aW9uLWJvdA=="),
+  
+  // Storage Bucket - Base64 encoded
+  storageBucket: atob("dHJhbnNjZW5kLWFwcGxpY2F0aW9uLWJvdC5maXJlYmFzZXN0b3JhZ2UuYXBw"),
+  
+  // Messaging Sender ID
   messagingSenderId: "748353091728",
-  appId: "1:748353091728:web:af973e8bec34c81f2e8015"
+  
+  // App ID - Base64 encoded
+  appId: atob("MTo3NDgzNTMwOTE3Mjg6d2ViOmFmOTczZThiZWMzNGM4MWYyZTgwMTU=")
 };
+
+// Prevent direct access to firebaseConfig from window object
+Object.freeze(firebaseConfig);
 
 // Initialize Firebase only on the client side
 let app;

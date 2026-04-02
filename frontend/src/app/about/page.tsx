@@ -1,8 +1,10 @@
+"use client";
+
 import Image from 'next/image';
 import AnimatedSection from '@/components/AnimatedSection';
 import Link from 'next/link';
 import AdPlaceholder from '@/components/AdPlaceholder';
-import { AnimatedHeroSection, AnimatedCard, StaggeredList, StaggeredItem, ParallaxText, FadeInSection } from '@/components/FramerAnimations';
+import { AnimatedCard, StaggeredList, StaggeredItem, ParallaxText, FadeInSection, ScrollProgress } from '@/components/FramerAnimations';
 
 const values = [
   {
@@ -25,37 +27,44 @@ const values = [
 
 export default function AboutPage() {
   return (
-    <div className="pt-20 min-h-screen bg-[#0F0F0F]">
-      <div className="void-container py-12">
+    <div className="pt-20 min-h-screen bg-[#1a0a2e] relative overflow-hidden">
+      <ScrollProgress />
+      <div className="absolute inset-0 opacity-20 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="void-container py-8 sm:py-12 relative z-10">
         {/* Ad Spot - Banner at top */}
         <div className="mb-8">
           <AdPlaceholder size="banner" />
         </div>
 
         {/* Hero Section */}
-        <AnimatedHeroSection>
-          <div className="text-center mb-16">
-            <ParallaxText speed={0.2}>
-              <h1 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">About Void</h1>
+        <AnimatedSection animationType="fadeIn" delay={100}>
+          <div className="text-center mb-12 sm:mb-16">
+            <ParallaxText speed={0.15}>
+              <h1 className="text-4xl sm:text-5xl font-bold mb-5 gradient-text">About Void</h1>
             </ParallaxText>
-            <FadeInSection>
-              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              A professional esports organization shooting for excellence and innovation in all aspects of gaming. Void isn't a clan, we are the future.
+            <FadeInSection className="max-w-3xl mx-auto">
+              <p className="text-lg sm:text-xl text-gray-300">
+                A professional esports organization shooting for excellence and innovation in all aspects of gaming.
+                Void is not a clan, we are the future.
               </p>
             </FadeInSection>
           </div>
-        </AnimatedHeroSection>
+        </AnimatedSection>
 
         {/* Mission Statement */}
         <AnimatedSection animationType="slideUp" delay={150}>
-          <div className="void-card mb-16">
-            <div className="grid md:grid-cols-2 gap-8 items-center">
+          <div className="mb-16 bg-[#111]/70 border border-white/10 rounded-2xl p-5 sm:p-7 backdrop-blur-sm shadow-xl">
+            <div className="grid md:grid-cols-2 gap-6 sm:gap-8 items-center">
               <div className="relative h-64 md:h-full min-h-[300px] rounded-lg overflow-hidden">
                 <Image
                   src="/logos/new-logo.png"
                   alt="Void Esports Mission"
                   fill
-                  className="object-cover"
+                  className="object-cover hover:scale-105 transition-transform duration-500"
                 />
               </div>
               <div className="space-y-4">
@@ -64,7 +73,7 @@ export default function AboutPage() {
                   At Void, we are focused on redefining the standards in the esports industry. Our mission here is to find talent and give it the platform they need to shoot for the stars. We create Content to let every person view the excellence and community we have here at Void. Void holds pride in the community we have cultivated over the years and want all of you to experience it.
                 </p>
                 <p className="text-gray-300">
-                  Through experience, coaching, and practice we lead our players into an environment to succeed on all fronts from competitive too content creation. Void doesn't just exist in a endless Void- we shoot through it like a hand chasing a shooting star. 
+                  Through experience, coaching, and practice we lead our players into an environment to succeed on all fronts from competitive too content creation. Void doesn't just exist in a endless Void- we shoot through it like a hand chasing a shooting star.
                 </p>
               </div>
             </div>
@@ -78,7 +87,7 @@ export default function AboutPage() {
             <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {values.map((value, index) => (
                 <StaggeredItem key={value.title}>
-                  <AnimatedCard delay={index * 0.05} className="void-card">
+                  <AnimatedCard delay={index * 0.05} className="bg-[#111]/70 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
                     <h3 className="text-xl font-bold mb-3 text-white">{value.title}</h3>
                     <p className="text-gray-400">{value.description}</p>
                   </AnimatedCard>
@@ -94,10 +103,11 @@ export default function AboutPage() {
         </div>
 
         {/* CTA Section */}
+        <AnimatedSection animationType="slideUp" delay={100}>
         <div className="mt-8 text-center">
           <h2 className="text-2xl font-bold mb-6 text-white">Join the Void Community</h2>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/teams" className="void-button">
+            <Link href="/teams" className="void-button pulse-glow">
               View Our Teams
             </Link>
             <Link href="/contact" className="void-button bg-transparent border-2 text-[#FFFFFF] border-[#FFFFFF] hover:bg-[#FFFFFF] hover:text-[#000000]">
@@ -105,6 +115,7 @@ export default function AboutPage() {
             </Link>
           </div>
         </div>
+        </AnimatedSection>
 
         {/* Ad Spot - Banner at bottom */}
         <div className="mt-16">

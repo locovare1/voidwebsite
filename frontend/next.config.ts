@@ -17,20 +17,7 @@ const nextConfig: NextConfig = {
     unoptimized: false,
   },
   
-  // Add headers for security
-  async headers() {
-    return [
-      {
-        source: "/(.*)",
-        headers: [
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "Referrer-Policy", value: "same-origin" },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" }
-        ],
-      },
-    ];
-  },
+  // Headers are now handled in middleware.ts for better security
   
   // Enable experimental features if needed
   experimental: {
