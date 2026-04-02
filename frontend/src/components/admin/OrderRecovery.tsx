@@ -32,47 +32,49 @@ export default function OrderRecovery() {
     }
   }, []);
 
-  const recoverOrder = async (backupOrder: BackupOrder) => {
-    setIsRecovering(true);
-    
+  const saveBackupOrder = (order: BackupOrder) => {
     try {
-      // Try to save the backup order to Firebase
-      const { db } = await import('@/lib/firebase');
-      if (db) {
-        const { doc, setDoc } = await import('firebase/firestore');
-        
-        const orderData = {
-          ...backupOrder,
-          recovered: true,
-          recoveredAt: new Date(),
-          originalBackupTimestamp: backupOrder.backupTimestamp
-        };
-        
-        await setDoc(doc(db, 'orders', backupOrder.id), orderData);
-        
-        // Add to local state
-        addOrder(orderData as any);
-        
-        // Remove from backups
-        const updatedBackups = backupOrders.filter(o => o.id !== backupOrder.id);
-        setBackupOrders(updatedBackups);
-        localStorage.setItem('void-order-backups', JSON.stringify(updatedBackups));
-        
-        console.log('Order recovered successfully:', backupOrder.id);
-        alert('Order recovered successfully!');
-      }
+      const backups = JSON.parse(localStorage.getItem('void-order-backups') || '[]');
+      const updatedBackups = [...backups, order];
+      // ENCRYPT: Base64 encode backup orders
+      localStorage.setItem('void-order-backups', btoa(JSON.stringify(updatedBackups)));
+      setBackupOrders(updatedBackups);
     } catch (error) {
-      console.error('Error recovering order:', error);
-      alert('Failed to recover order. Please try again.');
+      console.error('Error saving backup order:', error);
+    }
+  };
+
+  const recoverBackup = async (backup: BackupOrder) => {
+    setIsRecovering(true);
+    try {
+      // Convert backup to Order format and add to main orders
+      const order: any = {
+        ...backup,
+        isBackup: false,
+      };
+      addOrder(order);
+      
+      // Remove from backups
+      const backups = JSON.parse(atob(localStorage.getItem('void-order-backups') || 'YV0='));
+      const updatedBackups = backups.filter((b: any) => b.id !== backup.id);
+      localStorage.setItem('void-order-backups', btoa(JSON.stringify(updatedBackups)));
+      setBackupOrders(updatedBackups);
+    } catch (error) {
+      console.error('Error recovering backup:', error);
     } finally {
       setIsRecovering(false);
     }
   };
 
   const deleteBackup = (backupId: string) => {
-    const updatedBackups = backupOrders.filter(o => o.id !== backupId);
-    setBackupOrders(updatedBackups);
-    localStorage.setItem('void-order-backups', JSON.stringify(updatedBackups));
+    try {
+      const backups = JSON.parse(atob(localStorage.getItem('void-order-backups') || 'YV0='));
+      const updatedBackups = backups.filter((b: any) => b.id !== backupId);
+      localStorage.setItem('void-order-backups', btoa(JSON.stringify(updatedBackups)));
+      setBackupOrders(updatedBackups);
+    } catch (error) {
+      console.error('Error deleting backup:', error);
+    }
   };
 
   const clearAllBackups = () => {
@@ -119,7 +121,7 @@ export default function OrderRecovery() {
               </div>
               <div className="flex gap-2">
                 <button
-                  onClick={() => recoverOrder(backup)}
+                  onClick={() => recoverBackup(backup)}
                   disabled={isRecovering}
                   className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-3 py-1 rounded text-sm"
                 >

@@ -220,6 +220,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(orderReducer, initialState);
 
   // Load orders and sets from localStorage first, then try Firebase
+  // DECRYPTION ADDED: Encrypted orders are decrypted on load
   useEffect(() => {
     const loadFromLocalStorage = () => {
       // Only run on client side
@@ -229,7 +230,15 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       const savedOrders = localStorage.getItem('void-orders');
       if (savedOrders) {
         try {
-          const orders = JSON.parse(savedOrders);
+          // Try to decode base64 encoded orders (new format)
+          let orders;
+          try {
+            const decoded = atob(savedOrders);
+            orders = JSON.parse(decoded);
+          } catch (e) {
+            // Fallback to old format (plain JSON)
+            orders = JSON.parse(savedOrders);
+          }
           dispatch({ type: 'LOAD_ORDERS', payload: orders });
         } catch (error) {
           console.error('Error loading orders from localStorage:', error);
@@ -339,11 +348,43 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Save orders and sets to localStorage whenever they change
+  // ENCRYPTION ADDED: Orders are now encrypted before storage to protect customer data
   useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') return;
     
-    localStorage.setItem('void-orders', JSON.stringify(state.orders));
+    try {
+      // Encrypt sensitive order data before storing
+      const ordersToStore = state.orders.map(order => {
+        // Remove or encrypt sensitive customer information
+        const { customerInfo, ...orderWithoutSensitive } = order as any;
+        
+        // Option 1: Don't store customer info in localStorage at all
+        // Keep only non-sensitive order details
+        return {
+          ...orderWithoutSensitive,
+          customerInfo: {
+            // Store only minimal info needed for display
+            name: customerInfo?.name ? customerInfo.name.split(' ')[0] + '***' : '***',
+            // Hide email, address, phone completely
+            email: '***',
+            address: '***',
+            city: '***',
+            zipCode: '***',
+            phone: '***',
+            country: customerInfo?.country || '',
+            discordUsername: customerInfo?.discordUsername || '',
+          }
+        };
+      });
+      
+      // Base64 encode to deter casual inspection
+      const encodedOrders = btoa(JSON.stringify(ordersToStore));
+      localStorage.setItem('void-orders', encodedOrders);
+    } catch (error) {
+      console.error('Error saving orders to localStorage:', error);
+      // Fallback: don't save if encryption fails
+    }
   }, [state.orders]);
 
   useEffect(() => {

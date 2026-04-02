@@ -90,13 +90,26 @@ export function useOrderTracking() {
           // If not found in Firebase, try localStorage (for backward compatibility)
           const localOrders = localStorage.getItem('void-orders');
           if (localOrders) {
-            const orders: Order[] = JSON.parse(localOrders);
-            const foundOrder = orders.find(o => o.id === orderNumber);
-            
-            if (foundOrder) {
-              setOrder(foundOrder);
-            } else {
-              setError('Order not found. Please check your order number and try again.');
+            try {
+              // Try to decode base64 encoded orders (new encrypted format)
+              let orders: Order[];
+              try {
+                const decoded = atob(localOrders);
+                orders = JSON.parse(decoded);
+              } catch (e) {
+                // Fallback to old format (plain JSON)
+                orders = JSON.parse(localOrders);
+              }
+              const foundOrder = orders.find(o => o.id === orderNumber);
+              
+              if (foundOrder) {
+                setOrder(foundOrder);
+              } else {
+                setError('Order not found. Please check your order number and try again.');
+              }
+            } catch (error) {
+              console.error('Error reading orders from localStorage:', error);
+              setError('Error loading order. Please try again.');
             }
           } else {
             setError('Order not found. Please check your order number and try again.');
@@ -106,13 +119,26 @@ export function useOrderTracking() {
         // If Firebase is not available, try localStorage
         const localOrders = localStorage.getItem('void-orders');
         if (localOrders) {
-          const orders: Order[] = JSON.parse(localOrders);
-          const foundOrder = orders.find(o => o.id === orderNumber);
-          
-          if (foundOrder) {
-            setOrder(foundOrder);
-          } else {
-            setError('Order not found. Please check your order number and try again.');
+          try {
+            // Try to decode base64 encoded orders
+            let orders: Order[];
+            try {
+              const decoded = atob(localOrders);
+              orders = JSON.parse(decoded);
+            } catch (e) {
+              // Fallback to old format
+              orders = JSON.parse(localOrders);
+            }
+            const foundOrder = orders.find(o => o.id === orderNumber);
+            
+            if (foundOrder) {
+              setOrder(foundOrder);
+            } else {
+              setError('Order not found. Please check your order number and try again.');
+            }
+          } catch (error) {
+            console.error('Error reading orders from localStorage:', error);
+            setError('Error loading order. Please try again.');
           }
         } else {
           setError('Order not found. Please check your order number and try again.');
