@@ -5,10 +5,9 @@ import { getAuth, type Auth } from "firebase/auth";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
-// Obfuscated to prevent casual inspection and credential harvesting
 const firebaseConfig = {
-  // API Key - Base64 encoded to deter casual inspection
-  apiKey: atob("QUl6YVN5RHFhUHlZRXU3UEUzNE5qYjF3OFZGWGRlVThVdWxDWG13"),
+  // Use environment variable for API key
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   
   // Auth Domain - split and reconstructed
   authDomain: ["transcend-application-bot", "firebaseapp.com"].join("@"),
