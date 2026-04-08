@@ -139,8 +139,40 @@ export async function POST(req: NextRequest) {
                 stripeMetadata: metadata
               };
               
-              await updateDoc(doc(db, 'orders', firestoreOrderId), orderData);
-              console.log('Order updated successfully:', firestoreOrderId);
+              // CRITICAL: Check if order exists first
+              const orderRef = doc(db, 'orders', firestoreOrderId);
+              const orderSnapshot = await getDoc(orderRef);
+              
+              if (orderSnapshot.exists()) {
+                // Order exists - update it
+                await updateDoc(orderRef, orderData);
+                console.log('Order updated successfully:', firestoreOrderId);
+              } else {
+                // Order doesn't exist - create it
+                const completeOrderData = {
+                  ...orderData,
+                  id: firestoreOrderId,
+                  items: metadata.items ? JSON.parse(metadata.items) : [],
+                  total: actualAmount,
+                  customerInfo: {
+                    name: metadata.customerName || '',
+                    email: metadata.customerEmail || '',
+                    address: metadata.customerAddress || '',
+                    city: metadata.customerCity || '',
+                    zipCode: metadata.customerZipCode || '',
+                    phone: metadata.customerPhone || '',
+                    country: metadata.customerCountry || '',
+                    discordUsername: metadata.customerDiscord || ''
+                  },
+                  createdAt: new Date(),
+                  createdBy: 'stripe-webhook',
+                  webhookPaymentId: paymentIntent.id
+                };
+                
+                await setDoc(orderRef, completeOrderData);
+                console.log('Order created successfully by webhook:', firestoreOrderId);
+              }
+              
               orderCreated = true;
               
               // CRITICAL: Verify order was actually saved
