@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Pagination from './Pagination';
 import { useCart } from '@/contexts/CartContext';
 import ReviewButton from './ReviewButton';
@@ -9,7 +10,6 @@ import { Product } from '@/data/products';
 import { AnimatedCard } from '@/components/FramerAnimations';
 import { calculateSalePercentage, getDisplayPrice, detectUserCountry } from '@/lib/productService';
 import { getCurrencyForCountry, formatFromUSD } from '@/lib/currencyService';
-import SafeImage from './SafeImage';
 
 // Extend the Product interface to include optional Firestore ID and sale fields
 interface ExtendedProduct {
@@ -166,7 +166,7 @@ export default function ProductGrid({ products, itemsPerPage = 12, userCountry: 
 					<Link key={product.id} href={`/products/${product.firestoreId || product.id}`} className="block">
 						<AnimatedCard className="void-card shine-hover overflow-hidden group cursor-pointer">
 							<div className="relative h-48 sm:h-56 lg:h-64 w-full overflow-hidden">
-								<SafeImage
+								<Image
 									src={product.image && product.image.trim() ? product.image : '/logo.png'}
 									alt={product.name}
 									fill
