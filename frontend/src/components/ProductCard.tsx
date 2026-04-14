@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { Product } from "@/lib/productService";
+import SafeImage from "./SafeImage";
 
 interface ProductCardProps {
   item: Product;
@@ -37,11 +37,11 @@ export default function ProductCard({ item, index }: ProductCardProps) {
             transition={{ duration: 0.4 }}
             className="absolute inset-0 p-4 sm:p-6"
           >
-            <Image 
-              src={item.image} 
-              alt={item.name} 
-              fill 
-              className="object-contain" 
+            <SafeImage
+              src={item.image}
+              alt={item.name}
+              fill
+              className="object-contain"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
           </motion.div>
@@ -51,11 +51,11 @@ export default function ProductCard({ item, index }: ProductCardProps) {
               transition={{ duration: 0.4 }}
               className="absolute inset-0 p-4 sm:p-6"
             >
-              <Image 
-                src={item.hoverImage} 
-                alt={`${item.name} - Hover`} 
-                fill 
-                className="object-contain" 
+              <SafeImage
+                src={item.hoverImage}
+                alt={`${item.name} - Hover`}
+                fill
+                className="object-contain"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />
             </motion.div>
