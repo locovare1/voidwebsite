@@ -235,8 +235,21 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
           metadata: {
             customerName: customerInfo.name,
             customerEmail: customerInfo.email,
+            customerAddress: customerInfo.address,
+            customerCity: customerInfo.city,
+            customerZipCode: customerInfo.zipCode,
+            customerPhone: customerInfo.phone,
+            customerCountry: customerInfo.country,
+            customerDiscord: customerInfo.discordUsername,
             orderId: tempOrderId, // Reference for potential order creation
             orderNumber,
+            items: JSON.stringify(items.map(item => ({
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image
+            }))),
           },
         }),
         signal: controller.signal
