@@ -494,6 +494,7 @@ export interface Product {
   sizes?: Size[];
   hasCustomFields?: boolean;
   hasSizes?: boolean;
+  hasSizeChart?: boolean;
 }
 
 export interface CustomField {

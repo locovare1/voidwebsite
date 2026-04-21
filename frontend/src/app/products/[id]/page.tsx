@@ -11,6 +11,7 @@ import ReviewModal from '@/components/ReviewModal';
 import ReviewList from '@/components/ReviewList';
 import LoadingScreen from '@/components/LoadingScreen';
 import { getCurrencyForCountry, formatFromUSD } from '@/lib/currencyService';
+import { ViewfinderCircleIcon } from '@heroicons/react/24/outline';
 
 // Hash function to convert Firestore string ID to consistent numeric ID (same as shop page)
 function stringToHash(str: string): number {
@@ -45,6 +46,7 @@ export default function ProductDetailPage() {
   });
   const [userCountry, setUserCountry] = useState<string | null>(null);
   const [currentUserEmail, setCurrentUserEmail] = useState<string | undefined>(undefined);
+  const [showSizeChart, setShowSizeChart] = useState(false);
 
   const { addItem } = useCart();
 
@@ -369,7 +371,18 @@ export default function ProductDetailPage() {
             {/* Size Selection */}
             {product.hasSizes && product.sizes && product.sizes.length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-base sm:text-lg font-semibold text-white">Size</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base sm:text-lg font-semibold text-white">Size</h3>
+                  {product.hasSizeChart && (
+                    <button
+                      onClick={() => setShowSizeChart(true)}
+                      className="text-[#FFFFFF]/60 hover:text-[#FFFFFF] text-sm flex items-center gap-1.5 transition-colors group"
+                    >
+                      <ViewfinderCircleIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                      View Size Chart
+                    </button>
+                  )}
+                </div>
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
                   {product.sizes.filter(size => size.available).map((size) => {
                     console.log('Rendering size:', {
@@ -537,6 +550,46 @@ export default function ProductDetailPage() {
           productId={productId ? stringToHash(productId) : Math.floor(Math.random() * 1000000) + 1000}
           productName={product?.name || 'Product'}
         />
+
+        {/* Size Chart Modal */}
+        {showSizeChart && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 backdrop-blur-md bg-black/80 animate-in fade-in duration-300">
+            <div 
+              className="absolute inset-0" 
+              onClick={() => setShowSizeChart(false)}
+            />
+            <AnimatedCard className="relative w-full max-w-4xl bg-[#0F0F0F] border border-[#2A2A2A] rounded-2xl overflow-hidden shadow-2xl">
+              <div className="flex items-center justify-between p-4 sm:p-6 border-b border-[#2A2A2A]">
+                <h3 className="text-xl font-bold text-white flex items-center gap-3">
+                  <ViewfinderCircleIcon className="w-6 h-6 text-purple-400" />
+                  Size Guide
+                </h3>
+                <button 
+                  onClick={() => setShowSizeChart(false)}
+                  className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-400 hover:text-white"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="p-2 sm:p-4 overflow-y-auto max-h-[85vh] flex items-center justify-center bg-[#050505]">
+                <div className="relative w-full">
+                  <img
+                    src="/size-chart.png"
+                    alt="Size Chart"
+                    className="w-full h-auto object-contain rounded-lg"
+                  />
+                </div>
+              </div>
+              <div className="p-4 sm:p-6 border-t border-[#2A2A2A] bg-[#0A0A0A]">
+                <p className="text-sm text-gray-400 text-center italic">
+                  * All measurements are in centimeters unless specified otherwise.
+                </p>
+              </div>
+            </AnimatedCard>
+          </div>
+        )}
       </div>
     </div>
   );

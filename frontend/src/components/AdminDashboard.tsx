@@ -265,25 +265,17 @@ export default function AdminDashboard() {
   const [selectedProductForCustomization, setSelectedProductForCustomization] = useState<Product | null>(null);
 
   const [customizationForm, setCustomizationForm] = useState<{
-
     hasCustomFields: boolean;
-
     hasSizes: boolean;
-
+    hasSizeChart: boolean;
     customFields: CustomField[];
-
     sizes: Size[];
-
   }>({
-
     hasCustomFields: false,
-
     hasSizes: false,
-
+    hasSizeChart: false,
     customFields: [],
-
     sizes: []
-
   });
 
   const [logs, setLogs] = useState<Log[]>([]);
@@ -365,19 +357,13 @@ export default function AdminDashboard() {
   useEffect(() => {
 
     if (selectedProductForCustomization) {
-
       setCustomizationForm({
-
         hasCustomFields: selectedProductForCustomization.hasCustomFields || false,
-
         hasSizes: selectedProductForCustomization.hasSizes || false,
-
+        hasSizeChart: selectedProductForCustomization.hasSizeChart || false,
         customFields: selectedProductForCustomization.customFields || [],
-
         sizes: selectedProductForCustomization.sizes || []
-
       });
-
     }
 
   }, [selectedProductForCustomization]);
@@ -2065,16 +2051,11 @@ export default function AdminDashboard() {
 
 
     try {
-
       const updateData: any = {
-
         hasCustomFields: customizationForm.hasCustomFields,
-
         hasSizes: customizationForm.hasSizes,
-
+        hasSizeChart: customizationForm.hasSizeChart,
       };
-
-
 
       if (customizationForm.hasCustomFields) {
 
@@ -2111,15 +2092,11 @@ export default function AdminDashboard() {
         status: 'success',
 
         metadata: {
-
           hasCustomFields: customizationForm.hasCustomFields,
-
           hasSizes: customizationForm.hasSizes,
-
+          hasSizeChart: customizationForm.hasSizeChart,
           customFieldsCount: customizationForm.customFields.length,
-
           sizesCount: customizationForm.sizes.length
-
         }
 
       });
@@ -5834,11 +5811,13 @@ export default function AdminDashboard() {
 
                   {/* Enable/Disable Options */}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Configuration Toggles */}
 
-                    <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 
-                      <label className="flex items-center space-x-3">
+                    <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-4">
+
+                      <label className="flex items-center gap-3 cursor-pointer">
 
                         <input
 
@@ -5862,9 +5841,9 @@ export default function AdminDashboard() {
 
                       </label>
 
-                      <p className="text-gray-400 text-sm mt-2">
+                      <p className="text-gray-400 text-xs mt-2">
 
-                        Allow customers to enter custom information (e.g., name on jersey, player number)
+                        Allow customers to enter custom information (e.g., name on jersey)
 
                       </p>
 
@@ -5872,9 +5851,9 @@ export default function AdminDashboard() {
 
 
 
-                    <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg p-4">
+                    <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-4">
 
-                      <label className="flex items-center space-x-3">
+                      <label className="flex items-center gap-3 cursor-pointer">
 
                         <input
 
@@ -5898,9 +5877,45 @@ export default function AdminDashboard() {
 
                       </label>
 
-                      <p className="text-gray-400 text-sm mt-2">
+                      <p className="text-gray-400 text-xs mt-2">
 
                         Allow customers to select sizes with optional price modifiers
+
+                      </p>
+
+                    </div>
+
+
+
+                    <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-4">
+
+                      <label className="flex items-center gap-3 cursor-pointer">
+
+                        <input
+
+                          type="checkbox"
+
+                          checked={customizationForm.hasSizeChart}
+
+                          onChange={(e) => setCustomizationForm(prev => ({
+
+                            ...prev,
+
+                            hasSizeChart: e.target.checked
+
+                          }))}
+
+                          className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
+
+                        />
+
+                        <span className="text-white font-medium">Enable Size Chart</span>
+
+                      </label>
+
+                      <p className="text-gray-400 text-xs mt-2">
+
+                        Show a size guide link on the product page
 
                       </p>
 

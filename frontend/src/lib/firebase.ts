@@ -6,23 +6,13 @@ import { getStorage, type FirebaseStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  // Use environment variable for API key
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  
-  // Auth Domain - split and reconstructed
-  authDomain: ["transcend-application-bot", "firebaseapp.com"].join("@"),
-  
-  // Project ID - Base64 encoded
-  projectId: atob("dHJhbnNjZW5kLWFwcGxpY2F0aW9uLWJvdA=="),
-  
-  // Storage Bucket - Base64 encoded
-  storageBucket: atob("dHJhbnNjZW5kLWFwcGxpY2F0aW9uLWJvdC5maXJlYmFzZXN0b3JhZ2UuYXBw"),
-  
-  // Messaging Sender ID
+  apiKey: "AIzaSyDqaPyYEv7PE34Njb1w8VFXdeU8UulCXmw",
+  authDomain: "transcend-application-bot.firebaseapp.com",
+  databaseURL: "https://transcend-application-bot-default-rtdb.firebaseio.com",
+  projectId: "transcend-application-bot",
+  storageBucket: "transcend-application-bot.firebasestorage.app",
   messagingSenderId: "748353091728",
-  
-  // App ID - Base64 encoded
-  appId: atob("MTo3NDgzNTMwOTE3Mjg6d2ViOmFmOTczZThiZWMzNGM4MWYyZTgwMTU=")
+  appId: "1:748353091728:web:af973e8bec34c81f2e8015"
 };
 
 // Prevent direct access to firebaseConfig from window object

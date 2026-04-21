@@ -10,6 +10,7 @@ import { productService, type Product, type CustomField, type Size } from '@/lib
 interface CustomizationForm {
   hasCustomFields: boolean;
   hasSizes: boolean;
+  hasSizeChart: boolean;
   customFields: CustomField[];
   sizes: Size[];
 }
@@ -192,6 +193,7 @@ export default function ProductsTab({
       const updateData: any = {
         hasCustomFields: customizationForm.hasCustomFields,
         hasSizes: customizationForm.hasSizes,
+        hasSizeChart: customizationForm.hasSizeChart,
       };
 
       if (customizationForm.hasCustomFields) {
@@ -212,6 +214,7 @@ export default function ProductsTab({
         metadata: {
           hasCustomFields: customizationForm.hasCustomFields,
           hasSizes: customizationForm.hasSizes,
+          hasSizeChart: customizationForm.hasSizeChart,
           customFieldsCount: customizationForm.customFields.length,
           sizesCount: customizationForm.sizes.length
         }
@@ -390,32 +393,46 @@ export default function ProductsTab({
               </div>
 
               <div className="space-y-6">
-                {/* Custom Fields Toggle */}
-                <div>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={customizationForm.hasCustomFields}
-                      onChange={(e) => setCustomizationForm((prev: typeof customizationForm) => ({ ...prev, hasCustomFields: e.target.checked }))}
-                      className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
-                    />
-                    <span className="text-white font-medium">Enable Custom Fields</span>
-                  </label>
-                  <p className="text-gray-400 text-sm mt-1">Allow customers to add custom text or options to this product</p>
-                </div>
+                {/* Configuration Toggles */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-[#0F0F0F] rounded-lg p-4 border border-[#2A2A2A]">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={customizationForm.hasCustomFields}
+                        onChange={(e) => setCustomizationForm((prev: typeof customizationForm) => ({ ...prev, hasCustomFields: e.target.checked }))}
+                        className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
+                      />
+                      <span className="text-white font-medium">Enable Custom Fields</span>
+                    </label>
+                    <p className="text-gray-400 text-xs mt-2">Allow customers to enter custom information (e.g., name on jersey, player number)</p>
+                  </div>
 
-                {/* Sizes Toggle */}
-                <div>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={customizationForm.hasSizes}
-                      onChange={(e) => setCustomizationForm((prev: typeof customizationForm) => ({ ...prev, hasSizes: e.target.checked }))}
-                      className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
-                    />
-                    <span className="text-white font-medium">Enable Size Selection</span>
-                  </label>
-                  <p className="text-gray-400 text-sm mt-1">Allow customers to select different sizes for this product</p>
+                  <div className="bg-[#0F0F0F] rounded-lg p-4 border border-[#2A2A2A]">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={customizationForm.hasSizes}
+                        onChange={(e) => setCustomizationForm((prev: typeof customizationForm) => ({ ...prev, hasSizes: e.target.checked }))}
+                        className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
+                      />
+                      <span className="text-white font-medium">Enable Size Selection</span>
+                    </label>
+                    <p className="text-gray-400 text-xs mt-2">Allow customers to select sizes with optional price modifiers</p>
+                  </div>
+
+                  <div className="bg-[#0F0F0F] rounded-lg p-4 border border-[#2A2A2A]">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={customizationForm.hasSizeChart}
+                        onChange={(e) => setCustomizationForm((prev: typeof customizationForm) => ({ ...prev, hasSizeChart: e.target.checked }))}
+                        className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
+                      />
+                      <span className="text-white font-medium">Enable Size Chart</span>
+                    </label>
+                    <p className="text-gray-400 text-xs mt-2">Show a size guide link on the product page for this item</p>
+                  </div>
                 </div>
 
                 {/* Custom Fields Section */}
