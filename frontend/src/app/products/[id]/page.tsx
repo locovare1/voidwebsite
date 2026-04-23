@@ -576,7 +576,7 @@ export default function ProductDetailPage() {
               <div className="p-2 sm:p-4 overflow-y-auto max-h-[85vh] flex items-center justify-center bg-[#050505]">
                 <div className="relative w-full">
                   <img
-                    src="/size-chart.png"
+                    src="https://scontent.xx.fbcdn.net/v/t1.15752-9/670784301_933741676130468_8460096998453077367_n.png?_nc_cat=100&ccb=1-7&_nc_sid=fc17b8&efg=eyJxZV9ncm91cHMiOlsiaWdkX2Jlc3RfZWZmb3J0X2ltYWdlOmNvbnRyb2wiXX0%3D&_nc_ohc=t7zv7zw0dBMQ7kNvwFv4Jsz&_nc_oc=AdqsoxW5IbuV85_H1w2FGsO9YHRjpnBY-3cT0eYVVgBKjx7wcbZv_SZZk23zB3bXEYhA1fqjgtdrTptP1a_z71Dk&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.xx&_nc_ss=7a22e&oh=03_Q7cD5AEVVfFCwihMhrj8QNjpZji3-4fbcUUx0oykqQSTGV4fiQ&oe=6A10E3C1"
                     alt="Size Chart"
                     className="w-full h-auto object-contain rounded-lg"
                   />
