@@ -149,10 +149,21 @@ export async function POST(req: NextRequest) {
                 console.log('Order updated successfully:', firestoreOrderId);
               } else {
                 // Order doesn't exist - create it
+                const itemsFromMetadata = metadata.items ? JSON.parse(metadata.items) : [];
+                
+                // CRITICAL: Format items to include customization if present in metadata
+                const formattedItems = itemsFromMetadata.map((item: any) => {
+                  // Check if this item has customization stored in metadata (if it was a single item order or if we have room)
+                  return {
+                    ...item,
+                    customization: item.customization || null
+                  };
+                });
+
                 const completeOrderData = {
                   ...orderData,
                   id: firestoreOrderId,
-                  items: metadata.items ? JSON.parse(metadata.items) : [],
+                  items: formattedItems,
                   total: actualAmount,
                   customerInfo: {
                     name: metadata.customerName || '',

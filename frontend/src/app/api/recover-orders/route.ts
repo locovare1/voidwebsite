@@ -70,6 +70,12 @@ export async function POST(req: NextRequest) {
         const amount = paymentIntent.amount / 100; // Convert from cents
         const currency = paymentIntent.currency.toUpperCase();
 
+        const itemsFromMetadata = metadata.items ? JSON.parse(metadata.items) : [];
+        const formattedItems = itemsFromMetadata.map((item: any) => ({
+          ...item,
+          customization: item.customization || null
+        }));
+
         const orderData = {
           id: firestoreOrderId,
           paymentIntentId: paymentIntent.id,
@@ -77,7 +83,7 @@ export async function POST(req: NextRequest) {
           paidAmount: amount,
           currency: currency,
           total: amount,
-          items: metadata.items ? JSON.parse(metadata.items) : [],
+          items: formattedItems,
           customerInfo: {
             name: metadata.customerName || '',
             email: metadata.customerEmail || '',

@@ -247,7 +247,8 @@ export default function CheckoutModal({ isOpen, onClose, total, items }: Checkou
               id: item.id,
               name: item.name,
               price: item.price,
-              quantity: item.quantity
+              quantity: item.quantity,
+              customization: item.customization
               // Note: image excluded to stay under Stripe's 500 char metadata limit
             }))),
           },
